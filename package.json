@@ -1,0 +1,12 @@
+{
+  "name": "homey",
+  "version": "1.0.0",
+  "description": "type declarations for homey",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Athom B.V.",
+  "license": "ISC"
+}
