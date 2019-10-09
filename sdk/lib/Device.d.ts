@@ -11,7 +11,7 @@ export = Device;
  * @hideconstructor
  */
 declare class Device extends SimpleClass {
-    private constructor(deviceData: any, driver: any, client: any);
+    constructor(deviceData: any, driver: any, client: any);
     getAppId(): any;
     /**
      * Returns a Promise which is resolved when the Device is ready ({@link Device#onInit} has been run).

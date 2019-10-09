@@ -22,7 +22,7 @@ export = App;
  * module.exports = MyApp;
  */
 declare class App extends SimpleClass {
-    private constructor(manifest: any);
+    constructor(manifest: any);
     /**
      * This method is called upon initialization of your app
      */

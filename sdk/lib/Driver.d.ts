@@ -1,4 +1,15 @@
 import SimpleClass = require("./SimpleClass");
+import DiscoveryStrategy = require("./DiscoveryStrategy");
+
+type Callback = (error: Error, data: any) => void;
+declare class PairSocket {
+    on(event: string, listener: (data: any, callback: Callback) => void): PairSocket;
+    emit(event: string, data: any): Promise<any>;
+    showView(viewId: string): Promise<any>;
+    nextView(): Promise<any>;
+    prevView(): Promise<any>;
+    done(): Promise<any>;
+}
 
 export = Driver;
 /**
@@ -28,8 +39,7 @@ declare class Driver extends SimpleClass {
      * }
      */
     static isEqualDeviceData(deviceDataA: any, deviceDataB: any): any;
-    private constructor(driverId: any, client: any, manifest: any);
-    id: string;
+    constructor(driverId: any, client: any, manifest: any);
     /**
      * Returns a promise which is resolved when the Driver is ready ({@link Driver#onInit} has been run).
      * @returns {Promise<void>} promise that is resolved when the Drivers Manager is ready
@@ -56,7 +66,7 @@ declare class Driver extends SimpleClass {
      * Get the driver's discovery strategy when defined in the manifest
      * @returns {DiscoveryStrategy}
      */
-    getDiscoveryStrategy(): any;
+    getDiscoveryStrategy(): DiscoveryStrategy;
     /**
      * This method is called when the driver is inited.
      */
@@ -65,11 +75,10 @@ declare class Driver extends SimpleClass {
      * This method is called when a pair session starts.
      * @param {PairSocket} socket Bi-directional socket for communication with the front-end
      */
-    onPair(socket: any): void;
+    onPair(socket: PairSocket): void;
     /**
      * This method is called when no custom onPair() method has been defined, and the default is being used.
      * Simple drivers should override this method to provide a list of devices ready to be paired.
-     * @returns {Promise<any[]>}
      */
-    onPairListDevices(): Promise<any[]>;
+    onPairListDevices(data: any, callback: Callback): void;
 }
