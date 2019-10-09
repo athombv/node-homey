@@ -1,4 +1,5 @@
 import SimpleClass = require("./SimpleClass");
+import Driver = require("./Driver");
 import Image = require("./Image");
 import DiscoveryResult = require("./DiscoveryResult");
 
@@ -16,15 +17,14 @@ declare class Device extends SimpleClass {
     constructor(deviceData: any, driver: any, client: any);
     getAppId(): any;
     /**
-     * Returns a Promise which is resolved when the Device is ready ({@link Device#onInit} has been run).
-     * @returns {Promise<void>}
+     * Calls the callback when the Device is ready ({@link Device#onInit} has been run).
      */
-    ready(): Promise<void>;
+    ready(callback: () => void): void;
     /**
      * Get the device's driver
      * @returns {Driver} The device's driver instance
      */
-    getDriver(): any;
+    getDriver(): Driver;
     /**
      * Get the device's state (capability values)
      * @returns {Object} The device's state object

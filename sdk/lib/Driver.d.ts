@@ -1,5 +1,6 @@
 import SimpleClass = require("./SimpleClass");
 import DiscoveryStrategy = require("./DiscoveryStrategy");
+import Device = require("./Device");
 
 type Callback = (error: Error, data: any) => void;
 declare class PairSocket {
@@ -41,15 +42,14 @@ declare class Driver extends SimpleClass {
     static isEqualDeviceData(deviceDataA: any, deviceDataB: any): any;
     constructor(driverId: any, client: any, manifest: any);
     /**
-     * Returns a promise which is resolved when the Driver is ready ({@link Driver#onInit} has been run).
-     * @returns {Promise<void>} promise that is resolved when the Drivers Manager is ready
+     * Calls the callback when the Driver is ready ({@link Driver#onInit} has been run).
      */
-    ready(): Promise<void>;
+    ready(callback: () => void): void;
     /**
      * Get an Array with all {@link Device} instances
      * @returns {Array} Devices
      */
-    getDevices(): any[];
+    getDevices(): Device[];
     /**
      * Get a Device instance by its deviceData object.
      * @param {Object} deviceData Unique Device object as provided during pairing
