@@ -1,4 +1,6 @@
 import SimpleClass = require("./SimpleClass");
+import Image = require("./Image");
+import DiscoveryResult = require("./DiscoveryResult");
 
 export = Device;
 
@@ -232,18 +234,12 @@ declare class Device extends SimpleClass {
      * @returns {Promise<Object>} - The new store
      */
     unsetStoreValue(key: string): Promise<any>;
-    __setImage({ id, type, title, image, }: {
-        id: any;
-        type: any;
-        title: any;
-        image: any;
-    }): Promise<any>;
     /**
      * Set this device's album art
      * @param {Image} image
      * @returns {Promise<any>}
      */
-    setAlbumArtImage(image: import("./Image")): Promise<any>;
+    setAlbumArtImage(image: Image): Promise<any>;
     /**
      * Set a device's camera image
      * @param {string} id Unique ID of the image (e.g. `front`)
@@ -251,7 +247,7 @@ declare class Device extends SimpleClass {
      * @param {Image} image
      * @returns {Promise<any>}
      */
-    setCameraImage(id: string, title: string, image: import("./Image")): Promise<any>;
+    setCameraImage(id: string, title: string, image: Image): Promise<any>;
     destroy(): void;
     /**
      * This method is called when the user updates the device's settings.
@@ -284,20 +280,20 @@ declare class Device extends SimpleClass {
      * By default, the method will match on a device's data.id property.
      * @param {DiscoveryResult} discoveryResult
      */
-    onDiscoveryResult(discoveryResult: any): boolean;
+    onDiscoveryResult(discoveryResult: DiscoveryResult): boolean;
     /**
      * This method is called when the device is found for the first time. Overload this method to create a connection to the device. Throwing here will make the device unavailable with the error message.
      * @param {DiscoveryResult} discoveryResult
      */
-    onDiscoveryAvailable(discoveryResult: any): void;
+    onDiscoveryAvailable(discoveryResult: DiscoveryResult): void;
     /**
      * This method is called when the device's address has changed.
      * @param {DiscoveryResult} discoveryResult
      */
-    onDiscoveryAddressChanged(discoveryResult: any): void;
+    onDiscoveryAddressChanged(discoveryResult: DiscoveryResult): void;
     /**
      * This method is called when the device has been found again.
      * @param {DiscoveryResult} discoveryResult
      */
-    onDiscoveryLastSeenChanged(discoveryResult: any): void;
+    onDiscoveryLastSeenChanged(discoveryResult: DiscoveryResult): void;
 }
