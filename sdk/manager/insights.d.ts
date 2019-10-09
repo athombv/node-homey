@@ -1,3 +1,6 @@
+import Manager = require("../lib/Manager");
+import InsightsLog = require("../lib/InsightsLog");
+
 export = ManagerInsights;
 declare const ManagerInsights_base: any;
 /**
@@ -5,27 +8,18 @@ declare const ManagerInsights_base: any;
  * @namespace ManagerInsights
  * @global
  */
-declare class ManagerInsights extends ManagerInsights_base {
-    [x: string]: any;
-    _initLog(logObj: any): any;
-    _onLogEmit(id: any, event: any, obj: any, callback: any): any;
+declare class ManagerInsights extends Manager {
     /**
      * Get all logs belonging to this app.
-     * @param {Function} [callback]
-     * @param {Error} callback.err
-     * @param {Array} callback.logs - An array of {@link InsightsLog} instances
-     * @returns {Promise}
+     * @returns {Promise<InsightsLog[]>} An array of {@link InsightsLog} instances
      */
-    getLogs(callback?: Function, ...args: any[]): Promise<any>;
+    getLogs(): Promise<InsightsLog[]>;
     /**
      * Get a specific log belonging to this app.
      * @param {string} id - ID of the log (must be lowercase, alphanumeric)
-     * @param {Function} [callback]
-     * @param {Error} callback.err
-     * @param {InsightsLog} callback.log
-     * @returns {Promise}
+     * @returns {Promise<InsightsLog>}
      */
-    getLog(id: string, callback?: Function, ...args: any[]): Promise<any>;
+    getLog(id: string): Promise<InsightsLog>;
     /**
      * Create a log.
      * @param {string} id - ID of the log (must be lowercase, alphanumeric)
@@ -35,10 +29,7 @@ declare class ManagerInsights extends ManagerInsights_base {
      * @param {string} [options.chart] - Chart type, can be either <em>line</em>, <em>area</em>, <em>stepLine</em>, <em>column</em>, <em>spline</em>, <em>splineArea</em> or <em>scatter</em>
      * @param {string} [options.units] - Units of the values, e.g. <em>°C</em>
      * @param {number} [options.decimals] - Number of decimals visible
-     * @param {Function} [callback]
-     * @param {Error} callback.err
-     * @param {InsightsLog} callback.log
-     * @returns {Promise}
+     * @returns {Promise<InsightsLog>}
      */
     createLog(id: string, options: {
         title: string;
@@ -46,12 +37,11 @@ declare class ManagerInsights extends ManagerInsights_base {
         chart?: string;
         units?: string;
         decimals?: number;
-    }, callback?: Function, ...args: any[]): Promise<any>;
+    }): Promise<InsightsLog>;
     /**
      * Delete a log.
      * @param {InsightsLog} log
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<any>}
      */
-    deleteLog(log: any, callback?: any): Promise<any>;
+    deleteLog(log: InsightsLog): Promise<any>;
 }

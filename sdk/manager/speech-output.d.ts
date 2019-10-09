@@ -1,20 +1,19 @@
+import Manager = require("../lib/Manager");
+
 export = ManagerSpeechOutput;
-declare const ManagerSpeechOutput_base: any;
 /**
  * @memberof Homey
  * @namespace ManagerSpeechOutput
  * @global
  */
-declare class ManagerSpeechOutput extends ManagerSpeechOutput_base {
-    [x: string]: any;
+declare class ManagerSpeechOutput extends Manager {
     /**
      * Let Homey say something. There is a limit of 255 characters.
      * @permission homey:manager:speech-output
      * @param {string} text - The sentence to say
      * @param {Object} opts
      * @param {Object} opts.session - The session of the speech. Leave empty to use Homey's built-in speaker
-     * @param {genericCallbackFunction} callback
-     * @returns Promise
+     * @returns {Promise<any>}
      * @example
      * const Homey = require('homey');
      * Homey.ManagerSpeechOutput.say('Hello world!')
@@ -23,5 +22,5 @@ declare class ManagerSpeechOutput extends ManagerSpeechOutput_base {
      */
     say(text: string, opts: {
         session: any;
-    }, callback: any): any;
+    }): Promise<any>;
 }

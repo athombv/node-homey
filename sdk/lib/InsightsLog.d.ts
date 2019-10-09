@@ -5,17 +5,15 @@ export = InsightsLog;
  * @hideconstructor
  */
 declare class InsightsLog {
-    constructor(log: any, client: any);
-    __client: any;
+    private constructor(log: any, client: any);
     get name(): any;
     /**
      * Create an entry (logged value).
      * @param {number|boolean} value
      * @param {Date} [date] - Defaults to Date.now()
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<any>}
      */
-    createEntry(value: number | boolean, date?: Date, callback?: any): Promise<any>;
+    createEntry(value: number | boolean, date?: Date): Promise<any>;
     toJSON(): {
         name: any;
         options: any;

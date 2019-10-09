@@ -1,30 +1,22 @@
+import Manager = require("../lib/Manager");
+
 export = ManagerApps;
-declare const ManagerApps_base: any;
 /**
  * @memberof Homey
  * @namespace ManagerApps
  * @global
  */
-declare class ManagerApps extends ManagerApps_base {
-    [x: string]: any;
-    __onInit(): void;
-    _onEvent(data: any): void;
+declare class ManagerApps extends Manager {
     /**
      * Check whether an app is installed, enabled and running.
      * @param {ApiApp} appInstance
-     * @param {Function} [callback]
-     * @param {Error} callback.err
-     * @param {boolean} callback.installed
-     * @returns {Promise}
+     * @returns {Promise<boolean>}
      */
-    getInstalled(appInstance: any, callback?: Function): Promise<any>;
+    getInstalled(appInstance: any): Promise<boolean>;
     /**
      * Get an installed app's version.
      * @param {ApiApp} appInstance
-     * @param {Function} [callback]
-     * @param {Error} callback.err
-     * @param {string} callback.version
-     * @returns {Promise}
+     * @returns {Promise<string>}
      */
-    getVersion(appInstance: any, callback?: Function): Promise<any>;
+    getVersion(appInstance: any): Promise<string>;
 }

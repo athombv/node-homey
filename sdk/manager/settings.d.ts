@@ -1,19 +1,12 @@
+import Manager = require("../lib/Manager");
+
 export = ManagerSettings;
-declare const ManagerSettings_base: any;
 /**
  * @memberof Homey
  * @namespace ManagerSettings
  * @global
  */
-declare class ManagerSettings extends ManagerSettings_base {
-    [x: string]: any;
-    __onInit(): void;
-    _updateSettingsTimeout: any;
-    _writing: boolean;
-    _settings: any;
-    _onSettingsGet(data: any, callback: any): any;
-    _onSettingsSet(data: any, callback: any): any;
-    _onSettingsUnset(data: any, callback: any): any;
+declare class ManagerSettings extends Manager {
     /**
      * Get all settings keys.
      * @returns {String[]}
@@ -46,6 +39,4 @@ declare class ManagerSettings extends ManagerSettings_base {
      * @param {string} key
      */
     unset(key: string): void;
-    _updateSettings(): void;
-    _realtime(event: any, data: any): void;
 }

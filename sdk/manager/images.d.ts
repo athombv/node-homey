@@ -1,37 +1,30 @@
+import Manager = require("../lib/Manager");
+import Image = require("../lib/Image");
+
 export = ManagerImages;
-declare const ManagerImages_base: any;
 /**
  * @memberof Homey
  * @namespace ManagerImages
  * @tutorial Images
  * @global
  */
-declare class ManagerImages extends ManagerImages_base {
-    [x: string]: any;
-    __onInit(): void;
-    _images: {};
-    __onPipe(data: any, callback: any): any;
-    __onImageEmit(imageId: any, event: any, args: any, callback: any): any;
+declare class ManagerImages extends Manager {
     /**
      * Get a registered {@link Image}.
      * @param {String} id
      * @returns {Image|Error}
      */
-    getImage(id: string): any;
+    getImage(id: string): Image | Error;
     /**
      * Register a {@link Image}.
      * @param {Image} imageInstance
-     * @param {Function} [callback]
-     * @param {Error} callback.err
-     * @param {Image} callback.image
-     * @returns {Promise}
+     * @returns {Promise<Image>}
      */
-    registerImage(imageInstance: any, callback?: Function, ...args: any[]): Promise<any>;
+    registerImage(imageInstance: Image): Promise<Image>;
     /**
      * Unregister a {@link Image}.
      * @param {Image} imageInstance
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<void>}
      */
-    unregisterImage(imageInstance: any, callback?: any, ...args: any[]): Promise<any>;
+    unregisterImage(imageInstance: Image): Promise<void>;
 }

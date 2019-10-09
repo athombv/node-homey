@@ -1,15 +1,20 @@
+import DiscoveryResult = require("./DiscoveryResult");
+
 export = DiscoveryResultMAC;
-declare const DiscoveryResultMAC_base: typeof import("./DiscoveryResult");
 /**
  * This is a discovery result of a MAC discovery strategy.
  * This class should not be instanced manually.
  * @extends DiscoveryResult
  * @since 2.5.0
- * @property {string} id - The identifier of the result.
- * @property {Date} lastSeen - When the device has been last discovered.
- * @property {string} address - The (IP) address of the device.
- * @property {string} mac - The MAC address of the device.
  */
-declare class DiscoveryResultMAC extends DiscoveryResultMAC_base {
-    constructor(props: any);
+declare class DiscoveryResultMAC extends DiscoveryResult {
+    /** The identifier of the result. */
+    id: string;
+    /** When the device has been last discovered. */
+    lastSeen: Date;
+    /** The (IP) address of the device. */
+    address: string;
+    /** The MAC address of the device. */
+    mac: string;
+    protected constructor(props: any);
 }

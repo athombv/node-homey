@@ -1,13 +1,16 @@
+import SimpleClass = require("./SimpleClass");
+
 export = DiscoveryResult;
-declare const DiscoveryResult_base: any;
+
 /**
  * This class should not be instanced manually.
- * @property {string} id - The identifier of the result.
- * @property {Date} lastSeen - When the device has been last discovered.
  * @since 2.5.0
  */
-declare class DiscoveryResult extends DiscoveryResult_base {
-    [x: string]: any;
+declare class DiscoveryResult extends SimpleClass {
+    /** The identifier of the result. */
+    id: string
+    /** When the device has been last discovered. */
+    lastSeen: Date
     /**
      * Fires when the address has changed.
      * @event DiscoveryResult#addressChanged
@@ -18,5 +21,5 @@ declare class DiscoveryResult extends DiscoveryResult_base {
      * @event DiscoveryResult#lastSeenChanged
      * @param {DiscoveryResult} discoveryResult
      */
-    constructor(props: any);
+    protected constructor(props: any);
 }

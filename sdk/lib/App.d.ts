@@ -1,3 +1,5 @@
+import SimpleClass = require("./SimpleClass");
+
 export = App;
 /**
  * The App class is your start point for any app.
@@ -19,11 +21,8 @@ export = App;
  *
  * module.exports = MyApp;
  */
-declare class App {
-    constructor(manifest: any);
-    manifest: any;
-    id: any;
-    sdk: any;
+declare class App extends SimpleClass {
+    private constructor(manifest: any);
     /**
      * This method is called upon initialization of your app
      */

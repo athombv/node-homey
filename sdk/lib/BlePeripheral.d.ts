@@ -1,36 +1,46 @@
+import BleService = require("./BleService");
+import SimpleClass = require("./SimpleClass");
+
 export = BlePeripheral;
-declare const BlePeripheral_base: any;
-/**
- * @typedef {Object} BlePeripheral#Advertisement
- * @property {string} localName - The local name of the peripheral
- * @property {string} manufacturerData - Manufacturer specific data for peripheral
- * @property {string[]} serviceData - Array of service data entries
- * @property {string[]} serviceUuids - Array of service uuids
- */
+
+type BlePeripheralAdvertisement = {
+    /** The local name of the peripheral */
+    localName: string;
+    /** Manufacturer specific data for peripheral */
+    manufacturerData: string;
+    /** Array of service data entries */
+    serviceData: string[];
+    /** Array of service uuids */
+    serviceUuids: string[];
+}
+
 /**
  * This class is a representation of a BLE peripheral in Homey.
  * This class must not be initiated by the developer, but retrieved by calling {@link BleAdvertisement#connect}.
- * @property {string} id - Id of the peripheral assigned by Homey
- * @property {string} uuid - Uuid of the peripheral
- * @property {string} address - The mac address of the peripheral
- * @property {string} addressType - The address type of the peripheral
- * @property {boolean} connectable - Indicates if Homey can connect to the peripheral
- * @property {number} rssi - The rssi signal strength value for the peripheral
- * @property {string} state - The state of the peripheral
- * @property {boolean} isConnected - If the peripheral is currently connected to Homey
- * @property {BleService[]} services - Array of services of the peripheral. Note that this array is only filled after the service is discovered by {BleAdvertisement#discoverServices} or {BleAdvertisement#discoverService}
- * @property {BlePeripheral#Advertisement} advertisement - Advertisement data of the peripheral
+ 
  */
-declare class BlePeripheral extends BlePeripheral_base {
-    [x: string]: any;
-    constructor(config: any);
-    __client: any;
-    id: any;
-    uuid: any;
-    advertisement: any;
-    services: any[];
-    _touchConnection(): void;
-    _disconnectTimeout: number;
+declare class BlePeripheral extends SimpleClass {
+    private constructor(config: any);
+    /** Id of the peripheral assigned by Homey */
+    id: string;
+    /** Uuid of the peripheral */
+    uuid: string;
+    /** The mac address of the peripheral */
+    address: string;
+    /** The address type of the peripheral */
+    addressType: string;
+    /** Indicates if Homey can connect to the peripheral */
+    connectable: boolean;
+    /** The rssi signal strength value for the peripheral */
+    rssi: number;
+    /** The state of the peripheral */
+    state: string;
+    /** Array of services of the peripheral. Note that this array is only filled after the service is discovered by {BleAdvertisement#discoverServices} or {BleAdvertisement#discoverService} */
+    services: BleService[];
+    /** Advertisement data of the peripheral */
+    advertisement: BlePeripheralAdvertisement;
+ 
+    /** If the peripheral is currently connected to Homey */
     get isConnected(): boolean;
     /**
      * Asserts that the device is connected and if not, connects with the device.
@@ -43,11 +53,6 @@ declare class BlePeripheral extends BlePeripheral_base {
      */
     connect(): import("./BlePeripheral");
     connectionId: any;
-    state: any;
-    address: any;
-    addressType: any;
-    connectable: any;
-    rssi: any;
     /**
      * Disconnect Homey from the peripheral
      * @returns {Promise}
@@ -57,65 +62,37 @@ declare class BlePeripheral extends BlePeripheral_base {
      * Updates the RSSI signal strength value
      * @returns {string} rssi
      */
-    updateRssi(): string;
+    updateRssi(): Promise<string>;
     /**
      * Discovers the services of the peripheral
      * @param {string[]} [servicesFilter] list of services to discover, if not given all services will be discovered
-     * @returns {BleService[]}
+     * @returns {Promise<BleService[]>}
      */
-    discoverServices(servicesFilter?: string[]): any[];
+    discoverServices(servicesFilter?: string[]): Promise<BleService[]>;
     /**
      * Discovers all services and characteristics of the peripheral
-     * @returns {BleService[]}
+     * @returns {Promise<BleService[]>}
      */
-    discoverAllServicesAndCharacteristics(): any[];
+    discoverAllServicesAndCharacteristics(): Promise<BleService[]>;
     /**
      * Get a service with the given uuid
      * @param {string} uuid The uuid of the service
-     * @returns {BleService}
+     * @returns {Promise<BleService>}
      */
-    getService(uuid: string): any;
+    getService(uuid: string): Promise<BleService>;
     /**
      * Shorthand to read a characteristic for given serviceUuid and characteristicUuid
      * @param {string} serviceUuid The uuid of the service that has given characteristic
      * @param {string} characteristicUuid The uuid of the characteristic that needs to be read
-     * @returns {Buffer}
+     * @returns {Promise<Buffer>}
      */
-    read(serviceUuid: string, characteristicUuid: string): any;
-    readAll(): Promise<void>;
+    read(serviceUuid: string, characteristicUuid: string): Promise<Buffer>;
     /**
      * Shorthand to write to a characteristic for given serviceUuid and characteristicUuid
      * @param {string} serviceUuid The uuid of the service that has given characteristic
      * @param {string} characteristicUuid The uuid of the characteristic that needs to be written to
      * @param {Buffer} data The data that needs to be written
-     * @returns {Buffer}
+     * @returns {Promise<Buffer>}
      */
-    write(serviceUuid: string, characteristicUuid: string, data: any): any;
-    writeAll(): Promise<void>;
-    getInfoString(): void;
-    __createServiceInstance(service: any): any;
+    write(serviceUuid: string, characteristicUuid: string, data: Buffer): Promise<Buffer>;
 }
-declare namespace BlePeripheral {
-    export { BlePeripheral };
-}
-/**
- * #Advertisement
- */
-type BlePeripheral = {
-    /**
-     * - The local name of the peripheral
-     */
-    localName: string;
-    /**
-     * - Manufacturer specific data for peripheral
-     */
-    manufacturerData: string;
-    /**
-     * - Array of service data entries
-     */
-    serviceData: string[];
-    /**
-     * - Array of service uuids
-     */
-    serviceUuids: string[];
-};

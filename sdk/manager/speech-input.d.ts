@@ -1,13 +1,12 @@
+import Manager = require("../lib/Manager");
+
 export = ManagerSpeechInput;
-declare const ManagerSpeechInput_base: any;
 /**
  * @memberof Homey
  * @namespace ManagerSpeechInput
  * @global
  */
-declare class ManagerSpeechInput extends ManagerSpeechInput_base {
-    [x: string]: any;
-    __onInit(): void;
+declare class ManagerSpeechInput extends Manager {
     /**
      * This event is fired when a speech query has been received, and needs feedback.
      * @event ManagerSpeechInput#speechEval
@@ -47,13 +46,8 @@ declare class ManagerSpeechInput extends ManagerSpeechInput_base {
      * @param {string} speech.allZones - A structured phrase which can be used to provide user feedback about the detected Zone names. Format: "in the {zone_name}(, {zone_name})*( and the {zone_name})?"
      * @param {genericCallbackFunction} callback - A truthy response is used to indicate that your App can process this transcript. The returned value will be passed on to the onSpeechMatch event
      */
-    _onSpeechEval(speech: {
-        session: string;
-        transcript: string;
-        matches: any;
-        words: any[];
-    }, callback: any): void;
-    /**
+
+     /**
      * @event ManagerSpeechInput#speechMatch
      * @param {Object} speech - Information about what the user said
      * @param {string} speech.session - The session where the speech command originated from
@@ -94,8 +88,8 @@ declare class ManagerSpeechInput extends ManagerSpeechInput_base {
      * @param {ManagerSpeechInput#confirm} speech.confirm - A shorthand method to ask a Yes/No question, with the correct session
      * @param {*} onSpeechData The result from {@link ManagerSpeechInput#event:speechEval speechEval}
      */
-    _onSpeechMatch(data: any): void;
-    /**
+
+     /**
      * Let Homey ask a question. There is a limit of 255 characters.
      * @permission homey:manager:speech-input
      * @permission homey:manager:speech-output
@@ -103,15 +97,12 @@ declare class ManagerSpeechInput extends ManagerSpeechInput_base {
      * @param {Object} opts
      * @param {Object} [opts.session] - The session of the speech. Leave empty to use Homey's built-in speaker
      * @param {number} [opts.timeout] - Amount of seconds until the response has timed-out
-     * @param {Function} [callback]
-     * @param {Error} callback.err
-     * @param {string} callback.result - The text of the answer
-     * @returns Promise
+     * @returns {Promise<string>} - The text of the answer
      */
     ask(text: string, opts: {
         session?: any;
         timeout?: number;
-    }, callback?: Function): any;
+    }): Promise<string>;
     /**
      * Let Homey ask a Yes/No question. There is a limit of 255 characters.
      * @permission homey:manager:speech-input
@@ -120,13 +111,10 @@ declare class ManagerSpeechInput extends ManagerSpeechInput_base {
      * @param {Object} opts
      * @param {Object} [opts.session] - The session of the speech. Leave empty to use Homey's built-in speaker
      * @param {number} [opts.timeout] - Amount of seconds until the response has timed-out
-     * @param {Function} [callback]
-     * @param {Error} callback.err
-     * @param {boolean} callback.result - Indicating whether the user answered with yes (true) or no (false)
-     * @returns Promise
+     * @returns {Promise<boolean>} - Indicating whether the user answered with yes (true) or no (false)
      */
     confirm(text: string, opts: {
         session?: any;
         timeout?: number;
-    }, callback?: Function): any;
+    }): Promise<boolean>;
 }

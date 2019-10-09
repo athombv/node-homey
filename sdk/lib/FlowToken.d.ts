@@ -9,29 +9,22 @@ export = FlowToken;
  */
 declare class FlowToken {
     constructor(id: any, opts: any);
-    id: any;
-    opts: any;
     /**
      * Register the token.
      * This is a shorthand method for {@link ManagerFlow#registerToken}.
-     * @param {Function} [callback]
-     * @param {Error} callback.err
-     * @param {FlowToken} callback.token
-     * @returns {Promise}
+     * @returns {Promise<FlowToken>}
      */
-    register(callback?: Function): Promise<any>;
+    register(): Promise<FlowToken>;
     /**
      * Unregister the token.
      * This is a shorthand method for {@link ManagerFlow#unregisterToken}.
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<any>}
      */
-    unregister(callback?: any): Promise<any>;
+    unregister(): Promise<any>;
     /**
      * Set or update the value of the token.
      * @param {string|number|boolean|Image} value - The value of the token, should be of the same type as defined in the Token instance
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<any>}
      */
-    setValue(value: any, callback?: any): Promise<any>;
+    setValue(value: any): Promise<any>;
 }

@@ -1,16 +1,17 @@
+import Manager = require("../lib/Manager");
+import Notification = require("../lib/Notification");
+
 export = ManagerNotifications;
-declare const ManagerNotifications_base: any;
 /**
  * @memberof Homey
  * @namespace ManagerNotifications
  * @global
  */
-declare class ManagerNotifications extends ManagerNotifications_base {
-    [x: string]: any;
+declare class ManagerNotifications extends Manager {
     /**
      * Create a notification
      * @param {Notification} notification
-     * @param {genericCallbackFunction} callback
+     * @returns {Promise<any>}
      */
-    registerNotification(notification: Notification, callback: any): any;
+    registerNotification(notification: Notification): Promise<any>;
 }

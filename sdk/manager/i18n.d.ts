@@ -1,19 +1,12 @@
+import Manager = require("../lib/Manager");
+
 export = ManagerI18n;
-declare const ManagerI18n_base: any;
 /**
  * @memberof Homey
  * @namespace ManagerI18n
  * @global
  */
-declare class ManagerI18n extends ManagerI18n_base {
-    [x: string]: any;
-    __onInit(): void;
-    _language: any;
-    _units: any;
-    __: {
-        (input: any, context: any): any;
-        _strings: any;
-    };
+declare class ManagerI18n extends Manager {
     /**
      * Translate a string, as defined in the app's `/locales/<language>.json` file.
      * This method is also available at @{link Homey#__}
@@ -24,16 +17,18 @@ declare class ManagerI18n extends ManagerI18n_base {
      * @returns {string} The translated string
      * @example <caption><code>/locales/en.json</code></caption>
      * {
-       *   "welcome": "Welcome, __name__!"
-       * }
+     *   "welcome": "Welcome, __name__!"
+     * }
      * @example <caption>/app.js</caption>
      * const Homey = require('homey');
      *
      * let welcomeMessage = Homey.__('welcome', {
-       *   name: 'Dave'
-       * }
+     *   name: 'Dave'
+     * }
      * console.log( welcomeMessage ); // "Welcome, Dave!"
      */
+    __(input: any, context: any): any;
+
     /**
      * Get Homey's current language
      * @returns {string} The language as a 2-character string (e.g. `en`)

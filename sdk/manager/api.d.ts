@@ -1,49 +1,39 @@
+import Manager = require("../lib/Manager");
+
 export = ManagerApi;
-declare const ManagerApi_base: any;
 /**
  * @memberof Homey
  * @namespace ManagerApi
  * @global
  */
-declare class ManagerApi extends ManagerApi_base {
-    [x: string]: any;
-    __onInit(): void;
-    _endpoints: any;
-    _apis: {};
-    _onRest(data: any, callback: any): void;
-    _onRealtime(data: any): void;
-    _call(method: any, path: any, body: any, callback: any, ...args: any[]): any;
+declare class ManagerApi extends Manager {
     /**
      * Perform a GET request.
      * @param {string} path - The full path of the request, relative to /api.
-     * @param {genericCallbackFunction} [callback]
-     * @returns Promise
+     * @returns {Promise<any>}
      */
-    get(path: string, callback?: any): any;
+    get(path: string): Promise<any>;
     /**
      * Perform a POST request.
      * @param {string} path - The full path of the request, relative to /api.
      * @param {*} body - The body of the request.
-     * @param {genericCallbackFunction} [callback]
-     * @returns Promise
+     * @returns {Promise<any>}
      */
-    post(path: string, body: any, callback?: any): any;
+    post(path: string, body: any): Promise<any>;
     /**
      * Perform a PUT request.
      * @param {string} path - The full path of the request, relative to /api.
      * @param {*} body - The body of the request.
-     * @param {genericCallbackFunction} [callback]
-     * @returns Promise
+     * @returns {Promise<any>}
      */
-    put(path: string, body: any, callback?: any): any;
+    put(path: string, body: any): Promise<any>;
     /**
      * Perform a DELETE request.
      * @param {string} path - The full path of the request, relative to /api.
      * @param {*} body - The body of the request.
-     * @param {genericCallbackFunction} [callback]
-     * @returns Promise
+     * @returns {Promise<any>}
      */
-    delete(path: string, callback?: any): any;
+    delete(path: string): Promise<any>;
     /**
      * Emit a `realtime` event.
      * @param {string} event - The name of the event
@@ -71,15 +61,13 @@ declare class ManagerApi extends ManagerApi_base {
      * Starts a new API session on behalf of the homey owner and returns the API token.
      * The API Token expires after not being used for two weeks.
      * Requires the homey:manager:api permission
-     * @param {genericCallbackFunction} [callback]
-     * @returns Promise
+     * @returns {Promise<string>}
      */
-    getOwnerApiToken(callback?: any, ...args: any[]): any;
+    getOwnerApiToken(): Promise<string>;
     /**
      * Returns the url for local access.
      * Requires the homey:manager:api permission
-     * @param {genericCallbackFunction} [callback]
-     * @returns Promise
+     * @returns {Promise<string>}
      */
-    getLocalUrl(callback?: any, ...args: any[]): any;
+    getLocalUrl(): Promise<string>;
 }

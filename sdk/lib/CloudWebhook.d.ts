@@ -1,19 +1,17 @@
+import SimpleClass = require("./SimpleClass");
+
 export = CloudWebhook;
-declare const CloudWebhook_base: any;
+
 /**
  * A webhook class that can receive incoming messages
  */
-declare class CloudWebhook extends CloudWebhook_base {
-    [x: string]: any;
+declare class CloudWebhook extends SimpleClass {
     /**
      * @param {string} id - Webhook ID
      * @param {string} secret - Webhook Secret
      * @param {Object} data - Webhook Data
      */
     constructor(id: string, secret: string, data: any);
-    id: string;
-    secret: string;
-    data: any;
     /**
      * This event is fired when a webhook message has been received.
      * @event CloudWebhook#message
@@ -30,17 +28,15 @@ declare class CloudWebhook extends CloudWebhook_base {
     /**
      * Register the webhook.
      * This is a shortcut for {@link ManagerCloud#registerWebhook}
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<any>}
      */
-    register(callback?: any): Promise<any>;
+    register(): Promise<any>;
     /**
      * Unregister the webhook.
      * This is a shortcut for {@link ManagerCloud#unregisterWebhook}
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<any>}
      */
-    unregister(callback?: any): Promise<any>;
+    unregister(): Promise<any>;
     toJSON(): {
         id: string;
         secret: string;

@@ -1,21 +1,24 @@
+import BlePeripheral = require("./BlePeripheral");
+import SimpleClass = require("./SimpleClass");
+
 export = BleService;
 /**
  * This class is a representation of a BLE Advertisement for a {@link BlePeripheral} in Homey.
  * This class must not be initiated by the developer, but retrieved by calling {@link BlePeripheral#discoverServices} or {@link BlePeripheral#getService}.
- * @property {string} id - Id of the service assigned by Homey
- * @property {string} uuid - Uuid of the service
- * @property {BlePeripheral} peripheral - The peripheral object that is the owner of this service
- * @property {string} name - The name of the service
- * @property {string} type - The type of the service
+
  */
-declare class BleService {
-    constructor(config: any);
-    __client: any;
-    peripheral: any;
-    id: any;
-    uuid: any;
-    name: any;
-    type: any;
+declare class BleService extends SimpleClass {
+    private constructor(config: any);
+    /** Id of the service assigned by Homey */
+    id: string;
+    /** Uuid of the service */
+    uuid: string;
+    /** The peripheral object that is the owner of this service */
+    peripheral: BlePeripheral;
+    /** The name of the service */
+    name: string;
+    /** The type of the service */
+    type: string;
     characteristics: any;
     /**
      * Discovers included service uuids
@@ -26,30 +29,26 @@ declare class BleService {
     /**
      * Discover characteristics of this service
      * @param {string[]} [characteristicsFilter] List of characteristicUuids to search for
-     * @returns {BleCharacteristic[]}
+     * @returns {Promise<BleCharacteristic[]>}
      */
-    discoverCharacteristics(characteristicsFilter?: string[]): any[];
+    discoverCharacteristics(characteristicsFilter?: string[]): Promise<any[]>;
     /**
      * gets a characteristic for given characteristicUuid
      * @param {string} uuid The characteristicUuid to get
-     * @returns {BleCharacteristic}
+     * @returns {Promise<BleCharacteristic>}
      */
-    getCharacteristic(uuid: string): any;
+    getCharacteristic(uuid: string): Promise<any>;
     /**
      * Shorthand to read a characteristic for given characteristicUuid
      * @param {string} characteristicUuid The uuid of the characteristic that needs to be read
-     * @returns {Buffer}
+     * @returns {Promise<Buffer>}
      */
-    read(characteristicUuid: string): any;
-    readAll(): Promise<void>;
+    read(characteristicUuid: string): Promise<Buffer>;
     /**
      * Shorthand to write to a characteristic for given characteristicUuid
      * @param {string} characteristicUuid The uuid of the characteristic that needs to be written to
      * @param {Buffer} data The data that needs to be written
-     * @returns {Buffer}
+     * @returns {Promise<Buffer>}
      */
-    write(characteristicUuid: string, data: any): any;
-    writeAll(): Promise<void>;
-    getInfoString(): void;
-    __createCharacteristicInstance(characteristic: any): any;
+    write(characteristicUuid: string, data: Buffer): Promise<Buffer>;
 }

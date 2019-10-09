@@ -1,3 +1,5 @@
+import Api = require("./Api");
+
 export = ApiApp;
 /**
  * This class represents another App on Homey. When registered, realtime events are fired on the instance.
@@ -23,22 +25,16 @@ export = ApiApp;
  *         .then( this.log.bind( this, 'otherApp.getVersion') )
  *         .catch( this.error.bind( this, 'otherApp.getVersion') )
  */
-declare class ApiApp {
+declare class ApiApp extends Api {
     constructor(appId: any);
     /**
      * This is a short-hand method to {@link ManagerApps#getInstalled}.
-     * @param {Function} [callback]
-     * @param {Error} callback.err
-     * @param {boolean} callback.installed
-     * @returns {Promise}
+     * @returns {Promise<boolean>}
      */
-    getInstalled(callback?: Function): Promise<any>;
+    getInstalled(): Promise<boolean>;
     /**
      * This is a short-hand method to {@link ManagerApps#getVersion}.
-     * @param {Function} [callback]
-     * @param {Error} callback.err
-     * @param {string} callback.version
-     * @returns {Promise}
+     * @returns {Promise<string>}
      */
-    getVersion(callback?: Function): Promise<any>;
+    getVersion(): Promise<string>;
 }

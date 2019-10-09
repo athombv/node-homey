@@ -10,14 +10,12 @@ declare class Notification {
     constructor(options: {
         excerpt: string;
     });
-    _excerpt: string;
     /**
      * Register the notification.
      * This is a shorthand method for <code>ManagerNotifications.registerNotification()</code>.
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<any>}
      */
-    register(callback?: any): Promise<any>;
+    register(): Promise<any>;
     toJSON(): {
         excerpt: string;
     };

@@ -1,17 +1,16 @@
+import Manager = require("../lib/Manager");
+
 export = ManagerClock;
-declare const ManagerClock_base: any;
 /**
  * @memberof Homey
  * @namespace ManagerClock
  * @global
  * @since 1.5.10
 */
-declare class ManagerClock extends ManagerClock_base {
-    [x: string]: any;
-    __onInit(): void;
+declare class ManagerClock extends Manager {
     /**
      * Get the current TimeZone
-     * @returns {String}
+     * @returns {string}
      */
     getTimezone(): string;
 }

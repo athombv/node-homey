@@ -5,12 +5,10 @@ declare const CronTask_base: any;
  * @hideconstructor
  */
 declare class CronTask extends CronTask_base {
-    [x: string]: any;
-    constructor(task: any);
+    private constructor(task: any);
     /**
      * This event is fired when the task runs
      * @event CronTask#run
      * @param {Object} data - The data object as provided at {@link ManagerCron#registerTask}.
      */
-    _onRun(data: any): void;
 }

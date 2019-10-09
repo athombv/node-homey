@@ -1,5 +1,7 @@
+import SimpleClass = require("./SimpleClass");
+
 export = Device;
-declare const Device_base: any;
+
 /**
  * The Device class is a representation of a device paired in Homey.
  * This class should be extended and exported from `device.js`, or any custom class as returned in {@link Driver#onMapDeviceClass}.
@@ -8,23 +10,14 @@ declare const Device_base: any;
  * @tutorial Drivers
  * @hideconstructor
  */
-declare class Device extends Device_base {
-    [x: string]: any;
-    constructor(deviceData: any, driver: any, client: any);
-    __init(): void;
-    __onInit(): void;
-    __onCapability(data: any, callback: any): any;
-    __onRenamed(args: any): void;
-    __onAdded(args: any): void;
-    __onDeleted(args: any): void;
-    __onSettings(args: any, callback: any): void;
+declare class Device extends SimpleClass {
+    private constructor(deviceData: any, driver: any, client: any);
     getAppId(): any;
     /**
-     * Pass a callback method, which is called when the Device is ready ({@link Device#onInit} has been run).
-     * The callback is executed immediately when the Drivers Manager was already ready.
-     * @param callback {Function}
+     * Returns a Promise which is resolved when the Device is ready ({@link Device#onInit} has been run).
+     * @returns {Promise<void>}
      */
-    ready(callback: Function): void;
+    ready(): Promise<void>;
     /**
      * Get the device's driver
      * @returns {Driver} The device's driver instance
@@ -43,16 +36,14 @@ declare class Device extends Device_base {
     /**
      * Set a warning message for this device, to be shown to the user
      * @param message {string} - Custom warning message, or `null` to unset the warning
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<any>}
      */
-    setWarning(message: string, callback?: any): Promise<any>;
+    setWarning(message: string): Promise<any>;
     /**
      * Unset the warning message for this device
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<any>}
      */
-    unsetWarning(callback?: any): Promise<any>;
+    unsetWarning(): Promise<any>;
     /**
      * Get the device's availability
      * @returns {boolean} If the device is marked as available
@@ -60,17 +51,15 @@ declare class Device extends Device_base {
     getAvailable(): boolean;
     /**
      * Set the device's availability to true
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<any>}
      */
-    setAvailable(callback?: any): Promise<any>;
+    setAvailable(): Promise<any>;
     /**
      * Set the device's availability to false, with a message
      * @param message {string} - Custom unavailable message, or `null` for default
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<any>}
      */
-    setUnavailable(message: string, callback?: any): Promise<any>;
+    setUnavailable(message: string): Promise<any>;
     /**
      * Get a device's setting value
      * @param {String} key
@@ -87,11 +76,10 @@ declare class Device extends Device_base {
      * Set the device's settings object. The `newSettings` object may contain a subset of all settings.
      * Note that the {@link Device#onSettings} method will not be called when the settings are changed programmatically.
      * @param {Object} settings - A settings object
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<void>}
      * @tutorial Drivers-Settings
      */
-    setSettings(settings: any, callback?: any, ...args: any[]): Promise<any>;
+    setSettings(settings: any): Promise<void>;
     /**
      * Get an array of capabilities
      * @returns {Array} The device's capabilities array
@@ -158,10 +146,9 @@ declare class Device extends Device_base {
      * Set a device's capability value
      * @param {string} capabilityId
      * @param {*} value
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<void>}
      */
-    setCapabilityValue(capabilityId: string, value: any, callback?: any, ...args: any[]): Promise<any>;
+    setCapabilityValue(capabilityId: string, value: any): Promise<void>;
     /**
      * Get a device's capability options.
      * @param {string} capabilityId
@@ -181,44 +168,41 @@ declare class Device extends Device_base {
      * Register a listener for a capability change event.
      * This is invoked when a device's state change is requested.
      * @param {string} capabilityId
-     * @param {Function} fn
-     * @param {Mixed} fn.value - The new value
-     * @param {Object} fn.opts - An object with optional properties, e.g. `{ duration: 300 }`
-     * @param {genericCallbackFunction} fn.callback
+     * @param {Function} listener
+     * @param {Mixed} listener.value - The new value
+     * @param {Object} listener.opts - An object with optional properties, e.g. `{ duration: 300 }`
      * @example
      * this.registerCapabilityListener('dim', ( value, opts ) => {
-       *   this.log('value', value);
-       *   this.log('opts', opts);
-       *   return Promise.resolve();
-       * });
+     *   this.log('value', value);
+     *   this.log('opts', opts);
+     *   return Promise.resolve();
+     * });
      */
-    registerCapabilityListener(capabilityId: string, fn: Function): void;
+    registerCapabilityListener(capabilityId: string, listener: Function): void;
     /**
      * Register a listener for multiple capability change events. The callback is debounced with `timeout`
      * This is invoked when a device's state change is requested.
      * @param {string[]} capabilityIds
-     * @param {Function} fn
-     * @param {Mixed} fn.valueObj - An object with the changed capability values, e.g. `{ dim: 0.5 }`
-     * @param {Object} fn.optsObj - An object with optional properties, per capability, e.g. `{ dim: { duration: 300 } }`
-     * @param {genericCallbackFunction} fn.callback
+     * @param {Function} listener
+     * @param {Mixed} listener.capabilityValues - An object with the changed capability values, e.g. `{ dim: 0.5 }`
+     * @param {Object} listener.capabilityOptions - An object with optional properties, per capability, e.g. `{ dim: { duration: 300 } }`
      * @param {number} timeout - The debounce timeout
      * @example
-     * this.registerMultipleCapabilityListener([ 'dim', 'light_hue', 'light_saturation' ], ( valueObj, optsObj ) => {
-       *   this.log('valueObj', valueObj);
-       *   this.log('optsObj', optsObj);
-       *   return Promise.resolve();
-       * }, 500);
+     * this.registerMultipleCapabilityListener([ 'dim', 'light_hue', 'light_saturation' ], ( capabilityValues, capabilityOptions ) => {
+     *   this.log('capabilityValues', capabilityValues);
+     *   this.log('capabilityOptions', capabilityOptions);
+     *   return Promise.resolve();
+     * }, 500);
      */
-    registerMultipleCapabilityListener(capabilityIds: string[], fn: Function, timeout: number): void;
+    registerMultipleCapabilityListener(capabilityIds: string[], listener: Function, timeout: number): void;
     /**
      * Trigger a capability listener programmatically.
      * @param {string} capabilityId
      * @param {Mixed} value
      * @param {Object} opts
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<any>}
      */
-    triggerCapabilityListener(capabilityId: string, value: any, opts?: any, callback?: any, ...args: any[]): Promise<any>;
+    triggerCapabilityListener(capabilityId: string, value: any, opts?: any): Promise<any>;
     /**
      * Get the entire store
      * @returns {Object}
@@ -239,63 +223,48 @@ declare class Device extends Device_base {
      * Set a store value.
      * @param {string} key
      * @param {*} value
-     * @param {Function} [callback]
-     * @param {Error} callback.err
-     * @param {Object} callback.store - The new store
-     * @returns {Promise}
+     * @returns {Promise<Object>} - The new store
      */
-    setStoreValue(key: string, value: any, callback?: Function): Promise<any>;
+    setStoreValue(key: string, value: any): Promise<any>;
     /**
      * Unset a store value.
      * @param {string} key
-     * @param {Function} [callback]
-     * @param {Error} callback.err
-     * @param {Object} callback.store - The new store
-     * @returns {Promise}
+     * @returns {Promise<Object>} - The new store
      */
-    unsetStoreValue(key: string, callback?: Function): Promise<any>;
+    unsetStoreValue(key: string): Promise<any>;
     __setImage({ id, type, title, image, }: {
         id: any;
         type: any;
         title: any;
         image: any;
-    }, callback: any): any;
+    }): Promise<any>;
     /**
      * Set this device's album art
      * @param {Image} image
-     * @param callback
-     * @param {Error} callback.err
-     * @returns {Promise}
+     * @returns {Promise<any>}
      */
-    setAlbumArtImage(image: import("./Image"), callback: any): Promise<any>;
+    setAlbumArtImage(image: import("./Image")): Promise<any>;
     /**
      * Set a device's camera image
      * @param {string} id Unique ID of the image (e.g. `front`)
      * @param {string} title Title of the image (e.g. `Front`)
      * @param {Image} image
-     * @param callback
-     * @param {Error} callback.err
-     * @returns {Promise}
+     * @returns {Promise<any>}
      */
-    setCameraImage(id: string, title: string, image: import("./Image"), callback: any): Promise<any>;
+    setCameraImage(id: string, title: string, image: import("./Image")): Promise<any>;
     destroy(): void;
     /**
-     * @callback Device~settingsCallback
-     * @param {Error} [err] - Show a custom error message to the user upon saving the settings
-     * @param {string} [result] - A custom success message. Leave empty for the default message.
-     */
-    /**
      * This method is called when the user updates the device's settings.
-     * @param oldSettings {Object} The old settings object
-     * @param newSettings {Object} The new settings object
-     * @param changedKeys {Array} An array of keys changed since the previous version
-     * @param callback {Device~settingsCallback}
+     * @param {Object} oldSettings The old settings object
+     * @param {Object} newSettings The new settings object
+     * @param {Array} changedKeys An array of keys changed since the previous version
+     * @returns {Promise<string|void>} return a custom message that will be displayed
      * @tutorial Drivers-Settings
      */
-    onSettings(oldSettings: any, newSettings: any, changedKeys: any[], callback: Device): void;
+    onSettings(oldSettings: any, newSettings: any, changedKeys: any[]): Promise<string | void>;
     /**
      * This method is called when the user updates the device's name. Use this to synchronize the name to the device or bridge.
-     * @param name {string} The new name
+     * @param {string} name The new name
      */
     onRenamed(newName: any): void;
     /**
@@ -313,22 +282,22 @@ declare class Device extends Device_base {
     /**
      * This method is called when a device has been discovered. Overload this method, and return a truthy value when the result belongs to the current device or falsy when it doesn't.
      * By default, the method will match on a device's data.id property.
-     * @param discoveryResult {DiscoveryResult}
+     * @param {DiscoveryResult} discoveryResult
      */
     onDiscoveryResult(discoveryResult: any): boolean;
     /**
      * This method is called when the device is found for the first time. Overload this method to create a connection to the device. Throwing here will make the device unavailable with the error message.
-     * @param discoveryResult {DiscoveryResult}
+     * @param {DiscoveryResult} discoveryResult
      */
     onDiscoveryAvailable(discoveryResult: any): void;
     /**
      * This method is called when the device's address has changed.
-     * @param discoveryResult {DiscoveryResult}
+     * @param {DiscoveryResult} discoveryResult
      */
     onDiscoveryAddressChanged(discoveryResult: any): void;
     /**
      * This method is called when the device has been found again.
-     * @param discoveryResult {DiscoveryResult}
+     * @param {DiscoveryResult} discoveryResult
      */
     onDiscoveryLastSeenChanged(discoveryResult: any): void;
 }

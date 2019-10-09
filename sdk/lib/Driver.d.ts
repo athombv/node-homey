@@ -1,5 +1,6 @@
+import SimpleClass = require("./SimpleClass");
+
 export = Driver;
-declare const Driver_base: any;
 /**
  * The Driver class manages all Device instances, which represent all paired devices.
  * This class should be extended and exported from `driver.js`.
@@ -9,46 +10,31 @@ declare const Driver_base: any;
  * @property {string} id Driver ID as specified in the `/app.json`
  * @hideconstructor
  */
-declare class Driver extends Driver_base {
-    [x: string]: any;
+declare class Driver extends SimpleClass {
     /**
      * When this method exists, it will be called prior to initing the device instance. Return a class that extends {@link Device}.
      * @function Driver#onMapDeviceClass
      * @param {Device} device - A temporary Device instance to check certain properties before deciding which class the device should use. This class will exist for a single tick, and does not support async methods.
      * @example
      * class MyDriver extends Homey.Driver {
-       *
-       *   onMapDeviceClass( device ) {
-       *     if( device.hasCapability('dim') ) {
-       *       return MyDeviceDim;
-       *     } else {
-       *       return MyDevice;
-       *     }
-       *   }
-       * }
+     *
+     *   onMapDeviceClass( device ) {
+     *     if( device.hasCapability('dim') ) {
+     *       return MyDeviceDim;
+     *     } else {
+     *       return MyDevice;
+     *     }
+     *   }
+     * }
      */
     static isEqualDeviceData(deviceDataA: any, deviceDataB: any): any;
-    constructor(driverId: any, client: any, manifest: any);
-    id: any;
-    __onAdded(data: any, callback: any): void;
-    __onDeleted(data: any, callback: any): any;
-    __onRenamed(data: any, callback: any): any;
-    __onSettings(data: any, callback: any): any;
-    __onCapability(data: any, callback: any): any;
-    __initDevices(devices: any, callback: any): any;
-    __initDevice(device: any, callback: any): void;
-    __uninitDevice(device: any): void;
-    __onReady(devices: any, callback: any): void;
-    __onDeviceEmit(deviceAppId: any, event: any, data: any, callback: any): any;
-    __setDiscoveryStrategy(strategyId: any): void;
-    __onDiscoveryStrategyResult(discoveryResult: any): void;
-    __onDiscoveryStrategyResultDevice(device: any, discoveryResult: any): void;
+    private constructor(driverId: any, client: any, manifest: any);
+    id: string;
     /**
-     * Pass a callback method, which is called when the Driver is ready ({@link Driver#onInit} has been run).
-     * The callback is executed immediately when the Drivers Manager was already ready.
-     * @param callback {Function}
+     * Returns a promise which is resolved when the Driver is ready ({@link Driver#onInit} has been run).
+     * @returns {Promise<void>} promise that is resolved when the Drivers Manager is ready
      */
-    ready(callback: Function): void;
+    ready(): Promise<void>;
     /**
      * Get an Array with all {@link Device} instances
      * @returns {Array} Devices
@@ -56,8 +42,8 @@ declare class Driver extends Driver_base {
     getDevices(): any[];
     /**
      * Get a Device instance by its deviceData object.
-     * @param deviceData {Object} Unique Device object as provided during pairing
-     * @returns Device {Device}
+     * @param {Object} deviceData Unique Device object as provided during pairing
+     * @returns {Device} Device
      */
     getDevice(deviceData: any): any;
     getDeviceById(deviceAppId: any): any;
@@ -77,16 +63,13 @@ declare class Driver extends Driver_base {
     onInit(): void;
     /**
      * This method is called when a pair session starts.
-     * @param socket {EventEmitter} Bi-directional socket for communication with the front-end
+     * @param {PairSocket} socket Bi-directional socket for communication with the front-end
      */
     onPair(socket: any): void;
     /**
      * This method is called when no custom onPair() method has been defined, and the default is being used.
      * Simple drivers should override this method to provide a list of devices ready to be paired.
-     * @param data {Object} Empty object
-     * @param {Function} [callback]
-     * @param {Error} callback.err
-     * @param {Array} callback.result - An array of device objects
+     * @returns {Promise<any[]>}
      */
-    onPairListDevices(data: any, callback?: Function): void;
+    onPairListDevices(): Promise<any[]>;
 }

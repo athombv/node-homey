@@ -1,5 +1,6 @@
+import SimpleClass = require("./SimpleClass");
+
 export = CloudOAuth2Callback;
-declare const CloudOAuth2Callback_base: any;
 /**
  * A OAuth2 Callback class that can be used to log-in using OAuth2
  * @tutorial Drivers-Pairing-System-Views
@@ -18,32 +19,28 @@ declare const CloudOAuth2Callback_base: any;
  *         console.log(err);
  *     })
  */
-declare class CloudOAuth2Callback extends CloudOAuth2Callback_base {
-    [x: string]: any;
+declare class CloudOAuth2Callback extends SimpleClass {
     /**
      * @param {string} apiUrl - The Api url of the service you want to login with
      */
     constructor(apiUrl: string);
-    url: string;
     /**
      * Generate the OAuth2 Callback.
      * This is a shorthand method for {@link ManagerCloud#generateOAuth2Callback}
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<void>}
      */
-    generate(callback?: any): Promise<any>;
+    generate(): Promise<void>;
     /**
      * This event is fired when a URL has been received.
      * The user must be redirected to this URL to complete the sign-in process.
      * @event CloudOAuth2Callback#url
      * @param {string} url - The absolute URL to the sign-in page
      */
-    _onUrl(url: string): void;
+
     /**
      * This event is fired when a OAuth2 code has been received.
      * The code can usually be swapped by the app for an access token.
      * @event CloudOAuth2Callback#code
      * @param {String|Error} code - The OAuth2 code, or an Error when something went wrong
      */
-    _onCode(code: string | Error): void;
 }

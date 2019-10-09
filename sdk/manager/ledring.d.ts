@@ -1,48 +1,37 @@
+import Manager = require("../lib/Manager");
+import LedringAnimation = require("../lib/LedringAnimation");
+
 export = ManagerLedring;
-declare const ManagerLedring_base: any;
 /**
  * @memberof Homey
  * @namespace ManagerLedring
  * @global
  */
-declare class ManagerLedring extends ManagerLedring_base {
-    [x: string]: any;
-    __onInit(): void;
-    _animations: {};
-    _onAnimationStart(animationId: any, callback: any): any;
-    _onAnimationStop(animationId: any, callback: any): any;
-    _onAnimationUpdateFrames(animationId: any, frames: any, callback: any): any;
-    _onAnimationFn(animationId: any, method: any, args: any, callback: any): any;
+declare class ManagerLedring extends Manager {
     /**
      * Register a LED Ring animation.
      * @param {LedringAnimation} animationInstance
-     * @param {Function} [callback]
-     * @param {Error} callback.err
-     * @param {LedringAnimation} callback.animation
-     * @returns {Promise}
+     * @returns {Promise<LedringAnimation>}
      */
-    registerAnimation(animationInstance: any, callback?: Function, ...args: any[]): Promise<any>;
+    registerAnimation(animationInstance: LedringAnimation): Promise<LedringAnimation>;
     /**
      * Unregister a LED Ring animation.
      * @param {LedringAnimation} animationInstance
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<LedringAnimation>}
      */
-    unregisterAnimation(animationInstance: any, callback?: any, ...args: any[]): Promise<any>;
+    unregisterAnimation(animationInstance: LedringAnimation): Promise<LedringAnimation>;
     /**
      * Register a LED Ring screensaver.
      * @param {string} name - Name of the animation as defined in your app's `app.json`.
      * @param {LedringAnimation} animationInstance
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<any>}
      */
-    registerScreensaver(name: string, animationInstance: any, callback?: any): Promise<any>;
+    registerScreensaver(name: string, animationInstance: LedringAnimation): Promise<any>;
     /**
      * Unregister a LED Ring screensaver.
      * @param {string} name - Name of the animation as defined in your app's `app.json`.
      * @param {LedringAnimation} animationInstance
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<any>}
      */
-    unregisterScreensaver(name: string, animationInstance: any, callback?: any): Promise<any>;
+    unregisterScreensaver(name: string, animationInstance: LedringAnimation): Promise<any>;
 }

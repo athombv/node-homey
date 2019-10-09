@@ -1,58 +1,38 @@
+import Manager = require("../lib/Manager");
+
 export = ManagerCloud;
-declare const ManagerCloud_base: any;
 /**
  * @memberof Homey
  * @namespace ManagerCloud
  * @global
  */
-declare class ManagerCloud extends ManagerCloud_base {
-    [x: string]: any;
-    __onInit(): void;
-    _webhooks: {};
-    _oauth2Callbacks: {};
-    _onOAuth2CallbackCode(data: any): void;
-    _onWebhooksMessage(data: any): void;
+declare class ManagerCloud extends Manager {
     /**
      * Generate a OAuth2 Callback
      * @param {CloudOAuth2Callback} oauth2Callback
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<void>}
      */
-    generateOAuth2Callback(oauth2Callback: any, callback?: any, ...args: any[]): Promise<any>;
+    generateOAuth2Callback(oauth2Callback: any): Promise<void>;
     /**
      * Register a webhook
      * @param {CloudWebhook} webhook
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<any>}
      */
-    registerWebhook(webhook: any, callback?: any): Promise<any>;
+    registerWebhook(webhook: any): Promise<any>;
     /**
      * Unregister a webhook
      * @param {CloudWebhook} webhook
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<any>}
      */
-    unregisterWebhook(webhook: any, callback?: any): Promise<any>;
-    /**
-     * @callback ManagerCloud#getLocalAddressCallback
-     * @param {Error} err
-     * @param {string} localAddress
-     */
+    unregisterWebhook(webhook: any): Promise<any>;
     /**
      * Get Homey's local address & port
-     * @param {ManagerCloud#getLocalAddressCallback} [callback]
-     * @returns {Promise}
+     * @returns {Promise<string>} A promise that resolves to the local address
      */
-    getLocalAddress(callback: any): Promise<any>;
-    /**
-     * @callback ManagerCloud#getHomeyIdCallback
-     * @param {Error} err
-     * @param {string} cloudId
-     */
+    getLocalAddress(): Promise<string>;
     /**
      * Get Homey's Cloud ID
-     * @param {ManagerCloud#getHomeyIdCallback} [callback]
-     * @returns {Promise}
+     * @returns {Promise<string>} A promise that resolves to the cloud id
      */
-    getHomeyId(callback: any): Promise<any>;
+    getHomeyId(): Promise<string>;
 }

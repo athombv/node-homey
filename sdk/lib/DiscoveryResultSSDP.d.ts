@@ -1,3 +1,5 @@
+import DiscoveryResult = require("./DiscoveryResult");
+
 export = DiscoveryResultSSDP;
 declare const DiscoveryResultSSDP_base: typeof import("./DiscoveryResult");
 /**
@@ -5,13 +7,17 @@ declare const DiscoveryResultSSDP_base: typeof import("./DiscoveryResult");
  * This class should not be instanced manually.
  * @extends DiscoveryResult
  * @since 2.5.0
- * @property {string} id - The identifier of the result.
- * @property {Date} lastSeen - When the device has been last discovered.
- * @property {string} address - The (IP) address of the device.
- * @property {string} port - The port of the device.
- * @property {Object} headers - The headers (lowercase) in the SSDP response.
- *
  */
-declare class DiscoveryResultSSDP extends DiscoveryResultSSDP_base {
-    constructor(props: any);
+declare class DiscoveryResultSSDP extends DiscoveryResult {
+    /** The identifier of the result. */
+    id: string;
+    /** When the device has been last discovered. */
+    lastSeen: Date;
+    /** The (IP) address of the device. */
+    address: string;
+    /** The port of the device. */
+    port: string;
+    /** The headers (lowercase) in the SSDP response. */
+    headers: Object;
+    protected constructor(props: any);
 }

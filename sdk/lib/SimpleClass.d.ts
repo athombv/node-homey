@@ -6,13 +6,12 @@ export = SimpleClass;
 declare class SimpleClass {
     /**
      * Log a message to the console (stdout)
-     * @param {...*} message
+     * @param {...*} args
      */
     log(...args: any[]): void;
     /**
      * Log a message to the console (stderr)
-     * @param {...*} message
+     * @param {...*} args
      */
     error(...args: any[]): void;
-    __debug(...args: any[]): void;
 }

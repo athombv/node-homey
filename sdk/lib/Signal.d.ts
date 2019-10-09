@@ -1,53 +1,46 @@
+import SimpleClass = require("./SimpleClass");
+
 export = Signal;
-declare const Signal_base: any;
 /**
  * The Signal class represents an Signal as defined in the app's <code>app.json</code>.
  * @tutorial Signals
  */
-declare class Signal extends Signal_base {
-    [x: string]: any;
+declare class Signal extends SimpleClass {
     /**
      * @param {string} id - The ID of the signal, as defined in the app's <code>app.json</code>.
      * @param {string} frequency - The frequency of the signal
      */
     constructor(id: string, frequency: string);
-    id: string;
-    frequency: string;
-    _signalObj: any;
     /**
      * Register the signal.
      * This is a shorthand method for {@link ManagerRF#registerSignal}.
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<this>}
      */
-    register(callback?: any): Promise<any>;
+    register(): Promise<Signal>;
     /**
      * Unregister the signal.
      * This is a shorthand method for {@link ManagerRF#unregisterSignal}.
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<void>}
      */
-    unregister(callback?: any): Promise<any>;
+    unregister(): Promise<void>;
     /**
      * Transmit a frame
      * @param {Array} frame - An array of word indexes
      * @param {object} [opts] - Transmission options
      * @param {object} [opts.repetitions] - A custom amount of repetitions
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<any>}
      */
     tx(frame: any[], opts?: {
         repetitions?: any;
-    }, callback?: any): Promise<any>;
+    }): Promise<any>;
     /**
      * Transmit a command
      * @param {string} commandId - The ID of the command, as specified in `/app.json`
      * @param {object} [opts] - Transmission options
      * @param {object} [opts.repetitions] - A custom amount of repetitions
-     * @param {genericCallbackFunction} [callback]
-     * @returns {Promise}
+     * @returns {Promise<any>}
      */
     cmd(commandId: string, opts?: {
         repetitions?: any;
-    }, callback?: any): Promise<any>;
+    }): Promise<any>;
 }
