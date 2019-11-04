@@ -1,6 +1,6 @@
 {
   "name": "homey",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "type declarations for homey",
   "main": "index.js",
   "types": "index.d.ts",
@@ -11,5 +11,10 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^12.7.12"
+  },
+  "readme": "README.md",
+  "config": {
+    "npmPublishTagProduction": "latest",
+    "skipNpmInstall": true
   }
 }
