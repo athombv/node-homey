@@ -11,5 +11,9 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^12.7.12"
+  },
+  "config": {
+    "npmPublishTagProduction": "latest",
+    "skipNpmInstall": true
   }
 }
