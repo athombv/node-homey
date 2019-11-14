@@ -23,6 +23,6 @@
     "skipNpmInstall": true
   },
   "dependencies": {
-    "athom-cli": "^2.1.105"
+    "athom-cli": "^3.0.0"
   }
 }
