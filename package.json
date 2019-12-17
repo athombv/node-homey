@@ -19,10 +19,10 @@
   },
   "readme": "README.md",
   "config": {
-    "npmPublishTagProduction": "latest",
+    "npmPublishTagProduction": "beta",
     "skipNpmInstall": true
   },
   "dependencies": {
-    "athom-cli": "^3.1.0"
+    "athom-cli": "^3.1.1"
   }
 }
