@@ -1,6 +1,6 @@
 {
   "name": "homey",
-  "version": "2.0.1",
+  "version": "2.0.5",
   "description": "type declarations for homey",
   "main": "index.js",
   "types": "index.d.ts",
