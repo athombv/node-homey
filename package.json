@@ -19,7 +19,8 @@
   },
   "readme": "README.md",
   "config": {
-    "npmPublishTagProduction": "beta",
+    "npmPublishTagProduction": "latest",
+    "npmPublishTagTesting": "beta",
     "skipNpmInstall": true
   },
   "dependencies": {
