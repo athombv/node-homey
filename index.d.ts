@@ -36,8 +36,8 @@ import Signal433 from './sdk/lib/Signal433';
 import Signal868 from './sdk/lib/Signal868';
 import SignalInfrared from './sdk/lib/SignalInfrared';
 import ZigBeeNode from './sdk/lib/ZigBeeNode';
-import ZigBeeEndpoint from './sdk/lib/ZigbeeEndpoint';
-import ZigBeeCluster from './sdk/lib/ZigbeeCluster';
+import ZigBeeEndpoint from './sdk/lib/ZigBeeEndpoint';
+import ZigBeeCluster from './sdk/lib/ZigBeeCluster';
 import ZwaveCommandClass from './sdk/lib/ZwaveCommandClass';
 import ZwaveNode from './sdk/lib/ZwaveNode';
 
@@ -63,7 +63,7 @@ import ManagerRFClass from './sdk/manager/rf';
 import ManagerSettingsClass from './sdk/manager/settings';
 import ManagerSpeechInputClass from './sdk/manager/speech-input';
 import ManagerSpeechOutputClass from './sdk/manager/speech-output';
-import ManagerZigbeeClass from './sdk/manager/zigbee';
+import ManagerZigBeeClass from './sdk/manager/zigbee';
 import ManagerZwaveClass from './sdk/manager/zwave';
 
 declare function __(key: string, properties?: any): string;
@@ -91,7 +91,7 @@ declare const ManagerRF: ManagerRFClass;
 declare const ManagerSettings: ManagerSettingsClass;
 declare const ManagerSpeechInput: ManagerSpeechInputClass;
 declare const ManagerSpeechOutput: ManagerSpeechOutputClass;
-declare const ManagerZigbee: ManagerZigbeeClass;
+declare const ManagerZigBee: ManagerZigBeeClass;
 declare const ManagerZwave: ManagerZwaveClass;
 
 export {
@@ -162,6 +162,6 @@ export {
   ManagerSettings,
   ManagerSpeechInput,
   ManagerSpeechOutput,
-  ManagerZigbee,
+  ManagerZigBee,
   ManagerZwave,
 };
