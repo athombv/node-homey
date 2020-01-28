@@ -7,4 +7,4 @@ console.log(' Please type `homey` instead.');
 console.log('------------------------------------------');
 console.log('');
 
-require('athom-cli/bin/athom.js');
+require('./homey.js');
