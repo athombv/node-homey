@@ -1,2 +1,2 @@
 ### Homey Apps SDK
-Please visit developer.athom.com for more information.
+Please visit https://developer.athom.com for more information.
