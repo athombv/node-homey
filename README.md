@@ -2,11 +2,17 @@
 
 Command-line interface and type declarations for Homey Apps.
 
+## Installation
+
+```bash
+$ npm i -g homey
+```
+
 ## Getting started
 
 To get started run:
 ```bash
-homey --help
+$ homey --help
 ```
 
 Or read the [getting started](https://apps.developer.athom.com/tutorial-Getting%20Started.html) documentation.
