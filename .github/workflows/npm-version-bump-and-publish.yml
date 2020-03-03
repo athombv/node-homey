@@ -75,16 +75,14 @@ jobs:
         run: npm ci
 
       - name: Version bump patch
-        if: "contains(github.event.head_commit.message, '#patch') && !contains(github.event.head_commit.message,
-        '#minor') && !contains(github.event.head_commit.message, '#major')"
+        if: "contains(github.event.head_commit.message, '#patch') && !contains(github.event.head_commit.message, '#minor') && !contains(github.event.head_commit.message, '#major')"
         run: |
           npm version patch
           git pull
           git push --follow-tags
 
       - name: Version bump minor
-        if: "contains(github.event.head_commit.message, '#minor') && !contains(github.event.head_commit.message,
-        '#major')"
+        if: "contains(github.event.head_commit.message, '#minor') && !contains(github.event.head_commit.message, '#major')"
         run: |
           npm version minor
           git pull
