@@ -53,7 +53,7 @@ jobs:
       # Set git config to reflect Homey Github Actions Bot user
       - name: Set up HomeyGithubActionsBot git user
         run: |
-          git config --local user.email "emile+githubactionsbot@athom.nl"
+          git config --local user.email "sysadmin+githubactions@athom.com"
           git config --local user.name "Homey Github Actions Bot"
 
       # Configures a Node.js environment.
