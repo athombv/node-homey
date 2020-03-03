@@ -74,28 +74,26 @@ jobs:
       - name: Build
         run: npm ci
 
-      - name: Version bump patch
-        if: "contains(github.event.head_commit.message, '#patch') && !contains(github.event.head_commit.message,
-        '#minor') && !contains(github.event.head_commit.message, '#major')"
-        run: |
-          npm version patch
-          git pull
-          git push --follow-tags
+#       - name: Version bump patch
+#         if: "contains(github.event.head_commit.message, '#patch') && !contains(github.event.head_commit.message, '#minor') && !contains(github.event.head_commit.message, '#major')"
+#         run: |
+#           npm version patch
+#           git pull
+#           git push --follow-tags
 
-      - name: Version bump minor
-        if: "contains(github.event.head_commit.message, '#minor') && !contains(github.event.head_commit.message,
-        '#major')"
-        run: |
-          npm version minor
-          git pull
-          git push --follow-tags
+#       - name: Version bump minor
+#         if: "contains(github.event.head_commit.message, '#minor') && !contains(github.event.head_commit.message, '#major')"
+#         run: |
+#           npm version minor
+#           git pull
+#           git push --follow-tags
 
-      - name: Version bump major
-        if: "contains(github.event.head_commit.message, '#major')"
-        run: |
-          npm version major
-          git pull
-          git push --follow-tags
+#       - name: Version bump major
+#         if: "contains(github.event.head_commit.message, '#major')"
+#         run: |
+#           npm version major
+#           git pull
+#           git push --follow-tags
 
       # Publish when this action is running on branch production
       - name: Publish
@@ -118,14 +116,14 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_AUTH_TOKEN}}
 
-      # Post a Slack notification in #software on success/failure
-      - name: Slack notify
-        if: always()
-        uses: innocarpe/actions-slack@v1
-        with:
-          status: ${{ job.status }}
-          success_text: '${{github.repository}} - published v${{env.package_version}} to npm 🚀'
-          failure_text: '${{github.repository}} - failed to publish to npm'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Required
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} # Required
+#       # Post a Slack notification in #software on success/failure
+#       - name: Slack notify
+#         if: always()
+#         uses: innocarpe/actions-slack@v1
+#         with:
+#           status: ${{ job.status }}
+#           success_text: '${{github.repository}} - published v${{env.package_version}} to npm 🚀'
+#           failure_text: '${{github.repository}} - failed to publish to npm'
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Required
+#           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} # Required
