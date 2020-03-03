@@ -20,11 +20,6 @@
     "@types/node": "^12.7.12"
   },
   "readme": "README.md",
-  "config": {
-    "npmPublishTagProduction": "latest",
-    "npmPublishTagTesting": "beta",
-    "skipNpmInstall": true
-  },
   "dependencies": {
     "athom-api": "^3.1.1",
     "cli-table": "^0.3.1",
