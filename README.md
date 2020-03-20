@@ -41,6 +41,11 @@ The `rf` plugin installs [homey-rfdriver](https://www.npmjs.com/package/homey-rf
 
 For documentation, refer to [AppPluginRF](lib/AppPluginRF/index.js).
 
+### OAuth2
+The `oauth2` plugin installs [homey-oauth2app](https://github.com/athombv/node-homey-oauth2app).
+
+For documentation, refer to [AppPluginOAuth2](lib/AppPluginOAuth2/index.js).
+
 ### Log
 The `log` plugin installs [homey-log](https://www.npmjs.com/package/homey-log). You must still require the module in the app yourself:
 
