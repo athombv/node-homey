@@ -37,9 +37,9 @@ declare class ManagerApi extends Manager {
     /**
      * Emit a `realtime` event.
      * @param {string} event - The name of the event
-     * @param {*} data - The data of the event
+     * @param {*} [data] - The data of the event
      */
-    realtime(event: string, data: any): any;
+    realtime(event: string, data?: any): any;
     /**
      * Get an Api instance.
      * @param {string} uri
