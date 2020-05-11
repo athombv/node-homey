@@ -66,6 +66,8 @@ import ManagerSpeechOutputClass from './sdk/manager/speech-output';
 import ManagerZigBeeClass from './sdk/manager/zigbee';
 import ManagerZwaveClass from './sdk/manager/zwave';
 
+declare const app: any;
+declare const env: any;
 declare function __(key: string, properties?: any): string;
 declare const version: string;
 
@@ -95,8 +97,12 @@ declare const ManagerZigBee: ManagerZigBeeClass;
 declare const ManagerZwave: ManagerZwaveClass;
 
 export {
+  // Properties
   version,
   __,
+  env,
+  app,
+  // Objects
   SimpleClass,
   Api,
   ApiApp,
