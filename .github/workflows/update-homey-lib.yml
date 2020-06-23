@@ -1,4 +1,4 @@
-name: Receive repository dispatch event
+name: Update homey-lib
 
 # About this workflow:
 # This workflow is triggered by a 'repository_dispatch' event, this event can be triggered using an API call or using
