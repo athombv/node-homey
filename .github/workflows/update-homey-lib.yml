@@ -53,9 +53,10 @@ jobs:
 
       - name: Create pull Request
         uses: peter-evans/create-pull-request@v2
-        title: "chore: update homey-lib"
-        body: "Update homey-lib to the latest published version on NPM. This PR was automatically
-          created by a homey-lib deployment."
-        reviewers: "weejewel,tjallingt,robinbol"
-        branch: "bump/homey-lib"
-        branch-suffix: "short-commit-hash"
+        with:
+          title: "chore: update homey-lib"
+          body: "Update homey-lib to the latest published version on NPM. This PR was automatically
+            created by a homey-lib deployment."
+          reviewers: "weejewel,tjallingt,robinbol"
+          branch: "bump/homey-lib"
+          branch-suffix: "short-commit-hash"
