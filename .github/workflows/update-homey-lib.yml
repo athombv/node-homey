@@ -1,0 +1,55 @@
+name: Receive repository dispatch event
+
+# About this workflow:
+# This workflow is triggered by a 'repository_dispatch' event, this event can be triggered using an API call or using
+# another GitHub Action workflow (see ./workflows/trigger-repository-dispatch-event.yml).
+
+# GitHub repo configuration:
+# 1. Go to Manage access and add 'Github Actions' team with role: admin.
+
+# Note: make sure to specify the 'types' property of the 'repository_dispatch' event to make sure this workflow is only
+# triggered by the expected 'repository_dispatch' event.
+
+on:
+  repository_dispatch:
+    types: "update-homey-lib" # Specify the event_type to listen to
+
+jobs:
+  receive-repository-dispatch-event:
+    runs-on: ubuntu-latest
+    name: Create PR for homey-lib update
+    steps:
+
+      # Checks out the current repository.
+      - name: Checkout git repository
+        uses: actions/checkout@v2
+        with:
+          # The token below is only necessary if you want to push the version bump to a protected branch
+          token: ${{ secrets.HOMEY_GITHUB_ACTIONS_BOT_PERSONAL_ACCESS_TOKEN }}
+
+      # Set git config to reflect Homey Github Actions Bot user
+      - name: Set up HomeyGithubActionsBot git user
+        run: |
+          git config --local user.email "sysadmin+githubactions@athom.com"
+          git config --local user.name "Homey Github Actions Bot"
+
+      # Configures a Node.js environment.
+      - name: Set up node 12 environment
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12'
+          # Needed for publishing to npm
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Bump homey-lib to latest
+        run: |
+          npm ci
+          npm install homey-lib@latest
+
+      - name: Commit homey-lib version bump
+        run: |
+          git add .
+          git commit -m "chore: update homey-lib"
+
+      - name: Create pull Request
+        uses: peter-evans/create-pull-request@v2
