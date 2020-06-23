@@ -51,7 +51,7 @@ jobs:
           git add .
           git commit -m "chore: update homey-lib"
 
-      - name: Create pull Request
+      - name: Create pull request
         uses: peter-evans/create-pull-request@v2
         with:
           title: "chore: update homey-lib"
