@@ -13,7 +13,7 @@ class MyDevice extends Homey.Device {
   /**
    * onAdded is called when the user adds the device, called just after pairing.
    */
-  onAdded() {
+  async onAdded() {
     this.log('MyDevice has been added');
   }
 
@@ -34,14 +34,14 @@ class MyDevice extends Homey.Device {
    * This method can be used this to synchronise the name to the device.
    * @param {string} name The new name
    */
-  onRenamed(name) {
+  async onRenamed(name) {
     this.log('MyDevice was renamed');
   }
 
   /**
    * onDeleted is called when the user deleted the device.
    */
-  onDeleted() {
+  async onDeleted() {
     this.log('MyDevice has been deleted');
   }
 }
