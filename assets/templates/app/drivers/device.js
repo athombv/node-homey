@@ -31,7 +31,7 @@ class MyDevice extends Homey.Device {
 
   /**
    * onRenamed is called when the user updates the device's name.
-   * This method can be used this to synchronize the name to the device or bridge.
+   * This method can be used this to synchronise the name to the device.
    * @param {string} name The new name
    */
   onRenamed(name) {
