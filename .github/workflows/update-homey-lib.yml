@@ -52,11 +52,10 @@ jobs:
           git commit -m "chore: update homey-lib"
 
       - name: Create pull request
-        uses: peter-evans/create-pull-request@v2
+        uses: peter-evans/create-pull-request@v3
         with:
           title: "chore: update homey-lib"
-          body: "Update homey-lib to the latest published version on NPM. This PR was automatically
-            created by a homey-lib deployment."
+          body: "Update homey-lib to the latest published version on NPM. This PR was automatically created by a homey-lib deployment."
           reviewers: "weejewel,tjallingt,robinbol"
           branch: "bump/homey-lib"
           branch-suffix: "short-commit-hash"
