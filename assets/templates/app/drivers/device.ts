@@ -25,7 +25,7 @@ class MyDevice extends Device {
    * @param {string[]} event.changedKeys An array of keys changed since the previous version
    * @returns {Promise<string|void>} return a custom message that will be displayed
    */
-  async onSettings({ oldSettings, newSettings, changedKeys }) {
+  async onSettings({ oldSettings: {}, newSettings: {}, changedKeys: {} }): Promise<string|void> {
     this.log('MyDevice settings where changed');
   }
 
@@ -34,7 +34,7 @@ class MyDevice extends Device {
    * This method can be used this to synchronise the name to the device.
    * @param {string} name The new name
    */
-  async onRenamed(name) {
+  async onRenamed(name: string) {
     this.log('MyDevice was renamed');
   }
 
@@ -46,4 +46,4 @@ class MyDevice extends Device {
   }
 }
 
-export default MyDevice;
+module.exports = MyDevice;
