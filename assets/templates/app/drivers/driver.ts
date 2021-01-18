@@ -1,7 +1,6 @@
 'use strict';
 
 import { Driver } from 'homey';
-
 class MyDriver extends Driver {
   /**
    * onInit is called when the driver is initialized.
@@ -15,6 +14,7 @@ class MyDriver extends Driver {
    * This should return an array with the data of devices that are available for pairing.
    */
   async onPairListDevices() {
+
     return [
       // Example device data, note that `store` is optional
       // {
