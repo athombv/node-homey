@@ -1,5 +1,8 @@
 'use strict';
 
+import sourceMapSupport from 'source-map-support';
+sourceMapSupport.install();
+
 import Homey from 'homey';
 
 class MyApp extends Homey.App {
