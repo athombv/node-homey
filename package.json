@@ -36,6 +36,7 @@
     "inquirer": "^5.1.0",
     "monitorctrlc": "^2.0.1",
     "node-fetch": "^2.1.1",
+    "npm": "^6.14.11",
     "npm-programmatic": "0.0.10",
     "object-path": "^0.11.4",
     "opn": "^5.4.0",
