@@ -2,6 +2,7 @@
 
 const Log = require('../../..').Log;
 const App = require('../../..').App;
+const AthomApi = require('../../..').AthomApi;
 const colors = require('colors');
 
 exports.desc = 'Install a Homey App';
@@ -23,8 +24,10 @@ exports.handler = async yargs => {
 	const appPath = yargs.path || process.cwd();
 
 	try {
+    const homey = await AthomApi.getActiveHomey();
 		const app = new App( appPath );
 		await app.install({
+			homey,
 			clean: yargs.clean,
 			skipBuild: yargs.skipBuild,
 		});

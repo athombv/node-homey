@@ -101,8 +101,7 @@ jobs:
         run: |
           npm publish
           VERSION="$(node -p "require('./package.json').version")"
-          echo "::set-env name=package_version::${VERSION}"
-          echo $package_version
+          echo package_version=${VERSION} >> $GITHUB_ENV
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_AUTH_TOKEN}}
 
@@ -112,18 +111,6 @@ jobs:
         run: |
           npm publish --tag beta
           VERSION="$(node -p "require('./package.json').version")@beta"
-          echo "::set-env name=package_version::${VERSION}"
+          echo package_version=${VERSION} >> $GITHUB_ENV
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_AUTH_TOKEN}}
-
-      # Post a Slack notification in #software on success/failure
-      - name: Slack notify
-        if: always()
-        uses: innocarpe/actions-slack@v1
-        with:
-          status: ${{ job.status }}
-          success_text: '${{github.repository}} - published v${{env.package_version}} to npm 🚀'
-          failure_text: '${{github.repository}} - failed to publish to npm'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Required
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} # Required

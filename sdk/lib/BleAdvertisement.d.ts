@@ -20,9 +20,9 @@ declare class BleAdvertisement extends SimpleClass {
     /** The local name of the peripheral */
     localName: string; 
     /** Manufacturer specific data for peripheral */
-    manufacturerData: string; 
+    manufacturerData: Buffer | undefined; 
     /** Array of service data entries */
-    serviceData: string[]; 
+    serviceData: {uuid: string, data: Buffer}[]; 
     /** Array of service uuids */
     serviceUuids: string[]; 
     /** The rssi signal strength value for the peripheral */
