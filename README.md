@@ -31,10 +31,10 @@ Please visit https://developer.athom.com for more information.
 ## Useful links
 
 ### Z-Wave
-The `zwave` installs [homey-meshdriver](https://www.npmjs.com/package/homey-meshdriver).
+The `zwave` installs [homey-zwavedriver](https://www.npmjs.com/package/homey-zwavedriver).
 
 ### Zigbee
-The `zigbee` installs [homey-meshdriver](https://www.npmjs.com/package/homey-meshdriver).
+The `zigbee` installs [homey-zigbeedriver](https://www.npmjs.com/package/homey-zigbeedriver).
 
 ### RF
 The `rf` installs [homey-rfdriver](https://www.npmjs.com/package/homey-rfdriver), and copies pairing templates to `/.homeycompose/`.
