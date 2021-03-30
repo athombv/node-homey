@@ -23,8 +23,6 @@ The `compose` copies & merges files, which is useful for very large Homey Apps.
 
 For documentation, refer to [Homey Compose](https://apps.developer.athom.com/tutorial-Homey%20Compose.html).
 
-Don't forget to add the `HOMEY_LOG_URL` variable to your `env.json`.
-
 ## Homey Apps SDK Documentation
 Please visit https://developer.athom.com for more information.
 
@@ -48,3 +46,5 @@ The `log` installs [homey-log](https://www.npmjs.com/package/homey-log). You mus
 ```
 const { Log } = require('homey-log');
 ```
+
+Don't forget to add the `HOMEY_LOG_URL` variable to your `env.json`.
