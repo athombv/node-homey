@@ -4,7 +4,7 @@ const Log = require('../../..').Log;
 const App = require('../../..').App;
 const colors = require('colors');
 
-exports.desc = 'Switch Homey App structure to compose plugin';
+exports.desc = 'Migrate app to Homey compose';
 exports.handler = async yargs => {
 	
 	const appPath = yargs.path || process.cwd();
