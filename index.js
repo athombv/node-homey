@@ -1,6 +1,5 @@
 'use strict';
 
-const pkg = require('./package.json');
 const figures = require('figures');
 
 module.exports.Log = (...props) => {
