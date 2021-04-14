@@ -47,6 +47,7 @@
     "socket.io-client": "^2.4.0",
     "tar-fs": "^1.16.0",
     "tmp-promise": "^1.0.4",
+    "typescript": "^4.2.4",
     "underscore": "^1.8.3",
     "upath": "^1.2.0",
     "update-notifier": "^2.3.0",
