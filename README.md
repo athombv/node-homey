@@ -17,43 +17,34 @@ $ homey --help
 
 Or read the [getting started](https://apps.developer.athom.com/tutorial-Getting%20Started.html) documentation.
 
-## Plugins
+## What is Compose?
 
-This package ships with built-in plugins to make the development workflow easier. Plugins must be defined in `/.homeyplugins.json` in your app's root, and are executed in order.
-
-### Compose
-The `compose` plugin copies & merges files, which is useful for very large Homey Apps.
+The `compose` copies & merges files, which is useful for very large Homey Apps.
 
 For documentation, refer to [Homey Compose](https://apps.developer.athom.com/tutorial-Homey%20Compose.html).
 
-### Z-Wave
-The `zwave` plugin installs [homey-meshdriver](https://www.npmjs.com/package/homey-meshdriver).
+## Homey Apps SDK Documentation
+Please visit https://developer.athom.com for more information.
 
-For documentation, refer to [AppPluginZwave](lib/AppPluginZwave/index.js).
+## Useful links
+
+### Z-Wave
+The `zwave` installs [homey-zwavedriver](https://www.npmjs.com/package/homey-zwavedriver).
 
 ### Zigbee
-The `zigbee` plugin installs [homey-meshdriver](https://www.npmjs.com/package/homey-meshdriver).
-
-For documentation, refer to [AppPluginZigbee](lib/AppPluginZigbee/index.js).
+The `zigbee` installs [homey-zigbeedriver](https://www.npmjs.com/package/homey-zigbeedriver).
 
 ### RF
-The `rf` plugin installs [homey-rfdriver](https://www.npmjs.com/package/homey-rfdriver), and copies pairing templates to `/.homeycompose/`.
-
-For documentation, refer to [AppPluginRF](lib/AppPluginRF/index.js).
+The `rf` installs [homey-rfdriver](https://www.npmjs.com/package/homey-rfdriver), and copies pairing templates to `/.homeycompose/`.
 
 ### OAuth2
-The `oauth2` plugin installs [homey-oauth2app](https://github.com/athombv/node-homey-oauth2app).
-
-For documentation, refer to [AppPluginOAuth2](lib/AppPluginOAuth2/index.js).
+The `oauth2` installs [homey-oauth2app](https://github.com/athombv/node-homey-oauth2app).
 
 ### Log
-The `log` plugin installs [homey-log](https://www.npmjs.com/package/homey-log). You must still require the module in the app yourself:
+The `log` installs [homey-log](https://www.npmjs.com/package/homey-log). You must still require the module in the app yourself:
 
 ```
 const { Log } = require('homey-log');
 ```
 
 Don't forget to add the `HOMEY_LOG_URL` variable to your `env.json`.
-
-## Homey Apps SDK Documentation
-Please visit https://developer.athom.com for more information.
