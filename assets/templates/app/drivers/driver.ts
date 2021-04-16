@@ -1,19 +1,4 @@
 import { Driver } from 'homey';
-interface pairInfo {
-  name: string,
-  data: {
-    id: string,
-  },
-  store?: {
-    address: string,
-  },
-  settings?: {
-    pincode: string,
-  }
-  icon?: string,
-  capabilities?: string[],
-  capabilitiesOptions?: {},
-}
 
 class MyDriver extends Driver {
 
@@ -28,17 +13,18 @@ class MyDriver extends Driver {
    * onPairListDevices is called when a user is adding a device and the 'list_devices' view is called.
    * This should return an array with the data of devices that are available for pairing.
    */
-  async onPairListDevices(): Promise<pairInfo[]> {
+  async onPairListDevices() {
     return [
-      {
-        name: 'My Device',
-        data: {
-          id: 'my-device',
-        },
-        store: {
-          address: '127.0.0.1',
-        },
-      },
+      // Example device data, note that `store` is optional
+      // {
+      //   name: 'My Device',
+      //   data: {
+      //     id: 'my-device',
+      //   },
+      //   store: {
+      //     address: '127.0.0.1',
+      //   },
+      // },
     ];
   }
 }
