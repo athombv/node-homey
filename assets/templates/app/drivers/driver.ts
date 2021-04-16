@@ -1,5 +1,3 @@
-'use strict';
-
 import { Driver } from 'homey';
 class MyDriver extends Driver {
   /**

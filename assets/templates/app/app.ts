@@ -1,5 +1,3 @@
-'use strict';
-
 import sourceMapSupport from 'source-map-support';
 sourceMapSupport.install();
 
