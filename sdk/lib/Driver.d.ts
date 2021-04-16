@@ -22,6 +22,23 @@ export = Driver;
  * @property {string} id Driver ID as specified in the `/app.json`
  * @hideconstructor
  */
+
+
+interface pairInfo {
+    name: string,
+    data: {
+      id: string,
+    },
+    store?: {
+      address: string,
+    },
+    settings?: {
+      pincode: string,
+    }
+    icon?: string,
+    capabilities?: string[],
+    capabilitiesOptions?: {},
+  }
 declare class Driver extends SimpleClass {
     /**
      * When this method exists, it will be called prior to initing the device instance. Return a class that extends {@link Device}.
@@ -76,9 +93,10 @@ declare class Driver extends SimpleClass {
      * @param {PairSocket} socket Bi-directional socket for communication with the front-end
      */
     onPair(socket: PairSocket): void;
+    
     /**
      * This method is called when no custom onPair() method has been defined, and the default is being used.
      * Simple drivers should override this method to provide a list of devices ready to be paired.
      */
-    onPairListDevices(data: any, callback: Callback): void;
+    onPairListDevices(data: any, callback: Callback): pairInfo[];
 }

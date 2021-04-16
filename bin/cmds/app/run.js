@@ -19,9 +19,7 @@ exports.builder = yargs => {
 		});
 }
 exports.handler = async yargs => {
-
-	const appPath = yargs.path || process.cwd();
-
+	let appPath = yargs.path || process.cwd();
 	try {
 		const app = new App( appPath );
 		await app.run({

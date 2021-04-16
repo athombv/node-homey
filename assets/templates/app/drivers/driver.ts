@@ -1,8 +1,7 @@
-'use strict';
-
-const { Driver } = require('homey');
+import { Driver } from 'homey';
 
 class MyDriver extends Driver {
+
   /**
    * onInit is called when the driver is initialized.
    */
