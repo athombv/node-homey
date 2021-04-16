@@ -1,8 +1,8 @@
 'use strict';
 
-const Homey = require('homey');
+const { Driver } = require('homey');
 
-class MyDriver extends Homey.Driver {
+class MyDriver extends Driver {
   /**
    * onInit is called when the driver is initialized.
    */

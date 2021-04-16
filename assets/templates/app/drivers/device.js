@@ -1,6 +1,6 @@
 'use strict';
 
-import { Device } from 'homey';
+const { Device } = require('homey');
 
 class MyDevice extends Device {
   /**
