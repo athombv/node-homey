@@ -40,7 +40,7 @@ on:
   workflow_dispatch:
     inputs:
       versionBumpType:
-        description: 'Version bump type (major, minor or patch)'
+        description: 'Version bump (major, minor or patch)'
         required: true
 
 jobs:
