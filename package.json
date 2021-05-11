@@ -4,7 +4,8 @@
   "description": "Command-line interface and type declarations for Homey Apps",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint"
   },
   "bin": {
     "homey": "bin/homey.js",
@@ -22,6 +23,8 @@
     "colors": "^1.1.2",
     "deepmerge": "^2.1.0",
     "dockerode": "^3.2.1",
+    "eslint": "^6.8.0",
+    "eslint-config-athom": "^2.1.0",
     "express": "^4.17.1",
     "figures": "^2.0.0",
     "filesize": "^3.6.1",
