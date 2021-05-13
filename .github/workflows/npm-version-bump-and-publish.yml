@@ -48,7 +48,7 @@ jobs:
     name: Update version and publish
 
     # Only run this job if initiator is not the Homey Github Actions Bot to prevent loops
-    if: github.actor != 'HomeyGithubActionsBot'
+    if: github.actor != 'HomeyGithubActionsBot' && (github.ref == 'refs/heads/production' | github.ref == 'refs/heads/testing')
 
     runs-on: ubuntu-latest
     steps:
