@@ -48,7 +48,7 @@ jobs:
     name: Update version and publish
 
     # Only run this job if initiator is not the Homey Github Actions Bot to prevent loops
-    if: github.actor != 'HomeyGithubActionsBot'
+    if: github.actor != 'HomeyGithubActionsBot' && (github.ref == 'refs/heads/production' || github.ref == 'refs/heads/testing')
 
     runs-on: ubuntu-latest
     steps:
@@ -127,15 +127,3 @@ jobs:
           echo package_version=${VERSION} >> $GITHUB_ENV
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_AUTH_TOKEN}}
-
-      # Post a Slack notification in #software on success/failure
-      - name: Slack notify
-        if: always()
-        uses: innocarpe/actions-slack@v1
-        with:
-          status: ${{ job.status }}
-          success_text: '${{github.repository}} - published v${{env.package_version}} to npm 🚀'
-          failure_text: '${{github.repository}} - failed to publish to npm'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Required
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} # Required
