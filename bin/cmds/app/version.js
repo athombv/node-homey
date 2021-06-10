@@ -1,8 +1,8 @@
 'use strict';
 
-const Log = require('../../..').Log;
-const App = require('../../..').App;
 const colors = require('colors');
+const { Log } = require('../../..');
+const { App } = require('../../..');
 
 exports.desc = 'Update a Homey App\'s version';
 /*
@@ -15,13 +15,11 @@ exports.builder = yargs => {
 }
 */
 exports.handler = async yargs => {
-
-	try {
-		const app = new App( yargs.path );
-		const version = yargs._[yargs._.length-1];
-		await app.version(version);
-	} catch( err ) {
-		console.trace(colors.red(err.message));
-	}
-
-}
+  try {
+    const app = new App(yargs.path);
+    const version = yargs._[yargs._.length - 1];
+    await app.version(version);
+  } catch (err) {
+    console.trace(colors.red(err.message));
+  }
+};

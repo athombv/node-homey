@@ -2,8 +2,8 @@
 
 exports.desc = 'Discovery related commands';
 exports.builder = yargs => {
-	return yargs
-		.commandDir('discovery')
-		.demandCommand()
-		.help()	
-}
+  return yargs
+    .commandDir('discovery')
+    .demandCommand()
+    .help();
+};

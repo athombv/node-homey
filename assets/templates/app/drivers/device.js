@@ -3,6 +3,7 @@
 const { Device } = require('homey');
 
 class MyDevice extends Device {
+
   /**
    * onInit is called when the device is initialized.
    */
@@ -44,6 +45,7 @@ class MyDevice extends Device {
   async onDeleted() {
     this.log('MyDevice has been deleted');
   }
+
 }
 
 module.exports = MyDevice;
