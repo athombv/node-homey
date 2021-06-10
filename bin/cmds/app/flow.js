@@ -2,8 +2,8 @@
 
 exports.desc = 'Flow related commands';
 exports.builder = yargs => {
-	return yargs
-		.commandDir('flow')
-		.demandCommand()
-		.help()	
-}
+  return yargs
+    .commandDir('flow')
+    .demandCommand()
+    .help();
+};

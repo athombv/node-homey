@@ -42,7 +42,7 @@
     "opn": "^5.4.0",
     "parse-git-config": "^3.0.0",
     "semver": "^5.5.0",
-    "socket.io": "^2.4.1",
+    "socket.io": "^4.1.2",
     "socket.io-client": "^2.4.0",
     "tar-fs": "^1.16.0",
     "tmp-promise": "^1.0.4",
