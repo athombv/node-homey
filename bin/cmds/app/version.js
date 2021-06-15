@@ -1,17 +1,16 @@
 'use strict';
 
 const colors = require('colors');
-const { Log } = require('../../..');
 const { App } = require('../../..');
 
 exports.desc = 'Update a Homey App\'s version';
 /*
 exports.builder = yargs => {
-	return yargs.option('level', {
-		alias: 'l',
-		default: 'debug',
-		type: 'string',
-	})
+  return yargs.option('level', {
+    alias: 'l',
+    default: 'debug',
+    type: 'string',
+  })
 }
 */
 exports.handler = async yargs => {
