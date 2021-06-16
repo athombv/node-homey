@@ -1,18 +1,15 @@
+/* eslint-disable global-require */
+
 'use strict';
 
 const figures = require('figures');
-const Settings = require('./lib/Settings');
-const AthomApi = require('./lib/AthomApi');
-const AthomMessage = require('./lib/AthomMessage');
-const Util = require('./lib/Util');
-const App = require('./lib/App');
 
 module.exports.Log = (...props) => {
   console.log(figures(...props));
 };
 
-module.exports.Util = Util;
-module.exports.Settings = new Settings();
-module.exports.AthomApi = new AthomApi();
-module.exports.AthomMessage = new AthomMessage();
-module.exports.App = App;
+module.exports.Util = require('./lib/Util');
+module.exports.Settings = new (require('./lib/Settings'))();
+module.exports.AthomApi = new (require('./lib/AthomApi'))();
+module.exports.AthomMessage = new (require('./lib/AthomMessage'))();
+module.exports.App = require('./lib/App');
