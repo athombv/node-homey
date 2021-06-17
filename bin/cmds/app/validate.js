@@ -1,6 +1,7 @@
 'use strict';
 
 const colors = require('colors');
+const { Log } = require('../../..');
 const { App } = require('../../..');
 
 exports.desc = 'Validate a Homey App';
@@ -21,6 +22,6 @@ exports.handler = async yargs => {
       level: yargs.level,
     });
   } catch (err) {
-    console.trace(colors.red(err.message));
+    Log(colors.red(err.message));
   }
 };
