@@ -13,8 +13,6 @@ exports.builder = yargs => {
   });
 };
 exports.handler = async yargs => {
-  // let appPath = yargs.path || process.cwd();
-
   try {
     const app = new App(yargs.path);
     await app.preprocess();
