@@ -6,4 +6,5 @@ module.exports = {
   athomApiLoginUrl: 'https://cli.athom.com',
   athomMessageUrl: 'https://go.athom.com/cli-message',
   homeyDevToolsUrl: 'https://tools.developer.homey.app',
+  homeyDocsUrl: 'https://apps.developer.homey.app',
 };
