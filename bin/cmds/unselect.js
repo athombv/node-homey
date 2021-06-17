@@ -1,5 +1,6 @@
 'use strict';
 
+const colors = require('colors');
 const { Log } = require('../../index');
 const { AthomApi } = require('../../index');
 
@@ -8,6 +9,6 @@ exports.handler = async () => {
   try {
     await AthomApi.unselectActiveHomey();
   } catch (err) {
-    Log(err);
+    Log(colors.red(err.message));
   }
 };
