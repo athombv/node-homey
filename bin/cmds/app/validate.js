@@ -1,7 +1,6 @@
 'use strict';
 
 const colors = require('colors');
-const { Log } = require('../../..');
 const { App } = require('../../..');
 
 exports.desc = 'Validate a Homey App';
@@ -13,7 +12,7 @@ exports.builder = yargs => {
   });
 };
 exports.handler = async yargs => {
-//	let appPath = yargs.path || process.cwd();
+  // let appPath = yargs.path || process.cwd();
 
   try {
     const app = new App(yargs.path);

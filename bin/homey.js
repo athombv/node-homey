@@ -15,16 +15,17 @@ try {
   version = version.split('.');
 
   let majorVersion = version[0];
-  majorVersion = parseInt(majorVersion);
+  majorVersion = parseInt(majorVersion, 10);
 
   let minorVersion = version[1];
-  minorVersion = parseInt(minorVersion);
+  minorVersion = parseInt(minorVersion, 10);
 
   if (majorVersion < 10 || (majorVersion === 10 && minorVersion < 10)) {
-    return console.error(`Error: node-homey requires Node.js v${REQUIRED_NODE_VERSION} or higher to run. Please upgrade your Node.js version and try again.`);
+    console.error(`Error: node-homey requires Node.js v${REQUIRED_NODE_VERSION} or higher to run. Please upgrade your Node.js version and try again.`);
+    return;
   }
 } catch (err) {
-  console.error(`Failed to determine Node.js version, please make sure you\'re using version ${REQUIRED_NODE_VERSION} or higher.`);
+  console.error(`Failed to determine Node.js version, please make sure you're using version ${REQUIRED_NODE_VERSION} or higher.`);
 }
 
 (async () => {
@@ -33,7 +34,7 @@ try {
     isGlobal: true,
   });
 
-  yargs
+  return yargs
     .commandDir('./cmds')
     .demandCommand()
     .strict()
