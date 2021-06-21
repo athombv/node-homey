@@ -1,3 +1,5 @@
+/* eslint-disable no-process-exit */
+
 'use strict';
 
 const opn = require('opn');
