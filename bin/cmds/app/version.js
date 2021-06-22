@@ -1,24 +1,22 @@
 'use strict';
 
 const colors = require('colors');
+const { Log } = require('../../..');
 const { App } = require('../../..');
 
+exports.command = 'version <next>';
 exports.desc = 'Update a Homey App\'s version';
-/*
 exports.builder = yargs => {
-  return yargs.option('level', {
-    alias: 'l',
-    default: 'debug',
+  return yargs.positional('next', {
+    describe: 'patch/minor/major or semver',
     type: 'string',
-  })
-}
-*/
+  });
+};
 exports.handler = async yargs => {
   try {
     const app = new App(yargs.path);
-    const version = yargs._[yargs._.length - 1];
-    await app.version(version);
+    await app.version(yargs.next);
   } catch (err) {
-    console.trace(colors.red(err.message));
+    Log(colors.red(err.message));
   }
 };

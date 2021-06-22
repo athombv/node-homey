@@ -20,11 +20,9 @@ exports.builder = yargs => {
     });
 };
 exports.handler = async yargs => {
-  const appPath = yargs.path || process.cwd();
-
   try {
     const homey = await AthomApi.getActiveHomey();
-    const app = new App(appPath);
+    const app = new App(yargs.path);
     await app.install({
       homey,
       clean: yargs.clean,
