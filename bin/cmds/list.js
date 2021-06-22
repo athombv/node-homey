@@ -42,6 +42,6 @@ exports.handler = async () => {
 
     Log(table.toString());
   } catch (err) {
-    Log(err);
+    Log(colors.red(err.message));
   }
 };

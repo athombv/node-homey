@@ -9,4 +9,4 @@ console.log(' Please type `homey` instead.');
 console.log('------------------------------------------');
 console.log('');
 
-require('./homey.js');
+require('./homey');
