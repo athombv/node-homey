@@ -30,7 +30,7 @@
     "filesize": "^6.1.0",
     "fs-extra": "^10.0.0",
     "get-port": "^5.1.1",
-    "homey-lib": "^2.10.4",
+    "homey-lib": "^2.11.0",
     "ignore-walk": "^3.0.3",
     "inquirer": "^8.0.0",
     "monitorctrlc": "^2.0.1",
