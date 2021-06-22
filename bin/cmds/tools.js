@@ -1,5 +1,3 @@
-/* eslint-disable no-process-exit */
-
 'use strict';
 
 const open = require('open');
