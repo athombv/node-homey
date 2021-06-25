@@ -12,7 +12,7 @@ const { AthomMessage } = require('..');
 const MINIMUM_NODE_VERSION = 'v12.0.0';
 
 try {
-  if (semver.gte(process.version, MINIMUM_NODE_VERSION)) {
+  if (semver.lt(process.version, MINIMUM_NODE_VERSION)) {
     console.error(`Error: node-homey requires Node.js ${MINIMUM_NODE_VERSION} or higher to run. Please upgrade your Node.js version and try again.`);
     return;
   }
