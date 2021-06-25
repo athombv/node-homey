@@ -6,10 +6,8 @@ const { App } = require('../../..');
 
 exports.desc = 'Create a new Homey App';
 exports.handler = async yargs => {
-  const appPath = yargs.path || process.cwd();
-
   try {
-    await App.create({ appPath });
+    await App.create({ appPath: yargs.path });
   } catch (err) {
     Log(colors.red(err.message));
   }

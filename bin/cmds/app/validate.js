@@ -13,8 +13,6 @@ exports.builder = yargs => {
   });
 };
 exports.handler = async yargs => {
-//	let appPath = yargs.path || process.cwd();
-
   try {
     const app = new App(yargs.path);
     await app.preprocess();
@@ -22,6 +20,6 @@ exports.handler = async yargs => {
       level: yargs.level,
     });
   } catch (err) {
-    console.trace(colors.red(err.message));
+    Log(colors.red(err.message));
   }
 };

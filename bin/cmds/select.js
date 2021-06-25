@@ -26,6 +26,6 @@ exports.handler = async yargs => {
       name: yargs.name,
     });
   } catch (err) {
-    Log(colors.red(err.message || err.toString()));
+    Log(colors.red(err.message));
   }
 };

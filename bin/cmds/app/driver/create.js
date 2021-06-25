@@ -6,10 +6,8 @@ const { App } = require('../../../..');
 
 exports.desc = 'Create a new Driver';
 exports.handler = async yargs => {
-  const appPath = yargs.path || process.cwd();
-
   try {
-    const app = new App(appPath);
+    const app = new App(yargs.path);
     await app.createDriver();
   } catch (err) {
     Log(colors.red(err.message));
