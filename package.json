@@ -24,7 +24,6 @@
     "deepmerge": "^4.2.2",
     "dockerode": "^3.2.1",
     "eslint": "^6.8.0",
-    "eslint-config-athom": "^2.1.0",
     "express": "^4.16.4",
     "figures": "^3.2.0",
     "filesize": "^6.1.0",
@@ -48,5 +47,8 @@
     "upath": "^2.0.1",
     "update-notifier": "^5.1.0",
     "yargs": "^17.0.1"
+  },
+  "devDependencies": {
+    "eslint-config-athom": "^2.1.1"
   }
 }
