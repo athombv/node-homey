@@ -1,6 +1,7 @@
 {
     "extends": "athom",
     "rules": {
-        "consistent-return": "off"
+        "consistent-return": "off",
+        "prefer-destructuring": "off"
     }
 }
