@@ -8,8 +8,9 @@ exports.desc = 'Validate a Homey App';
 exports.builder = yargs => {
   return yargs.option('level', {
     alias: 'l',
-    default: 'debug',
+    default: 'publish',
     type: 'string',
+    description: 'Validation level. Can be: debug, publish, verified.',
   });
 };
 exports.handler = async yargs => {
