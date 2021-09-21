@@ -15,13 +15,7 @@ To get started run:
 $ homey --help
 ```
 
-Or read the [getting started](https://apps.developer.athom.com/tutorial-Getting%20Started.html) documentation.
-
-## What is Compose?
-
-The `compose` copies & merges files, which is useful for very large Homey Apps.
-
-For documentation, refer to [Homey Compose](https://apps.developer.athom.com/tutorial-Homey%20Compose.html).
+Or read the [getting started](https://apps.developer.homey.app/the-basics/getting-started) documentation.
 
 ## Homey Apps SDK Documentation
 Please visit https://developer.athom.com for more information.
