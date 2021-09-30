@@ -5,7 +5,7 @@ const open = require('open');
 const { Log } = require('../../..');
 const { App } = require('../../..');
 
-exports.desc = 'View your app in the Homey Apps Store';
+exports.desc = 'View your app in the Homey Dev Tools';
 exports.handler = async yargs => {
   try {
     const manifest = App.getManifest({ appPath: yargs.path });
