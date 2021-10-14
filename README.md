@@ -18,7 +18,7 @@ $ homey --help
 Or read the [getting started](https://apps.developer.homey.app/the-basics/getting-started) documentation.
 
 ## Homey Apps SDK Documentation
-Please visit https://developer.athom.com for more information.
+Please visit https://homey.app/developer for more information.
 
 ## Useful links
 
