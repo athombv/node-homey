@@ -34,7 +34,6 @@
     "inquirer": "8.1.2",
     "monitorctrlc": "^2.0.1",
     "node-fetch": "^2.1.1",
-    "npm": "^6.14.11",
     "object-path": "^0.11.4",
     "open": "^8.2.0",
     "semver": "^7.3.4",
