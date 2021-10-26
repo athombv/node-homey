@@ -1,6 +1,6 @@
-import { Driver } from 'homey';
+import Homey from 'homey';
 
-class MyDriver extends Driver {
+class MyDriver extends Homey.Driver {
 
   /**
    * onInit is called when the driver is initialized.
@@ -27,6 +27,7 @@ class MyDriver extends Driver {
       // },
     ];
   }
+
 }
 
 module.exports = MyDriver;

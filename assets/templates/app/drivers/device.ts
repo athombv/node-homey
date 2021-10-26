@@ -1,6 +1,7 @@
-import { Device } from 'homey';
+import Homey from 'homey';
 
-class MyDevice extends Device {
+class MyDevice extends Homey.Device {
+
   /**
    * onInit is called when the device is initialized.
    */
@@ -42,6 +43,7 @@ class MyDevice extends Device {
   async onDeleted() {
     this.log('MyDevice has been deleted');
   }
+
 }
 
 module.exports = MyDevice;
