@@ -1,6 +1,6 @@
 'use strict';
 
-const colors = require('colors');
+const colors = require('chalk');
 const open = require('open');
 const { Log } = require('../../..');
 const { App } = require('../../..');

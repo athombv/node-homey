@@ -1,7 +1,7 @@
 'use strict';
 
 const open = require('open');
-const colors = require('colors');
+const colors = require('chalk');
 const { Log } = require('../..');
 
 exports.desc = 'Open Homey Developer Tools';

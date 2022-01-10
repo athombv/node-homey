@@ -1,7 +1,7 @@
 'use strict';
 
 const Table = require('cli-table');
-const colors = require('colors');
+const colors = require('chalk');
 const { Log } = require('../../index');
 const { AthomApi } = require('../../index');
 
