@@ -16,6 +16,12 @@ exports.builder = yargs => {
       alias: 's',
       type: 'boolean',
       default: false,
+    })
+    .option('link-modules', {
+      alias: 'l',
+      type: 'string',
+      default: '',
+      desc: 'Provide a comma-separated path to local Node.js modules to link. Only works on Homey Cloud.',
     });
 };
 exports.handler = async yargs => {
@@ -24,6 +30,7 @@ exports.handler = async yargs => {
     await app.run({
       clean: yargs.clean,
       skipBuild: yargs.skipBuild,
+      linkModules: yargs.linkModules,
     });
   } catch (err) {
     Log(colors.red(err.message));
