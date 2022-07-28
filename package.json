@@ -32,7 +32,6 @@
     "homey-lib": "^2.17.2",
     "ignore-walk": "^3.0.3",
     "inquirer": "8.1.2",
-    "monitorctrlc": "^2.0.1",
     "node-fetch": "^2.1.1",
     "object-path": "^0.11.4",
     "open": "^8.2.0",
