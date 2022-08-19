@@ -3,6 +3,14 @@
   "version": "2.30.1",
   "description": "Command-line interface and type declarations for Homey Apps",
   "main": "index.js",
+  "files": [
+    "/assets",
+    "/bin",
+    "/lib",
+    "/sdk",
+    "/config.js",
+    "/index.js"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint ."
