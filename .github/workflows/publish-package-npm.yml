@@ -1,0 +1,99 @@
+name: Publish to NPM
+
+# Version: 2.1.0
+# Modified: No
+# Requirements:
+# - Ensure you've run `npm version major|minor|patch` on the `master` branch before merging to `production`.
+#
+# This GitHub Workflow:
+# 1. [Optional] If `npm run build` exists. If so, it runs `npm ci` and `npm run build`.
+# 2. Publishes the package to the NPM registry.
+#
+# Secrets:
+# - HOMEY_GITHUB_ACTIONS_BOT_PERSONAL_ACCESS_TOKEN
+# - NPM_AUTH_TOKEN: required for publishing to npm
+# - SLACK_WEBHOOK_URL: required for posting a message in #software
+
+# Note: when publishing a scoped npm package (e.g. @athombv/node-my-package),
+# add "publishConfig": { "access": "public" } to your package.json.
+on:
+  push:
+    branches:
+      - testing
+      - production
+
+jobs:
+  publish:
+    name: Publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout git repository
+        uses: actions/checkout@v3
+
+      # Setup
+      - name: Set up node 16 environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          registry-url: 'https://npm.pkg.github.com'
+
+      # Sets package.json name & version to environment.
+      - name: Get Package Info
+        run: |
+          NAME="$(node -p "require('./package.json').name")"
+          echo package_name=${NAME} >> $GITHUB_ENV
+
+          VERSION="$(node -p "require('./package.json').version")"
+          echo package_version=${VERSION} >> $GITHUB_ENV
+
+      # Ensure `packake.json .files` exists.
+      - name: Verify
+        run: |
+          if ! cat package.json | jq -e .files; then
+            echo "Missing 'files' array in package.json."
+            exit 1
+          fi
+
+      # Run `npm ci && npm run build` if it exists.
+      - name: Build
+        run: |
+          if jq --exit-status '.scripts | has("build")' package.json; then
+            echo "'npm run build' does exist. Building..."
+            npm ci --ignore-scripts --audit=false
+            npm run build
+          else
+            echo "'npm run build' does not exist. Skipping build..."
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.HOMEY_GITHUB_ACTIONS_BOT_PERSONAL_ACCESS_TOKEN }}
+
+      # Configure NPM to use the NPM Registry
+      - name: Configure NPM
+        run: |
+          npm config set registry https://registry.npmjs.org
+          npm config set @athombv:registry https://registry.npmjs.org
+          npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_AUTH_TOKEN }} -q
+
+      # Publish when this action is running on branch production.
+      - name: Publish
+        if: github.ref == 'refs/heads/production'
+        run: |
+          npm publish
+
+      # Publish to beta when this action is running on branch testing.
+      - name: Publish (beta)
+        if: github.ref == 'refs/heads/testing'
+        run: |
+          npm publish --tag beta
+
+       # Post a Slack notification on success/failure
+      - name: Slack notify
+        if: always()
+        uses: innocarpe/actions-slack@v1
+        with:
+          status: ${{ job.status }}
+          success_text: '${{github.repository}} - Published ${{ env.package_name }}@${{ env.package_version }} to npm 🚀'
+          failure_text: '${{github.repository}} - Failed to publish ${{ env.package_name }}@${{ env.package_version }} to npm'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
