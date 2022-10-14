@@ -19,6 +19,7 @@ exports.handler = async () => {
         'Language',
         'Users',
         'Role',
+        'Region',
         'USB',
       ].map(title => colors.white.bold(title)),
     });
@@ -36,6 +37,7 @@ exports.handler = async () => {
         homey.language,
         homey.users && homey.users.length,
         homey.role,
+        homey.region || '-',
         homey.usb ? 'Yes' : '-',
       ].map(value => value || '-'));
     });
