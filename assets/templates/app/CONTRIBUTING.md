@@ -5,7 +5,7 @@ First off all, thank you for taking the time to contribute!
 The following is a set of guidelines for contributing to Athom and its packages, which are hosted in the [Athom Organization](https://github.com/athombv) on GitHub. These are just guidelines, not rules. Use your best judgment, and feel free to contact us if you have any questions.
 
 Please join our [community slack](https://slack.athom.com), if you have not done so already.
-We also have a [community forum](https://community.athom.com) for general discussions.
+We also have a [community forum](https://community.homey.app) for general discussions.
 
 
 ## Before submitting a bug or feature request
@@ -17,8 +17,6 @@ We also have a [community forum](https://community.athom.com) for general discus
 * Have you looked at what's involved in fixing/implementing this?
  
 Capable programmers should always attempt to investigate and fix problems themselves before asking for others to help. Submit a pull request instead of an issue!
-
-Regular support is provided through our [support staff](support@athom.com).
 
 ## A great bug report contains
 
@@ -50,4 +48,3 @@ Merging pull requests takes time. While we always try to merge your pull request
 * Ask developers to review your code changes and post their feedback.
 * Ask users to test your changes and post their feedback.
 * Keep your changes to the minimal required amount, and dedicated to one issue/feature only.
-* If your PR introduces new features or more than just a small fix, please sign our [Contributor License Agreement](https://go.athom.com/cla).
