@@ -1,6 +1,6 @@
 {
   "name": "homey",
-  "version": "2.30.5",
+  "version": "2.30.6",
   "description": "Command-line interface and type declarations for Homey Apps",
   "main": "index.js",
   "files": [
