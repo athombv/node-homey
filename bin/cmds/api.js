@@ -18,7 +18,14 @@ exports.builder = yargs => {
         for (const [operationId, operation] of Object.entries(manager.operations)) {
           yargs.command({
             command: operationId,
-            desc: `Scopes:\n${operation.scopes.join(', ')}\n\nHTTP:\n${operation.method.toUpperCase()} ${operation.path}\n\nDocumentation:\nhttps://athombv.github.io/node-homey-api/HomeyAPIV3Local.${managerName}.html#${operationId}`,
+            desc: `Scopes:
+${operation.scopes.join(', ')}
+
+HTTP:
+${operation.method.toUpperCase()} ${operation.path}
+
+Documentation:
+https://athombv.github.io/node-homey-api/HomeyAPIV3Local.${managerName}.html#${operationId}`,
             builder(yargs) {
               let result = yargs;
               // Parameters
