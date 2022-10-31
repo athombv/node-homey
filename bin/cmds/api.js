@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 'use strict';
 
 const HomeyAPIV3Local = require('homey-api/assets/specifications/HomeyAPIV3Local.json');
@@ -5,11 +7,6 @@ const { AthomApi } = require('../../index'); // TODO: Replace with homey-api
 
 exports.desc = 'Web API related commands';
 exports.builder = yargs => {
-  yargs.option('homey', {
-    type: 'string',
-    desc: 'Homey ID. Defaults to the selected Homey.',
-  });
-
   for (const [managerName, manager] of Object.entries(HomeyAPIV3Local.managers)) {
     yargs.command({
       command: manager.id,
@@ -27,16 +24,27 @@ ${operation.method.toUpperCase()} ${operation.path}
 Documentation:
 https://athombv.github.io/node-homey-api/HomeyAPIV3Local.${managerName}.html#${operationId}`,
             builder(yargs) {
-              let result = yargs;
+              // Homey
+              yargs.option('homey', {
+                type: 'string',
+                desc: 'Homey ID. Defaults to the selected Homey.',
+              });
+
+              // CI
+              yargs.option('ci', {
+                description: 'Only print JSON',
+                default: false,
+                type: 'boolean',
+              });
+
               // Parameters
               if (operation.parameters) {
                 Object.entries(operation.parameters).forEach(([parameterId, parameter]) => {
-                  result = result.option(parameterId, {
+                  yargs.option(`arg-${parameterId}`, {
                     required: parameter.required,
                   });
                 });
               }
-              return result;
             },
             async handler(yargs) {
               const homeyApi = yargs.homey
@@ -47,45 +55,51 @@ https://athombv.github.io/node-homey-api/HomeyAPIV3Local.${managerName}.html#${o
               const parameters = {};
               if (operation.parameters) {
                 Object.entries(operation.parameters).forEach(([parameterId, parameter]) => {
+                  const value = yargs[`arg-${parameterId}`];
+                  if (value === undefined) return;
+
                   // Boolean
                   if (parameter.type === 'boolean') {
-                    parameters[parameterId] = Boolean(yargs[parameterId]);
+                    parameters[parameterId] = Boolean(value);
                   }
 
-                  if (parameter.type === undefined && yargs[parameterId] === 'true') {
+                  if (parameter.type === undefined && value === 'true') {
                     parameters[parameterId] = true;
                   }
 
-                  if (parameter.type === undefined && yargs[parameterId] === 'false') {
+                  if (parameter.type === undefined && value === 'false') {
                     parameters[parameterId] = false;
                   }
 
                   // Number
                   if (parameter.type === 'number') {
-                    parameters[parameterId] = Number(yargs[parameterId]);
+                    parameters[parameterId] = Number(value);
                   }
 
                   // String
                   if (parameter.type === 'string') {
-                    parameters[parameterId] = String(yargs[parameterId]);
+                    parameters[parameterId] = String(value);
                   }
 
                   // Object
                   if (parameter.type === 'object') {
-                    parameters[parameterId] = JSON.parse(yargs[parameterId]);
+                    parameters[parameterId] = JSON.parse(value);
                   }
 
                   // Array
                   if (parameter.type === 'array') {
-                    parameters[parameterId] = JSON.parse(yargs[parameterId]);
+                    parameters[parameterId] = JSON.parse(value);
                   }
                 });
               }
 
+              if (!yargs.ci) console.log('Request:');
+              if (!yargs.ci) console.log(parameters);
+
               const method = homeyApi[manager.id][operationId];
               const result = await method.call(homeyApi[manager.id], parameters);
 
-              // eslint-disable-next-line no-console
+              if (!yargs.ci) console.log('\nResponse:');
               console.log(result);
             },
           });
