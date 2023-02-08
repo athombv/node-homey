@@ -29,7 +29,7 @@ exports.builder = yargs => {
       alias: 'l',
       type: 'string',
       default: '',
-      desc: 'Provide a comma-separated path to local Node.js modules to link. Only works on Homey Cloud.',
+      desc: 'Provide a comma-separated path to local Node.js modules to link. Only works when running the app inside Docker.',
     });
 };
 exports.handler = async yargs => {
