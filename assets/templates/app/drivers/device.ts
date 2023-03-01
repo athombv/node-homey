@@ -24,8 +24,16 @@ class MyDevice extends Homey.Device {
    * @param {string[]} event.changedKeys An array of keys changed since the previous version
    * @returns {Promise<string|void>} return a custom message that will be displayed
    */
-  async onSettings({ oldSettings: {}, newSettings: {}, changedKeys: [] }): Promise<string|void> {
-    this.log('MyDevice settings where changed');
+  async onSettings({
+    oldSettings,
+    newSettings,
+    changedKeys,
+  }: {
+    oldSettings: { [key: string]: boolean | string | number | undefined };
+    newSettings: { [key: string]: boolean | string | number | undefined };
+    changedKeys: string[];
+  }): Promise<string | void> {
+    this.log("MyDevice settings where changed");
   }
 
   /**
