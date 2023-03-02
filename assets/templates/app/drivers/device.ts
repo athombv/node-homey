@@ -29,8 +29,8 @@ class MyDevice extends Homey.Device {
     newSettings,
     changedKeys,
   }: {
-    oldSettings: { [key: string]: boolean | string | number | undefined };
-    newSettings: { [key: string]: boolean | string | number | undefined };
+    oldSettings: { [key: string]: boolean | string | number | undefined | null };
+    newSettings: { [key: string]: boolean | string | number | undefined | null };
     changedKeys: string[];
   }): Promise<string | void> {
     this.log("MyDevice settings where changed");
