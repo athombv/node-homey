@@ -37,7 +37,7 @@
     "filesize": "^6.1.0",
     "fs-extra": "^10.0.0",
     "get-port": "^5.1.1",
-    "homey-lib": "^2.21.2",
+    "homey-lib": "^2.21.3",
     "ignore-walk": "^3.0.3",
     "inquirer": "8.1.2",
     "is-wsl": "^2.2.0",
