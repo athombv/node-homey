@@ -14,8 +14,10 @@ exports.handler = async () => {
       head: [
         'ID',
         'Name',
-        'Version',
-        'API',
+        'Platform',
+        'Platform Version',
+        'Software Version',
+        'API Version',
         'Language',
         'Users',
         'Role',
@@ -30,8 +32,10 @@ exports.handler = async () => {
 
     homeys.forEach(homey => {
       table.push([
-        homey._id,
+        homey.id,
         homey.name,
+        homey.platform,
+        homey.platformVersion,
         homey.softwareVersion,
         homey.apiVersion,
         homey.language,
