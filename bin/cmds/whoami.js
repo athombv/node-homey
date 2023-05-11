@@ -10,7 +10,7 @@ exports.handler = async yargs => {
     const profile = await AthomApi.getProfile();
     Log(`${profile.firstname} ${profile.lastname} <${profile.email}>`);
 
-    if (profile.roleIds.includes('app_developer_trusted')) {
+    if (profile.hasRole('app_developer_trusted')) {
       Log(`${colors.cyan('(✔)')} ${colors.white('Verified Developer')}`);
     }
 
