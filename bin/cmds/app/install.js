@@ -28,7 +28,9 @@ exports.handler = async yargs => {
       clean: yargs.clean,
       skipBuild: yargs.skipBuild,
     });
+    process.exit(0);
   } catch (err) {
     Log(colors.red(err.message));
+    process.exit(1);
   }
 };

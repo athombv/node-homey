@@ -12,7 +12,9 @@ exports.handler = async yargs => {
     const url = `https://tools.developer.homey.app/apps/app/${manifest.id}`;
     Log(colors.green(`✓ Opening URL: ${url}`));
     open(url);
+    process.exit(0);
   } catch (err) {
     Log(colors.red(err.message));
+    process.exit(1);
   }
 };

@@ -20,7 +20,9 @@ exports.handler = async yargs => {
     await app.validate({
       level: yargs.level,
     });
+    process.exit(0);
   } catch (err) {
     Log(colors.red(err.message));
+    process.exit(1);
   }
 };

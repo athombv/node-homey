@@ -10,7 +10,9 @@ exports.handler = async yargs => {
     const url = 'https://apps.developer.homey.app';
     Log(colors.green(`✓ Opening URL: ${url}`));
     await open(url);
+    process.exit(0);
   } catch (err) {
     Log(colors.red(err.message));
+    process.exit(1);
   }
 };

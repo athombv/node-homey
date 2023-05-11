@@ -9,7 +9,9 @@ exports.handler = async yargs => {
   try {
     const app = new App(yargs.path);
     await app.build();
+    process.exit(1);
   } catch (err) {
     Log(colors.red(err.message));
+    process.exit(0);
   }
 };

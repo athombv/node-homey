@@ -14,9 +14,9 @@ exports.handler = async yargs => {
       Log(`${colors.cyan('(✔)')} ${colors.white('Verified Developer')}`);
     }
 
-    // eslint-disable-next-line no-process-exit
-    process.exit();
+    process.exit(0);
   } catch (err) {
     Log(colors.red(err.message));
+    process.exit(1);
   }
 };

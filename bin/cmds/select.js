@@ -25,7 +25,9 @@ exports.handler = async yargs => {
       id: yargs.id,
       name: yargs.name,
     });
+    process.exit(0);
   } catch (err) {
     Log(colors.red(err.message));
+    process.exit(1);
   }
 };

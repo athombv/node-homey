@@ -41,7 +41,9 @@ exports.handler = async yargs => {
       skipBuild: yargs.skipBuild,
       linkModules: yargs.linkModules,
     });
+    process.exit(0);
   } catch (err) {
     Log(colors.red(err.message));
+    process.exit(1);
   }
 };

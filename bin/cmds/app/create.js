@@ -8,7 +8,9 @@ exports.desc = 'Create a new Homey App';
 exports.handler = async yargs => {
   try {
     await App.create({ appPath: yargs.path });
+    process.exit(0);
   } catch (err) {
     Log(colors.red(err.message));
+    process.exit(1);
   }
 };
