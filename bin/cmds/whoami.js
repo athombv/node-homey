@@ -1,8 +1,8 @@
 'use strict';
 
 const colors = require('colors');
-const { Log } = require('../..');
-const { AthomApi } = require('../..');
+const Log = require('../../lib/Log');
+const AthomApi = require('../../services/AthomApi');
 
 exports.desc = 'Show the current logged in user';
 exports.handler = async yargs => {
@@ -16,7 +16,7 @@ exports.handler = async yargs => {
 
     process.exit(0);
   } catch (err) {
-    Log(colors.red(err.message));
+    Log.error(err);
     process.exit(1);
   }
 };

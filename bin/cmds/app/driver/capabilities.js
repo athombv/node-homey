@@ -1,8 +1,7 @@
 'use strict';
 
-const colors = require('colors');
-const { Log } = require('../../../..');
-const { App } = require('../../../..');
+const Log = require('../../../../lib/Log');
+const App = require('../../../../lib/App');
 
 exports.desc = 'Change the capabilities of a Driver';
 exports.handler = async yargs => {
@@ -11,7 +10,7 @@ exports.handler = async yargs => {
     await app.changeDriverCapabilities();
     process.exit(0);
   } catch (err) {
-    Log(colors.red(err.message));
+    Log.error(err);
     process.exit(1);
   }
 };

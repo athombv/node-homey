@@ -2,8 +2,8 @@
 
 const colors = require('colors');
 const open = require('open');
-const { Log } = require('../../..');
-const { App } = require('../../..');
+const Log = require('../../../lib/Log');
+const App = require('../../../lib/App');
 
 exports.desc = 'View your app in the Homey Developer Tools';
 exports.handler = async yargs => {
@@ -14,7 +14,7 @@ exports.handler = async yargs => {
     open(url);
     process.exit(0);
   } catch (err) {
-    Log(colors.red(err.message));
+    Log.error(err);
     process.exit(1);
   }
 };

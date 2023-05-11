@@ -2,8 +2,8 @@
 
 const Table = require('cli-table');
 const colors = require('colors');
-const { Log } = require('../../index');
-const { AthomApi } = require('../../index');
+const Log = require('../../lib/Log');
+const AthomApi = require('../../services/AthomApi');
 
 exports.desc = 'List all Homeys';
 exports.handler = async () => {
@@ -49,7 +49,7 @@ exports.handler = async () => {
     Log(table.toString());
     process.exit(0);
   } catch (err) {
-    Log(colors.red(err.message));
+    Log(colors.red(err.stack));
     process.exit(1);
   }
 };

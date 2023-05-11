@@ -1,9 +1,8 @@
 'use strict';
 
-const colors = require('colors');
-const { Log } = require('../../..');
-const { App } = require('../../..');
-const { AthomApi } = require('../../..');
+const Log = require('../../../lib/Log');
+const App = require('../../../lib/App');
+const AthomApi = require('../../../services/AthomApi');
 
 exports.desc = 'Install a Homey App';
 exports.builder = yargs => {
@@ -30,7 +29,7 @@ exports.handler = async yargs => {
     });
     process.exit(0);
   } catch (err) {
-    Log(colors.red(err.message));
+    Log.error(err);
     process.exit(1);
   }
 };

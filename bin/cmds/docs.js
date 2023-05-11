@@ -2,7 +2,7 @@
 
 const open = require('open');
 const colors = require('colors');
-const { Log } = require('../..');
+const Log = require('../../lib/Log');
 
 exports.desc = 'Open Homey Developer Documentation';
 exports.handler = async yargs => {
@@ -12,7 +12,7 @@ exports.handler = async yargs => {
     await open(url);
     process.exit(0);
   } catch (err) {
-    Log(colors.red(err.message));
+    Log.error(err);
     process.exit(1);
   }
 };
