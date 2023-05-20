@@ -1,8 +1,8 @@
 'use strict';
 
 module.exports = {
-  athomApiClientId: '5bd33e9b9c99fc4f8d0bc231',
-  athomApiClientSecret: '2f1cf5ad5917eac06284c9b3071406c6db318274',
+  athomApiClientId: '64691b4358336640a5ecee5c',
+  athomApiClientSecret: 'ed09f559ae12b1522d00431f0bf7c5755603c41e',
   athomApiLoginUrl: 'https://cli.athom.com',
   athomMessageUrl: 'https://go.athom.com/cli-message',
 };
