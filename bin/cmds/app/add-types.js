@@ -7,9 +7,9 @@ exports.desc = 'Install the Apps SDK TypeScript declarations';
 exports.handler = async yargs => {
   try {
     await App.addTypes({ appPath: yargs.path });
-    process.exit(1);
+    process.exit(0);
   } catch (err) {
     Log.error(err);
-    process.exit(0);
+    process.exit(1);
   }
 };

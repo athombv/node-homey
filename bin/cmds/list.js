@@ -49,7 +49,7 @@ exports.handler = async () => {
     Log(table.toString());
     process.exit(0);
   } catch (err) {
-    Log(colors.red(err.stack));
+    Log.error(err.stack);
     process.exit(1);
   }
 };
