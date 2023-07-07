@@ -6,6 +6,10 @@ const yargs = require('yargs');
 const updateNotifier = require('update-notifier');
 const semver = require('semver');
 
+const pkg = require('../package.json');
+const Log = require('../lib/Log');
+const AthomMessage = require('../services/AthomMessage');
+
 // Since Node.js v18, these are global, but they interfere with athom-api.
 // We delete them and provide our own.
 delete global.fetch;
@@ -14,18 +18,15 @@ delete global.Headers;
 delete global.Request;
 delete global.Response;
 
-const pkg = require('../package.json');
-const { AthomMessage } = require('..');
-
-const MINIMUM_NODE_VERSION = 'v12.0.0';
-
+// Ensure the minimum Node.js version is high enough
+const MINIMUM_NODE_VERSION = 'v16.0.0';
 try {
   if (semver.lt(process.version, MINIMUM_NODE_VERSION)) {
-    console.error(`Error: node-homey requires Node.js ${MINIMUM_NODE_VERSION} or higher to run. Please upgrade your Node.js version and try again.`);
+    Log(`Homey CLI requires Node.js ${MINIMUM_NODE_VERSION} or higher.\nPlease upgrade your Node.js version and try again.`);
     return;
   }
 } catch (err) {
-  console.error(`Failed to determine Node.js version, please make sure you're using version ${MINIMUM_NODE_VERSION} or higher.`);
+  Log(`Failed to determine Node.js version, please make sure you're using version ${MINIMUM_NODE_VERSION} or higher.`);
   return;
 }
 
