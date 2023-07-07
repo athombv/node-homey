@@ -2,6 +2,7 @@
     "extends": "athom",
     "rules": {
         "consistent-return": "off",
-        "prefer-destructuring": "off"
+        "prefer-destructuring": "off",
+        "no-process-exit": "off"
     }
 }

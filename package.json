@@ -1,23 +1,22 @@
 {
   "name": "homey",
-  "version": "2.34.0",
+  "version": "3.0.0",
   "description": "Command-line interface and type declarations for Homey Apps",
-  "main": "index.js",
+  "main": "bin/homey.js",
   "files": [
     "/assets",
     "/bin",
     "/lib",
     "/sdk",
-    "/config.js",
-    "/index.js"
+    "/services",
+    "/config.js"
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint ."
   },
   "bin": {
-    "homey": "bin/homey.js",
-    "athom": "bin/athom.js"
+    "homey": "bin/homey.js"
   },
   "engines": {
     "node": ">=10.10.0"
@@ -26,7 +25,6 @@
   "license": "ISC",
   "readme": "README.md",
   "dependencies": {
-    "athom-api": "^3.2.25",
     "cli-table": "^0.3.5",
     "colors": "^1.1.2 <=1.4.0",
     "deepmerge": "^4.2.2",
@@ -37,6 +35,7 @@
     "filesize": "^6.1.0",
     "fs-extra": "^10.0.0",
     "get-port": "^5.1.1",
+    "homey-api": "^3.0.2",
     "homey-lib": "^2.21.3",
     "ignore-walk": "^3.0.3",
     "inquirer": "8.1.2",
