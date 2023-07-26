@@ -41,7 +41,11 @@ exports.handler = async yargs => {
       linkModules: yargs.linkModules,
     });
   } catch (err) {
-    Log.error(err);
+    if (err instanceof Error && err.stack) {
+      Log.error(err.stack);
+    } else {
+      Log.error(err);
+    }
     process.exit(1);
   }
 };

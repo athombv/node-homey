@@ -29,7 +29,11 @@ exports.handler = async yargs => {
     });
     process.exit(0);
   } catch (err) {
-    Log.error(err);
+    if (err instanceof Error && err.stack) {
+      Log.error(err.stack);
+    } else {
+      Log.error(err);
+    }
     process.exit(1);
   }
 };
