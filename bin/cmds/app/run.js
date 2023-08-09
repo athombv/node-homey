@@ -45,7 +45,7 @@ exports.handler = async yargs => {
       clean: yargs.clean,
       skipBuild: yargs.skipBuild,
       linkModules: yargs.linkModules,
-      network: yargs.network
+      network: yargs.network,
     });
   } catch (err) {
     if (err instanceof Error && err.stack) {
