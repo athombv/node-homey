@@ -29,6 +29,12 @@ exports.builder = yargs => {
       type: 'string',
       default: '',
       desc: 'Provide a comma-separated path to local Node.js modules to link. Only works when running the app inside Docker.',
+    })
+    .option('network', {
+      alias: 'n',
+      default: 'bridge',
+      type: 'string',
+      description: 'Docker network mode. Must match name from `docker network ls`. Only works when running the app inside Docker.',
     });
 };
 exports.handler = async yargs => {
@@ -39,6 +45,7 @@ exports.handler = async yargs => {
       clean: yargs.clean,
       skipBuild: yargs.skipBuild,
       linkModules: yargs.linkModules,
+      network: yargs.network,
     });
   } catch (err) {
     if (err instanceof Error && err.stack) {
