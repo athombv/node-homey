@@ -1,6 +1,6 @@
 {
   "name": "homey",
-  "version": "3.0.8",
+  "version": "3.1.0",
   "description": "Command-line interface and type declarations for Homey Apps",
   "main": "bin/homey.js",
   "files": [
@@ -28,7 +28,7 @@
     "cli-table": "^0.3.5",
     "colors": "^1.1.2 <=1.4.0",
     "deepmerge": "^4.2.2",
-    "dockerode": "^3.3.4",
+    "dockerode": "^4.0.0",
     "eslint": "^6.8.0",
     "express": "^4.16.4",
     "figures": "^3.2.0",
@@ -36,7 +36,7 @@
     "fs-extra": "^10.0.0",
     "get-port": "^5.1.1",
     "homey-api": "^3.0.20",
-    "homey-lib": "^2.21.7",
+    "homey-lib": "^2.22.0",
     "ignore-walk": "^3.0.3",
     "inquirer": "8.1.2",
     "is-wsl": "^2.2.0",

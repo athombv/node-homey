@@ -37,7 +37,7 @@ jobs:
       - name: Set up node 12 environment
         uses: actions/setup-node@v1
         with:
-          node-version: '12'
+          node-version: '16'
           # Needed for publishing to npm
           registry-url: 'https://registry.npmjs.org'
 
