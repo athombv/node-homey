@@ -2,7 +2,7 @@
   "name": "homey",
   "version": "3.2.3",
   "description": "Command-line interface and type declarations for Homey Apps",
-  "main": "bin/homey.js",
+  "main": "bin/homey.mjs",
   "files": [
     "/assets",
     "/bin",
@@ -15,10 +15,10 @@
     "lint": "eslint ."
   },
   "bin": {
-    "homey": "bin/homey.js"
+    "homey": "bin/homey.mjs"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "author": "Athom B.V.",
   "license": "ISC",
@@ -49,7 +49,7 @@
     "tmp-promise": "^3.0.2",
     "underscore": "^1.12.0",
     "update-notifier": "^5.1.0",
-    "yargs": "^17.0.1"
+    "yargs": "^17.7.2"
   },
   "devDependencies": {
     "eslint-config-athom": "^2.1.1"

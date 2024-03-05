@@ -3,6 +3,7 @@
 const open = require('open');
 const Log = require('../../lib/Log');
 
+exports.command = 'docs';
 exports.desc = 'Open Homey Developer Documentation';
 exports.handler = async yargs => {
   try {
