@@ -1,6 +1,6 @@
 {
   "name": "homey",
-  "version": "3.2.2",
+  "version": "3.2.3",
   "description": "Command-line interface and type declarations for Homey Apps",
   "main": "bin/homey.js",
   "files": [
@@ -12,14 +12,13 @@
     "/config.js"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint ."
   },
   "bin": {
     "homey": "bin/homey.js"
   },
   "engines": {
-    "node": ">=10.10.0"
+    "node": ">=16.0.0"
   },
   "author": "Athom B.V.",
   "license": "ISC",
