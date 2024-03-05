@@ -12,14 +12,13 @@
     "/config.js"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint ."
   },
   "bin": {
     "homey": "bin/homey.js"
   },
   "engines": {
-    "node": ">=10.10.0"
+    "node": ">=16.0.0"
   },
   "author": "Athom B.V.",
   "license": "ISC",
