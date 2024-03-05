@@ -10,16 +10,9 @@ const pkg = require('../package.json');
 const Log = require('../lib/Log');
 const AthomMessage = require('../services/AthomMessage');
 
-// Since Node.js v18, these are global, but they interfere with athom-api.
-// We delete them and provide our own.
-delete global.fetch;
-delete global.FormData;
-delete global.Headers;
-delete global.Request;
-delete global.Response;
-
 // Ensure the minimum Node.js version is high enough
 const MINIMUM_NODE_VERSION = 'v16.0.0';
+
 try {
   if (semver.lt(process.version, MINIMUM_NODE_VERSION)) {
     Log(`Homey CLI requires Node.js ${MINIMUM_NODE_VERSION} or higher.\nPlease upgrade your Node.js version and try again.`);
