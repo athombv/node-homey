@@ -1,6 +1,4 @@
-'use strict';
-
-const Homey = require('homey');
+import Homey from 'homey';
 
 class MyDriver extends Homey.Driver {
 
@@ -33,4 +31,4 @@ class MyDriver extends Homey.Driver {
 
 }
 
-module.exports = MyDriver;
+export default MyDriver;

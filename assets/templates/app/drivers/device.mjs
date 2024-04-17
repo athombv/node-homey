@@ -1,6 +1,4 @@
-'use strict';
-
-const Homey = require('homey');
+import Homey from 'homey';
 
 class MyDevice extends Homey.Device {
 
@@ -48,4 +46,4 @@ class MyDevice extends Homey.Device {
 
 }
 
-module.exports = MyDevice;
+export default MyDevice;
