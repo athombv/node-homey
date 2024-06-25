@@ -10,7 +10,7 @@ exports.handler = async yargs => {
     await app.build();
     process.exit(0);
   } catch (err) {
-    Log.error(err);
+    Log.error(err.stack);
     process.exit(1);
   }
 };
