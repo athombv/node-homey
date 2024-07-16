@@ -22,6 +22,10 @@ exports.builder = yargs => {
       default: 'gpt-4o',
       type: 'string',
       description: 'OpenAI model to use.',
+    })
+    .option('file', {
+      type: 'string',
+      description: 'Absolute path to a single file to translate, instead of automatically translating the entire folder.',
     });
 };
 exports.handler = async yargs => {
@@ -31,6 +35,7 @@ exports.handler = async yargs => {
       languages: yargs.languages.split(',').map(lang => lang.trim()),
       apiKey: yargs.apiKey,
       model: yargs.model,
+      file: yargs.file,
     });
     await app.preprocess();
     await app.validate({
