@@ -5,11 +5,12 @@ module.exports = {
     // you can access query parameters like "/?foo=bar" through `query.foo`
 
     // you can access the App instance through homey.app
-    const result = await homey.app.getData();
+    // const result = await homey.app.getSomething();
+    // rerturn result;
 
     // perform other logic like mapping result data
 
-    return result;
+    return 'Hello from App';
   },
 
   async addSomething({ homey, body }) {
@@ -18,7 +19,7 @@ module.exports = {
   },
 
   async updateSomething({ homey, params, body }) {
-    return homey.app.setData(body);
+    return homey.app.setSomething(body);
   },
 
   async deleteSomething({ homey, params }) {

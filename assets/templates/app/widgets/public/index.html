@@ -1,19 +1,44 @@
 <html>
   <head>
-    
+    <style>
+      #message, #app-message {
+        font-size: 20px;
+        text-align: center;
+      }
+
+      #app-message-button {
+        display: block;
+        margin: 20px auto;
+        padding: 10px 20px;
+        font-size: 20px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+    </style>
   </head>
+
   <body>
     <div id="message">Hello World!</div>
+    <div id="app-message"></div>
+    <button id="app-message-button">Get Message</button>
 
     <script type="text/javascript">
-
       function onHomeyReady(Homey) {
         Homey.ready({ height: 200 });
-        console.log(Homey.getWidgetInstanceId());
-        console.log(Homey.getSettings());
-        // const result = await Homey.api('GET', '/', {});
+
+        console.log('instanceId: ', Homey.getWidgetInstanceId());
+        console.log('settings', Homey.getSettings());
+
+        document.getElementById('app-message-button').addEventListener('click', () => {
+          Homey.api('GET', '/', {})
+            .then((result) => {
+              document.getElementById('message').innerText = String(result);
+            })
+            .catch(console.error);
+        });
       }
-    
     </script>
   </body>
 </html>
