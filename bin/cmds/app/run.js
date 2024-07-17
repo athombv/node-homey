@@ -39,16 +39,9 @@ exports.builder = yargs => {
     .option('widget-host-id', {
       type: 'string',
       description: '',
-    })
-    .option('widget-host-url', {
-      type: 'string',
-      description: '',
-    })
+    });
 };
 exports.handler = async yargs => {
-
-  console.log(yargs);
-
   try {
     const app = new App(yargs.path);
     await app.run({
@@ -58,7 +51,6 @@ exports.handler = async yargs => {
       linkModules: yargs.linkModules,
       network: yargs.network,
       widgetHostId: yargs.widgetHostId,
-      widgetHostUrl: yargs.widgetHostUrl,
     });
   } catch (err) {
     if (err instanceof Error && err.stack) {
