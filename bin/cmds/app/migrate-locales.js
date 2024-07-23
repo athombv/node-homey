@@ -3,14 +3,14 @@
 const Log = require('../../../lib/Log');
 const App = require('../../../lib/App');
 
-exports.desc = 'Build a Homey App for publishing';
+exports.desc = 'Migrate all i18n strings from separate files to a single ./homycompose/locales/<language>.json';
 exports.handler = async yargs => {
   try {
     const app = new App(yargs.path);
-    await app.build();
+    await app.migrateLocales();
     process.exit(0);
   } catch (err) {
-    Log.error(err.stack);
+    Log.error(err);
     process.exit(1);
   }
 };
