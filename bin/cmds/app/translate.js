@@ -37,7 +37,6 @@ exports.handler = async yargs => {
       model: yargs.model,
       file: yargs.file,
     });
-    await app.preprocess();
     await app.validate({
       level: yargs.level,
     });
