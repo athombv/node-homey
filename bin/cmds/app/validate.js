@@ -15,7 +15,9 @@ exports.builder = yargs => {
 exports.handler = async yargs => {
   try {
     const app = new App(yargs.path);
-    await app.preprocess();
+    await app.preprocess({
+      copyAppProductionDependencies: false,
+    });
     await app.validate({
       level: yargs.level,
     });
