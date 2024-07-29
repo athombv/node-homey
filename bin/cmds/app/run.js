@@ -35,10 +35,6 @@ exports.builder = yargs => {
       default: 'bridge',
       type: 'string',
       description: 'Docker network mode. Must match name from `docker network ls`. Only works when running the app inside Docker.',
-    })
-    .option('widget-host-id', {
-      type: 'string',
-      description: '',
     });
 };
 exports.handler = async yargs => {
@@ -50,7 +46,6 @@ exports.handler = async yargs => {
       skipBuild: yargs.skipBuild,
       linkModules: yargs.linkModules,
       network: yargs.network,
-      widgetHostId: yargs.widgetHostId,
     });
   } catch (err) {
     if (err instanceof Error && err.stack) {
