@@ -6,7 +6,7 @@ module.exports = {
 
     // you can access the App instance through homey.app
     // const result = await homey.app.getSomething();
-    // rerturn result;
+    // return result;
 
     // perform other logic like mapping result data
 
