@@ -1,6 +1,6 @@
 {
   "name": "homey",
-  "version": "3.6.2",
+  "version": "3.6.3",
   "description": "Command-line interface and type declarations for Homey Apps",
   "main": "bin/homey.js",
   "files": [
@@ -35,7 +35,7 @@
     "fs-extra": "^10.1.0",
     "get-port": "^5.1.1",
     "homey-api": "^3.5.3",
-    "homey-lib": "^2.30.1",
+    "homey-lib": "^2.31.1",
     "ignore-walk": "^3.0.3",
     "inquirer": "8.1.2",
     "is-wsl": "^2.2.0",
