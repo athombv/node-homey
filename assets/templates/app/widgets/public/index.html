@@ -1,4 +1,4 @@
-<html lang="en">
+<html>
   <head>
     <style>
       /* Example of a custom CSS class. */
@@ -16,8 +16,15 @@
       function onHomeyReady(Homey) {
         Homey.ready({ height: 188 });
 
-        // View the settings the user provided if you widget has settings.
+        // View the settings the user provided if your widget has settings.
         console.log('Widget settings:', Homey.getSettings());
+
+        // Fetch something from your app.
+        Homey.api('GET', '/', {})
+          .then((result) => {
+            console.log(result);
+          })
+          .catch(console.error);
       }
     </script>
   </body>
