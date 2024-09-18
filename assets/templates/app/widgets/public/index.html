@@ -1,43 +1,23 @@
-<html>
+<html lang="en">
   <head>
     <style>
-      #message, #app-message {
-        font-size: 20px;
-        text-align: center;
-      }
-
-      #app-message-button {
-        display: block;
-        margin: 20px auto;
-        padding: 10px 20px;
-        font-size: 20px;
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        cursor: pointer;
+      /* Example of a custom CSS class. */
+      .custom-image-class {
+        margin: var(--homey-su-3) auto var(--homey-su-5);
       }
     </style>
   </head>
 
-  <body>
-    <div id="message">Hello World!</div>
-    <div id="app-message"></div>
-    <button id="app-message-button">Get Message</button>
+  <body class="homey-widget">
+    <img src="homey-logo.png" alt="Homey logo" class="custom-image-class" />
+    <p class="homey-text-regular homey-text-align-center">Edit public/index.html and hit refresh.</p>
 
     <script type="text/javascript">
       function onHomeyReady(Homey) {
-        Homey.ready({ height: 200 });
+        Homey.ready({ height: 188 });
 
-        console.log('instanceId: ', Homey.getWidgetInstanceId());
-        console.log('settings', Homey.getSettings());
-
-        document.getElementById('app-message-button').addEventListener('click', () => {
-          Homey.api('GET', '/', {})
-            .then((result) => {
-              document.getElementById('message').innerText = String(result);
-            })
-            .catch(console.error);
-        });
+        // View the settings the user provided if you widget has settings.
+        console.log('Widget settings:', Homey.getSettings());
       }
     </script>
   </body>
