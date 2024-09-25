@@ -1,6 +1,6 @@
 import Homey from 'homey';
 
-class MyDriver extends Homey.Driver {
+export default class MyDriver extends Homey.Driver {
 
   /**
    * onInit is called when the driver is initialized.
@@ -29,6 +29,4 @@ class MyDriver extends Homey.Driver {
     ];
   }
 
-}
-
-export default MyDriver;
+};

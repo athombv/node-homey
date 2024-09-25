@@ -1,6 +1,6 @@
 import Homey from 'homey';
 
-class MyDevice extends Homey.Device {
+export default class MyDevice extends Homey.Device {
 
   /**
    * onInit is called when the device is initialized.
@@ -44,6 +44,4 @@ class MyDevice extends Homey.Device {
     this.log('MyDevice has been deleted');
   }
 
-}
-
-export default MyDevice;
+};
