@@ -15,6 +15,9 @@ exports.builder = yargs => {
       default: null,
       type: 'string',
       description: 'What\'s new in this version?',
+    })
+    .option('commit', {
+      description: 'Create a git commit and tag for the new version',
     });
 };
 exports.handler = async yargs => {
@@ -24,6 +27,10 @@ exports.handler = async yargs => {
 
     if (yargs.changelog) {
       await app.changelog(yargs.changelog);
+    }
+
+    if (yargs.commit) {
+      await app.commit(yargs.changelog);
     }
 
     process.exit(0);
