@@ -1,6 +1,6 @@
 {
   "name": "homey",
-  "version": "3.7.6",
+  "version": "3.7.7",
   "description": "Command-line interface and type declarations for Homey Apps",
   "main": "bin/homey.js",
   "files": [
@@ -18,7 +18,7 @@
     "homey": "bin/homey.js"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "author": "Athom B.V.",
   "license": "ISC",
