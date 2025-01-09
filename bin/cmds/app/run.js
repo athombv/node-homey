@@ -40,6 +40,11 @@ exports.builder = (yargs) => {
       default: undefined,
       type: 'string',
       description: 'Path to the Docker socket.',
+    })
+    .option('docker-exposed-ports', {
+      default: [],
+      type: 'array',
+      description: 'Docker exposed ports, i.e. `6113/tcp` or `5683/udp`. Only works when running the app inside docker.',
     });
 };
 exports.handler = async (yargs) => {
@@ -52,6 +57,7 @@ exports.handler = async (yargs) => {
       linkModules: yargs.linkModules,
       network: yargs.network,
       dockerSocketPath: yargs.dockerSocketPath,
+      dockerExposedPorts: yargs.dockerExposedPorts,
     });
   } catch (err) {
     if (err instanceof Error && err.stack) {
