@@ -35,6 +35,11 @@ exports.builder = yargs => {
       default: 'bridge',
       type: 'string',
       description: 'Docker network mode. Must match name from `docker network ls`. Only works when running the app inside Docker.',
+    })
+    .option('ports', {
+      default: [],
+      type: 'array',
+      description: 'Docker exposed ports, i.e. `6113/tcp` or `5683/udp`. Only works when running the app inside docker.',
     });
 };
 exports.handler = async yargs => {
@@ -46,6 +51,7 @@ exports.handler = async yargs => {
       skipBuild: yargs.skipBuild,
       linkModules: yargs.linkModules,
       network: yargs.network,
+      ports: yargs.ports,
     });
   } catch (err) {
     if (err instanceof Error && err.stack) {
