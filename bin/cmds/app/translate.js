@@ -3,7 +3,7 @@
 const colors = require('colors');
 
 const Log = require('../../../lib/Log');
-const App = require('../../../lib/App');
+const AppFactory = require('../../../lib/AppFactory');
 
 exports.desc = 'Translate a Homey App with OpenAI';
 exports.builder = yargs => {
@@ -30,7 +30,7 @@ exports.builder = yargs => {
 };
 exports.handler = async yargs => {
   try {
-    const app = new App(yargs.path);
+    const app = AppFactory.getAppInstance(yargs.path);
     await app.translateWithOpenAI({
       languages: yargs.languages.split(',').map(lang => lang.trim()),
       apiKey: yargs.apiKey,

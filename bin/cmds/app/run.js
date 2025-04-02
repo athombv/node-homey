@@ -1,7 +1,7 @@
 'use strict';
 
 const Log = require('../../../lib/Log');
-const App = require('../../../lib/App');
+const AppFactory = require('../../../lib/AppFactory');
 
 exports.desc = 'Run a Homey App in development mode';
 exports.builder = yargs => {
@@ -44,7 +44,7 @@ exports.builder = yargs => {
 };
 exports.handler = async yargs => {
   try {
-    const app = new App(yargs.path);
+    const app = AppFactory.getAppInstance(yargs.path);
     await app.run({
       remote: yargs.remote,
       clean: yargs.clean,

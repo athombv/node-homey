@@ -2,12 +2,12 @@
 
 const open = require('open');
 const Log = require('../../../lib/Log');
-const App = require('../../../lib/App');
+const AppProject = require('../../../lib/AppProject');
 
 exports.desc = 'View your app in the Homey App Store';
 exports.handler = async yargs => {
   try {
-    const manifest = App.getManifest({ appPath: yargs.path });
+    const manifest = AppProject.getManifest({ appPath: yargs.path });
     const url = `https://homey.app/a/${manifest.id}`;
     Log.success(`Opening URL: ${url}`);
     open(url);

@@ -1,7 +1,7 @@
 'use strict';
 
 const Log = require('../../../lib/Log');
-const App = require('../../../lib/App');
+const AppFactory = require('../../../lib/AppFactory');
 
 exports.command = 'version <next>';
 exports.desc = 'Update a Homey App\'s version';
@@ -22,7 +22,7 @@ exports.builder = yargs => {
 };
 exports.handler = async yargs => {
   try {
-    const app = new App(yargs.path);
+    const app = AppFactory.getAppInstance(yargs.path);
     await app.version(yargs.next);
 
     if (yargs.changelog) {

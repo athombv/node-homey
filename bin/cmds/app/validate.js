@@ -1,7 +1,7 @@
 'use strict';
 
 const Log = require('../../../lib/Log');
-const App = require('../../../lib/App');
+const AppFactory = require('../../../lib/AppFactory');
 
 exports.desc = 'Validate a Homey App';
 exports.builder = yargs => {
@@ -14,7 +14,7 @@ exports.builder = yargs => {
 };
 exports.handler = async yargs => {
   try {
-    const app = new App(yargs.path);
+    const app = AppFactory.getAppInstance(yargs.path);
     await app.preprocess({
       copyAppProductionDependencies: false,
     });

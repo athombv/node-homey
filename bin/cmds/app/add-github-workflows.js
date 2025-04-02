@@ -1,12 +1,13 @@
 'use strict';
 
 const Log = require('../../../lib/Log');
-const App = require('../../../lib/App');
+const AppFactory = require('../../../lib/AppFactory');
 
 exports.desc = 'Add GitHub Workflows (validate, update version, publish)';
 exports.handler = async yargs => {
   try {
-    await App.addGitHubWorkflows({ appPath: yargs.path });
+    const app = AppFactory.getAppInstance(yargs.path);
+    await app.addGitHubWorkflows({ appPath: yargs.path });
     process.exit(0);
   } catch (err) {
     Log.error(err);

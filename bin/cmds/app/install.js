@@ -1,7 +1,7 @@
 'use strict';
 
 const Log = require('../../../lib/Log');
-const App = require('../../../lib/App');
+const AppFactory = require('../../../lib/AppFactory');
 const AthomApi = require('../../../services/AthomApi');
 
 exports.desc = 'Install a Homey App';
@@ -21,7 +21,7 @@ exports.builder = yargs => {
 exports.handler = async yargs => {
   try {
     const homey = await AthomApi.getActiveHomey();
-    const app = new App(yargs.path);
+    const app = AppFactory.getAppInstance(yargs.path);
     await app.install({
       homey,
       clean: yargs.clean,
