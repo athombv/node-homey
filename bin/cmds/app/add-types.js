@@ -1,12 +1,13 @@
 'use strict';
 
 const Log = require('../../../lib/Log');
-const App = require('../../../lib/App');
+const AppFactory = require('../../../lib/AppFactory');
 
 exports.desc = 'Install the Apps SDK TypeScript declarations';
 exports.handler = async (yargs) => {
   try {
-    await App.addTypes({ appPath: yargs.path });
+    const app = AppFactory.getAppInstance(yargs.path);
+    await app.constructor.addTypes({ appPath: yargs.path });
     process.exit(0);
   } catch (err) {
     Log.error(err);

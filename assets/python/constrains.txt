@@ -1,0 +1,16 @@
+# Constrains for pip install.
+# All these libraries are used by an App Runner or the actual SDK.
+
+# "node-homey-pro"
+setproctitle==1.3.5
+
+# "python-homey-app-Runner"
+python-socketio >=5.12.1, <6.0.0
+setproctitle==1.3.5
+
+# "python-homey-cloud-app-Runner"
+fastapi ==0.115.12
+setproctitle==1.3.5
+
+# "python-homey-apps-sdk"
+# no dependencies.

@@ -3,7 +3,7 @@
 const colors = require('colors');
 
 const Log = require('../../../lib/Log');
-const App = require('../../../lib/App');
+const AppFactory = require('../../../lib/AppFactory');
 const Translate = require('../../../lib/app/Translate');
 
 exports.desc = 'Translate a Homey App with OpenAI';
@@ -31,7 +31,7 @@ exports.builder = (yargs) => {
 };
 exports.handler = async (yargs) => {
   try {
-    const app = new App(yargs.path);
+    const app = AppFactory.getAppInstance(yargs.path);
     const translate = new Translate({ appPath: app.path });
 
     Log('');
