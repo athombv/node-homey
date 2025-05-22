@@ -14,7 +14,7 @@ exports.builder = yargs => {
     .option('changelog', {
       default: null,
       type: 'string',
-      description: 'What\'s new in this version?',
+      description: 'What\'s new in this version? Use dot-notation for translation. Example: --changelog.en "Add new feature" --changelog.de "Neue Funktionalität"',
     })
     .option('commit', {
       description: 'Create a git commit and tag for the new version',
