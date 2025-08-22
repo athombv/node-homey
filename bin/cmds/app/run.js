@@ -35,6 +35,11 @@ exports.builder = yargs => {
       default: 'bridge',
       type: 'string',
       description: 'Docker network mode. Must match name from `docker network ls`. Only works when running the app inside Docker.',
+    })
+    .option('docker-socket-path', {
+      default: '/var/run/docker.sock',
+      type: 'string',
+      description: 'Path to the Docker socket.',
     });
 };
 exports.handler = async yargs => {
@@ -46,6 +51,7 @@ exports.handler = async yargs => {
       skipBuild: yargs.skipBuild,
       linkModules: yargs.linkModules,
       network: yargs.network,
+      dockerSocketPath: yargs.dockerSocketPath,
     });
   } catch (err) {
     if (err instanceof Error && err.stack) {
