@@ -37,7 +37,7 @@ exports.builder = yargs => {
       description: 'Docker network mode. Must match name from `docker network ls`. Only works when running the app inside Docker.',
     })
     .option('docker-socket-path', {
-      default: '/var/run/docker.sock',
+      default: undefined,
       type: 'string',
       description: 'Path to the Docker socket.',
     });
