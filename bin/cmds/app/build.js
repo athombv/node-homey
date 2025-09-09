@@ -2,22 +2,22 @@
 
 const Log = require('../../../lib/Log');
 const AppFactory = require('../../../lib/AppFactory');
-const AppPython = require('../../../lib/AppPython');
-const { HOMEY_PLATFORMS } = require('../../../lib/constants');
 
 exports.desc = 'Build a Homey App for publishing';
+exports.builder = (yargs) => yargs
+  .option('find-links', {
+    type: 'string',
+    desc: 'Additional location to search for candidate Python package distributions',
+  })
+  .option('docker-socket-path', {
+    default: undefined,
+    type: 'string',
+    description: 'Path to the Docker socket.',
+  });
 exports.handler = async (yargs) => {
   try {
     const app = AppFactory.getAppInstance(yargs.path);
-
-    if (app instanceof AppPython) {
-      await app.build({
-        platform: HOMEY_PLATFORMS.ALL,
-      });
-    } else {
-      await app.build();
-    }
-
+    await app.build(yargs);
     process.exit(0);
   } catch (err) {
     Log.error(err);

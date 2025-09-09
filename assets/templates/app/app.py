@@ -1,8 +1,10 @@
-import homey
+from homey.app import App
 
 
-class App(homey.App):
-
+class MyApp(App):
     async def on_init(self):
-      """ on_init is called when the app is initialized. """
-      self.log('MyApp has been initialized')
+        await super().on_init()
+        self.log("Initialized MyApp")
+
+
+homey_export = MyApp

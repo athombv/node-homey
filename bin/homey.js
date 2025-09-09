@@ -6,26 +6,12 @@ const yargs = require('yargs');
 const updateNotifier = require('update-notifier');
 const semver = require('semver');
 
-// TODO: Remove this code block after development
-// -- start code block --
-// .envrc does not work when called from different path on Windows. so we try to import .env from the project.
-const path = require('path');
-require('dotenv').config({
-  path: path.join(__dirname, '/../.env'),
-});
-// -- end code block --
-
 const pkg = require('../package.json');
 const Log = require('../lib/Log');
 const AthomMessage = require('../services/AthomMessage');
 
 // Ensure the minimum Node.js version is high enough
 const MINIMUM_NODE_VERSION = 'v16.0.0';
-
-// TODO: Remove this code block after development
-// -- start code block --
-Log.warning('Using Python Development CLI');
-// -- end code block --
 
 try {
   if (semver.lt(process.version, MINIMUM_NODE_VERSION)) {

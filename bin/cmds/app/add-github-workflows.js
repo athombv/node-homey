@@ -7,7 +7,7 @@ exports.desc = 'Add GitHub Workflows (validate, update version, publish)';
 exports.handler = async (yargs) => {
   try {
     const app = AppFactory.getAppInstance(yargs.path);
-    await app.addGitHubWorkflows({ appPath: yargs.path });
+    await app.constructor.addGitHubWorkflows({ appPath: yargs.path });
     process.exit(0);
   } catch (err) {
     Log.error(err);

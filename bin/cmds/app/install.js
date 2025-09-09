@@ -16,6 +16,15 @@ exports.builder = (yargs) => {
       alias: 's',
       type: 'boolean',
       default: false,
+    })
+    .option('find-links', {
+      type: 'string',
+      desc: 'Additional location to search for candidate Python package distributions',
+    })
+    .option('docker-socket-path', {
+      default: undefined,
+      type: 'string',
+      description: 'Path to the Docker socket.',
     });
 };
 exports.handler = async (yargs) => {
@@ -24,8 +33,7 @@ exports.handler = async (yargs) => {
     const app = AppFactory.getAppInstance(yargs.path);
     await app.install({
       homey,
-      clean: yargs.clean,
-      skipBuild: yargs.skipBuild,
+      ...yargs,
     });
     process.exit(0);
   } catch (err) {

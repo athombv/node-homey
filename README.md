@@ -1,8 +1,3 @@
-> [!WARNING]  
-> This repository is a prototype, and should not be used in production!
-> It is a copy of the ['node-homey'](https://github.com/athombv/node-homey), but in a private repository.
-> This temporary version adds functionality for the [Python SDK](https://github.com/athombv/python-homey-apps-sdk).
-
 # Homey
 
 Command-line interface and type declarations for Homey Apps.
