@@ -3,7 +3,7 @@
 const Log = require('../../../lib/Log');
 const AppFactory = require('../../../lib/AppFactory');
 
-exports.desc = 'Install the Apps SDK TypeScript declarations';
+exports.desc = 'Install the Apps SDK type declarations';
 exports.handler = async yargs => {
   try {
     const app = AppFactory.getAppInstance(yargs.path);

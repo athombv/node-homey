@@ -1,7 +1,10 @@
-import homey
+from homey.device import Device
 
-class Device(homey.Device):
 
+class MyDevice(Device):
     async def on_init(self):
-      """onInit is called when the device is initialized."""
-      self.log('MyDevice has been initialized')
+        await super().on_init()
+        self.log("Initialized MyDevice")
+
+
+homey_export = MyDevice

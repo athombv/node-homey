@@ -10,12 +10,6 @@ exports.builder = yargs => {
       desc: 'Path to a Homey App directory',
       default: process.cwd(),
     })
-    .option('python', {
-      alias: 'py',
-      type: 'string',
-      desc: 'Path to a Python Interpreter (used to create venv)',
-      default: process.cwd(),
-    })
     .demandCommand()
     .help();
 };

@@ -1,26 +1,20 @@
-import homey
+from homey.driver import Driver, ListDeviceProperties
 
-class Driver(homey.Driver):
 
+class MyDriver(Driver):
     async def on_init(self):
-        """on_init is called when the driver is initialized."""
-        self.log('My Driver has been initialized')
+        await super().on_init()
+        self.log("Initialized MyDriver")
 
-    async def on_pair_list_devices(self, data):
-        """
-        on_pair_list_devices is called when a user is adding a device
-        and the 'list_devices' view is called.
-        This should return an array with the data of devices that are available for pairing.
-        """
-        return [
-            # Example device data, note that `store` is optional
-            # {
-            #     "name": 'My Devicee',
-            #     "data": {
-            #         "id": 'my-device',
-            #     },
-            #     "store": {
-            #         "address": '127.0.0.1',
-            #     }
-            # }
-        ]
+    async def on_pair_list_devices(self, view_data):
+        device: ListDeviceProperties = {
+            "store": {
+                "address": "127.0.0.1",
+            },
+            "name": "My Device",
+            "data": {"id": "my-device"},
+        }
+        return [device]
+
+
+homey_export = MyDriver
