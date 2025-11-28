@@ -16,15 +16,6 @@ exports.builder = (yargs) => {
       alias: 's',
       type: 'boolean',
       default: false,
-    })
-    .option('find-links', {
-      type: 'string',
-      desc: 'Additional location to search for candidate Python package distributions',
-    })
-    .option('docker-socket-path', {
-      default: undefined,
-      type: 'string',
-      description: 'Path to the Docker socket.',
     });
 };
 exports.handler = async (yargs) => {
