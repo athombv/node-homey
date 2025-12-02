@@ -31,6 +31,8 @@ exports.builder = yargs => {
 exports.handler = async yargs => {
   try {
     const app = new App(yargs.path);
+    Log('');
+    Log(colors.yellow('Start translating app...'));
     await app.translateWithOpenAI({
       languages: yargs.languages.split(',').map(lang => lang.trim()),
       apiKey: yargs.apiKey,
