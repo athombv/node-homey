@@ -22,17 +22,21 @@ on:
       - testing
       - production
 
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
 jobs:
   publish:
     name: Publish
     runs-on: ubuntu-latest
     steps:
       - name: Checkout git repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Setup
       - name: Set up node 16 environment
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 16
           registry-url: 'https://npm.pkg.github.com'
@@ -72,7 +76,7 @@ jobs:
         run: |
           npm config set registry https://registry.npmjs.org
           npm config set @athombv:registry https://registry.npmjs.org
-          npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_AUTH_TOKEN }} -q
+          # npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_AUTH_TOKEN }} -q
 
       # Publish when this action is running on branch production.
       - name: Publish
