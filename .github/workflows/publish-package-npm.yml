@@ -68,15 +68,12 @@ jobs:
           else
             echo "'npm run build' does not exist. Skipping build..."
           fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.HOMEY_GITHUB_ACTIONS_BOT_PERSONAL_ACCESS_TOKEN }}
 
       # Configure NPM to use the NPM Registry
       - name: Configure NPM
         run: |
           npm config set registry https://registry.npmjs.org
           npm config set @athombv:registry https://registry.npmjs.org
-          # npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_AUTH_TOKEN }} -q
 
       # Publish when this action is running on branch production.
       - name: Publish
