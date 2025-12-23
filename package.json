@@ -20,6 +20,9 @@
   "engines": {
     "node": ">=18.0.0"
   },
+  "repository": {
+    "url": "https://github.com/athombv/node-homey"
+  },
   "author": "Athom B.V.",
   "license": "ISC",
   "readme": "README.md",
