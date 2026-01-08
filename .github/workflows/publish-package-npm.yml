@@ -22,19 +22,23 @@ on:
       - testing
       - production
 
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
 jobs:
   publish:
     name: Publish
     runs-on: ubuntu-latest
     steps:
       - name: Checkout git repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Setup
-      - name: Set up node 16 environment
-        uses: actions/setup-node@v3
+      - name: Set up node
+        uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 24
           registry-url: 'https://npm.pkg.github.com'
 
       # Sets package.json name & version to environment.
@@ -64,15 +68,12 @@ jobs:
           else
             echo "'npm run build' does not exist. Skipping build..."
           fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.HOMEY_GITHUB_ACTIONS_BOT_PERSONAL_ACCESS_TOKEN }}
 
       # Configure NPM to use the NPM Registry
       - name: Configure NPM
         run: |
           npm config set registry https://registry.npmjs.org
           npm config set @athombv:registry https://registry.npmjs.org
-          npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_AUTH_TOKEN }} -q
 
       # Publish when this action is running on branch production.
       - name: Publish
