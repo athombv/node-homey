@@ -4,12 +4,13 @@ const colors = require('colors');
 
 const Log = require('../../../lib/Log');
 const App = require('../../../lib/App');
+const { LANGUAGES_TRANSLATE } = require('../../../lib/App');
 
 exports.desc = 'Translate a Homey App with OpenAI';
 exports.builder = yargs => {
   return yargs
     .option('languages', {
-      default: ['nl', 'da', 'de', 'es', 'fr', 'it', 'no', 'sv', 'pl', 'ru', 'ko', 'ar'].join(','),
+      default: LANGUAGES_TRANSLATE.join(','),
       type: 'string',
       description: 'Comma-seperated list of languages to translate to.',
     })
