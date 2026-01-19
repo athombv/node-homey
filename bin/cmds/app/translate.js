@@ -4,7 +4,9 @@ const colors = require('colors');
 
 const Log = require('../../../lib/Log');
 const App = require('../../../lib/App');
-const { LANGUAGES_TRANSLATE } = require('../../../lib/App');
+const Translate = require('../../../lib/app/Translate');
+
+const { LANGUAGES_TRANSLATE } = Translate;
 
 exports.desc = 'Translate a Homey App with OpenAI';
 exports.builder = yargs => {
@@ -32,9 +34,10 @@ exports.builder = yargs => {
 exports.handler = async yargs => {
   try {
     const app = new App(yargs.path);
+    const translate = new Translate({ appPath: yargs.path });
     Log('');
     Log(colors.yellow('Start translating app...'));
-    await app.translateWithOpenAI({
+    await translate.translateWithOpenAI({
       languages: yargs.languages.split(',').map(lang => lang.trim()),
       apiKey: yargs.apiKey,
       model: yargs.model,
