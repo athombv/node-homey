@@ -32,7 +32,7 @@ exports.builder = (yargs) => {
 exports.handler = async (yargs) => {
   try {
     const app = new App(yargs.path);
-    const translate = new Translate({ app });
+    const translate = new Translate({ appPath: app.path });
 
     Log('');
     Log(colors.yellow('Start translating app...'));

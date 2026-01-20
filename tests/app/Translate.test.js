@@ -4,7 +4,7 @@ const assert = require('assert');
 const { describe, it } = require('node:test');
 const Translate = require('../../lib/app/Translate');
 
-const translate = new Translate({ app: {} });
+const translate = new Translate({ appPath: '/path/to/app' });
 
 describe('applyTranslationOrder', () => {
   it('should reorder keys according to Translate.LANGUAGES', () => {
