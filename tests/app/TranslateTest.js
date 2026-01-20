@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert');
-const Translate = require('../lib/app/Translate');
+const Translate = require('../../lib/app/Translate');
 
 /**
  * Mock class for Translate to access protected/private methods if needed,

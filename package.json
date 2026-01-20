@@ -12,7 +12,8 @@
     "/config.js"
   ],
   "scripts": {
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "node tests/app/TranslateTest.js"
   },
   "bin": {
     "homey": "bin/homey.js"
