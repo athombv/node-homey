@@ -4,7 +4,7 @@ const Log = require('../../lib/Log');
 const AthomApi = require('../../services/AthomApi');
 
 exports.desc = 'Select a Homey as active';
-exports.builder = yargs => {
+exports.builder = (yargs) => {
   yargs
     .option('id', {
       alias: 'i',
@@ -18,7 +18,7 @@ exports.builder = yargs => {
     });
 };
 
-exports.handler = async yargs => {
+exports.handler = async (yargs) => {
   try {
     await AthomApi.selectActiveHomey({
       id: yargs.id,

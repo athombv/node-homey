@@ -7,7 +7,7 @@ const App = require('../../../lib/App');
 const Translate = require('../../../lib/app/Translate');
 
 exports.desc = 'Translate a Homey App with OpenAI';
-exports.builder = yargs => {
+exports.builder = (yargs) => {
   return yargs
     .option('languages', {
       default: Translate.LANGUAGES_TRANSLATE.join(','),
@@ -29,7 +29,7 @@ exports.builder = yargs => {
       description: 'Absolute path to a single file to translate, instead of automatically translating the entire folder.',
     });
 };
-exports.handler = async yargs => {
+exports.handler = async (yargs) => {
   try {
     const app = new App(yargs.path);
     const translate = new Translate({ app });
@@ -37,7 +37,7 @@ exports.handler = async yargs => {
     Log('');
     Log(colors.yellow('Start translating app...'));
     await translate.translateWithOpenAI({
-      languages: yargs.languages.split(',').map(lang => lang.trim()),
+      languages: yargs.languages.split(',').map((lang) => lang.trim()),
       apiKey: yargs.apiKey,
       model: yargs.model,
       file: yargs.file,

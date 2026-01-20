@@ -23,14 +23,14 @@ exports.handler = async () => {
         'Role',
         'Region',
         'USB',
-      ].map(title => colors.white.bold(title)),
+      ].map((title) => colors.white.bold(title)),
     });
 
     homeys.sort((a, b) => {
       return -(a.state || '').localeCompare((b.state || ''));
     });
 
-    homeys.forEach(homey => {
+    homeys.forEach((homey) => {
       table.push([
         homey.id,
         homey.name,
@@ -43,7 +43,7 @@ exports.handler = async () => {
         homey.role,
         homey.region || '-',
         homey.usb ? 'Yes' : '-',
-      ].map(value => value || '-'));
+      ].map((value) => value || '-'));
     });
 
     Log(table.toString());
