@@ -11,4 +11,4 @@ module.exports = class MyApp extends Homey.App {
     this.log('MyApp has been initialized');
   }
 
-}
+};

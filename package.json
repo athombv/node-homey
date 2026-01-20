@@ -12,7 +12,8 @@
     "/config.js"
   ],
   "scripts": {
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "bin": {
     "homey": "bin/homey.js"

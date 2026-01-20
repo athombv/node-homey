@@ -1,7 +1,7 @@
 'use strict';
 
 exports.desc = 'App related commands';
-exports.builder = yargs => {
+exports.builder = (yargs) => {
   return yargs
     .commandDir('app')
     .option('path', {
