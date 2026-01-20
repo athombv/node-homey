@@ -4,7 +4,7 @@ const Log = require('../../../lib/Log');
 const App = require('../../../lib/App');
 
 exports.desc = 'Run a Homey App in development mode';
-exports.builder = yargs => {
+exports.builder = (yargs) => {
   return yargs
     .option('clean', {
       alias: 'c',
@@ -42,7 +42,7 @@ exports.builder = yargs => {
       description: 'Path to the Docker socket.',
     });
 };
-exports.handler = async yargs => {
+exports.handler = async (yargs) => {
   try {
     const app = new App(yargs.path);
     await app.run({

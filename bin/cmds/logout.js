@@ -4,7 +4,7 @@ const Log = require('../../lib/Log');
 const AthomApi = require('../../services/AthomApi');
 
 exports.desc = 'Log out the current user';
-exports.handler = async yargs => {
+exports.handler = async (yargs) => {
   try {
     await AthomApi.logout();
     process.exit(0);

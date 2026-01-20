@@ -4,12 +4,13 @@ const colors = require('colors');
 
 const Log = require('../../../lib/Log');
 const App = require('../../../lib/App');
+const Translate = require('../../../lib/app/Translate');
 
 exports.desc = 'Translate a Homey App with OpenAI';
-exports.builder = yargs => {
+exports.builder = (yargs) => {
   return yargs
     .option('languages', {
-      default: ['nl', 'da', 'de', 'es', 'fr', 'it', 'no', 'sv', 'pl', 'ru', 'ko', 'ar'].join(','),
+      default: Translate.LANGUAGES_TRANSLATE.join(','),
       type: 'string',
       description: 'Comma-seperated list of languages to translate to.',
     })
@@ -28,11 +29,15 @@ exports.builder = yargs => {
       description: 'Absolute path to a single file to translate, instead of automatically translating the entire folder.',
     });
 };
-exports.handler = async yargs => {
+exports.handler = async (yargs) => {
   try {
     const app = new App(yargs.path);
-    await app.translateWithOpenAI({
-      languages: yargs.languages.split(',').map(lang => lang.trim()),
+    const translate = new Translate({ appPath: app.path });
+
+    Log('');
+    Log(colors.yellow('Start translating app...'));
+    await translate.translateWithOpenAI({
+      languages: yargs.languages.split(',').map((lang) => lang.trim()),
       apiKey: yargs.apiKey,
       model: yargs.model,
       file: yargs.file,

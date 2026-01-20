@@ -5,7 +5,7 @@ const Log = require('../../lib/Log');
 const AthomApi = require('../../services/AthomApi');
 
 exports.desc = 'Show the current logged in user';
-exports.handler = async yargs => {
+exports.handler = async (yargs) => {
   try {
     const profile = await AthomApi.getProfile();
     Log(`${profile.firstname} ${profile.lastname} <${profile.email}>`);
