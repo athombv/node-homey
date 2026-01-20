@@ -5,7 +5,7 @@ const App = require('../../../lib/App');
 const AthomApi = require('../../../services/AthomApi');
 
 exports.desc = 'Install a Homey App';
-exports.builder = yargs => {
+exports.builder = (yargs) => {
   return yargs
     .option('clean', {
       alias: 'c',
@@ -18,7 +18,7 @@ exports.builder = yargs => {
       default: false,
     });
 };
-exports.handler = async yargs => {
+exports.handler = async (yargs) => {
   try {
     const homey = await AthomApi.getActiveHomey();
     const app = new App(yargs.path);
@@ -29,7 +29,11 @@ exports.handler = async yargs => {
     });
     process.exit(0);
   } catch (err) {
-    Log.error(err);
+    if (err instanceof Error && err.stack) {
+      Log.error(err.stack);
+    } else {
+      Log.error(err);
+    }
     process.exit(1);
   }
 };

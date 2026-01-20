@@ -4,7 +4,7 @@ const open = require('open');
 const Log = require('../../lib/Log');
 
 exports.desc = 'Open Homey Developer Tools';
-exports.handler = async yargs => {
+exports.handler = async (yargs) => {
   try {
     const url = 'https://tools.developer.homey.app';
     Log.success(`Opening URL: ${url}`);

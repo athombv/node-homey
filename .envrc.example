@@ -1,0 +1,6 @@
+export HOMEY_APP_RUNNER_DEVMODE="1"
+export HOMEY_APP_RUNNER_PATH="/Users/username/Git/homey-app-runner/src"
+export HOMEY_APP_RUNNER_ID="ghcr.io/athombv/homey-app-runner:latest"
+export HOMEY_APP_RUNNER_SDK_PATH="/Users/username/Git/node-homey-apps-sdk-v3"
+export DOCKER_HOST_GATEWAY="host.containers.internal"
+export HOMEY_HOME="/Users/username/.homey"

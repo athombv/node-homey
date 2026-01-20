@@ -37,7 +37,7 @@ jobs:
       - name: Set up node 12 environment
         uses: actions/setup-node@v1
         with:
-          node-version: '12'
+          node-version: '16'
           # Needed for publishing to npm
           registry-url: 'https://registry.npmjs.org'
 
@@ -56,7 +56,7 @@ jobs:
         with:
           title: "chore: update homey-lib"
           body: "Update homey-lib to the latest published version on NPM. This PR was automatically created by a homey-lib deployment."
-          reviewers: "weejewel,robinbol"
-          assignees: "weejewel"
+          reviewers: "jeroenwienk"
+          assignees: "jeroenwienk"
           branch: "bump/homey-lib"
           branch-suffix: "short-commit-hash"
