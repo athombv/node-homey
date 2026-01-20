@@ -29,4 +29,4 @@ export default class MyDriver extends Homey.Driver {
     ];
   }
 
-}
+};

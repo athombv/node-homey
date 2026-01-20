@@ -44,4 +44,4 @@ export default class MyDevice extends Homey.Device {
     this.log('MyDevice has been deleted');
   }
 
-}
+};

@@ -33,7 +33,7 @@ module.exports = class MyDevice extends Homey.Device {
     newSettings: { [key: string]: boolean | string | number | undefined | null };
     changedKeys: string[];
   }): Promise<string | void> {
-    this.log('MyDevice settings where changed');
+    this.log("MyDevice settings where changed");
   }
 
   /**
