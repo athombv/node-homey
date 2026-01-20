@@ -5,7 +5,7 @@ const App = require('../../../lib/App');
 
 exports.command = 'version <next>';
 exports.desc = 'Update a Homey App\'s version';
-exports.builder = yargs => {
+exports.builder = (yargs) => {
   return yargs
     .positional('next', {
       describe: 'patch/minor/major or semver',
@@ -20,7 +20,7 @@ exports.builder = yargs => {
       description: 'Create a git commit and tag for the new version',
     });
 };
-exports.handler = async yargs => {
+exports.handler = async (yargs) => {
   try {
     const app = new App(yargs.path);
     await app.version(yargs.next);

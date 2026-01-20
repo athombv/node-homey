@@ -4,7 +4,7 @@ const Log = require('../../../lib/Log');
 const App = require('../../../lib/App');
 
 exports.desc = 'Validate a Homey App';
-exports.builder = yargs => {
+exports.builder = (yargs) => {
   return yargs.option('level', {
     alias: 'l',
     default: 'publish',
@@ -12,7 +12,7 @@ exports.builder = yargs => {
     description: 'Validation level. Can be: debug, publish, verified.',
   });
 };
-exports.handler = async yargs => {
+exports.handler = async (yargs) => {
   try {
     const app = new App(yargs.path);
     await app.preprocess({
