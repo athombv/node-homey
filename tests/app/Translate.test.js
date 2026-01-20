@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert');
-const { describe, it } = require('../helpers');
+const { describe, it } = require('node:test');
 const Translate = require('../../lib/app/Translate');
 
 const translate = new Translate({ app: {} });
@@ -83,4 +83,3 @@ describe('applyTranslationOrder', () => {
     }, /Error: Invalid path: "a" does not exist or is not an object/);
   });
 });
-

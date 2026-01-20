@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "lint": "eslint .",
-    "test": "node tests/app/TranslateTest.js"
+    "test": "node --test"
   },
   "bin": {
     "homey": "bin/homey.js"
