@@ -84,4 +84,3 @@ describe('applyTranslationOrder', () => {
   });
 });
 
-console.log('\nAll tests passed! 🎉');
