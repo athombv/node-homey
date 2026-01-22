@@ -1,6 +1,6 @@
 {
   "name": "homey",
-  "version": "3.12.1",
+  "version": "4.0.0",
   "description": "Command-line interface and type declarations for Homey Apps",
   "main": "bin/homey.js",
   "files": [
@@ -51,6 +51,7 @@
     "p-queue": "^6.6.2",
     "semver": "^7.6.0",
     "sharp": "^0.33.4",
+    "smol-toml": "^1.6.0",
     "socket.io": "^4.7.5",
     "socket.io-client": "^4.7.5",
     "tar-fs": "^2.1.1",

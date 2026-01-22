@@ -1,13 +1,13 @@
 'use strict';
 
 const Log = require('../../../lib/Log');
-const App = require('../../../lib/App');
+const AppFactory = require('../../../lib/AppFactory');
 
 exports.desc = 'Build a Homey App for publishing';
 exports.handler = async (yargs) => {
   try {
-    const app = new App(yargs.path);
-    await app.build();
+    const app = AppFactory.getAppInstance(yargs.path);
+    await app.build(yargs);
     process.exit(0);
   } catch (err) {
     Log.error(err);
