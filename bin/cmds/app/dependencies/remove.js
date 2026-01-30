@@ -3,15 +3,20 @@
 const Log = require('../../../../lib/Log');
 const AppFactory = require('../../../../lib/AppFactory');
 
-exports.desc = 'Remove dependencies from a Python Homey app';
+exports.desc = 'Remove dependencies from a Homey app';
 exports.command = 'remove [dev] <dependencies..>';
 exports.builder = (yargs) => {
   return yargs
     .positional('dependencies', {
       type: 'string',
-      desc: 'Python packages to remove',
+      desc: 'Packages to remove',
     })
-    .example('homey app dependencies remove homey');
+    .positional('dev', {
+      type: 'boolean',
+      default: false,
+      desc: 'Remove dependencies only for development',
+    })
+    .example('homey app dependencies remove some-package');
 };
 exports.handler = async (yargs) => {
   try {

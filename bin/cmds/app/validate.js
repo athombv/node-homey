@@ -16,7 +16,7 @@ exports.handler = async (yargs) => {
   try {
     const app = AppFactory.getAppInstance(yargs.path);
     await app.preprocess({
-      copyAppProductionDependencies: false,
+      copyAppProductionDependencies: true,
     });
     await app.validate({
       level: yargs.level,
