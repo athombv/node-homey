@@ -3,15 +3,20 @@
 const Log = require('../../../../lib/Log');
 const AppFactory = require('../../../../lib/AppFactory');
 
-exports.desc = 'Add dependencies to a Python Homey app';
+exports.desc = 'Add dependencies to a Homey app';
 exports.command = 'add [dev] <dependencies..>';
 exports.builder = (yargs) => {
   return yargs
     .positional('dependencies', {
       type: 'string',
-      desc: 'Python packages to add, optionally with specifiers such as version constraints',
+      desc: 'Packages to add, optionally with specifiers such as version constraints',
     })
-    .example('homey app dependencies add homey>=0.0.0');
+    .positional('dev', {
+      type: 'boolean',
+      default: false,
+      desc: 'Install dependencies only for development',
+    })
+    .example('homey app dependencies add --dev some-package>=0.0.0');
 };
 exports.handler = async (yargs) => {
   try {
