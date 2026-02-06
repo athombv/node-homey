@@ -27,7 +27,8 @@ exports.handler = async (yargs) => {
   try {
     const app = AppFactory.getAppInstance(yargs.path);
     await app.preprocess({
-      ...yargs,
+      dockerSocketPath: yargs.dockerSocketPath,
+      findLinks: yargs.findLinks,
     });
     await app.validate({
       level: yargs.level,

@@ -50,7 +50,15 @@ exports.builder = (yargs) => {
 exports.handler = async (yargs) => {
   try {
     const app = AppFactory.getAppInstance(yargs.path);
-    await app.run(yargs);
+    await app.run({
+      clean: yargs.clean,
+      remote: yargs.remote,
+      skipBuild: yargs.skipBuild,
+      linkModules: yargs.linkModules,
+      network: yargs.network,
+      dockerSocketPath: yargs.dockerSocketPath,
+      findLinks: yargs.findLinks,
+    });
   } catch (err) {
     if (err instanceof Error && err.stack) {
       Log.error(err.stack);
