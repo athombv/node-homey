@@ -5,6 +5,7 @@ exports.builder = (yargs) => {
   return yargs
     .commandDir('dependencies')
     .option('find-links', {
+      default: undefined,
       type: 'string',
       desc: 'Additional location to search for candidate Python package distributions',
     })
