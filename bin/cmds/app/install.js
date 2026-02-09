@@ -24,7 +24,8 @@ exports.handler = async (yargs) => {
     const app = AppFactory.getAppInstance(yargs.path);
     await app.install({
       homey,
-      ...yargs,
+      clean: yargs.clean,
+      skipBuild: yargs.skipBuild,
     });
     process.exit(0);
   } catch (err) {

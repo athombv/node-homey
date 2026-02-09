@@ -21,7 +21,12 @@ exports.builder = (yargs) => {
 exports.handler = async (yargs) => {
   try {
     const app = AppFactory.getAppInstance(yargs.path);
-    await app.addDependencies(yargs);
+    await app.addDependencies({
+      dockerSocketPath: yargs.dockerSocketPath,
+      findLinks: yargs.findLinks,
+      dependencies: yargs.dependencies,
+      dev: yargs.dev,
+    });
     process.exit(0);
   } catch (err) {
     Log.error(err);
