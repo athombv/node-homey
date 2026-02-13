@@ -39,7 +39,7 @@
     "filesize": "^6.4.0",
     "fs-extra": "^10.1.0",
     "get-port": "^5.1.1",
-    "homey-api": "^3.14.20",
+    "homey-api": "^3.16.1",
     "homey-lib": "^2.44.4",
     "ignore-walk": "^3.0.3",
     "inquirer": "8.1.2",
