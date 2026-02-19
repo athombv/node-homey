@@ -40,7 +40,7 @@
     "fs-extra": "^10.1.0",
     "get-port": "^5.1.1",
     "homey-api": "^3.14.20",
-    "homey-lib": "^2.44.1",
+    "homey-lib": "^2.45.0",
     "ignore-walk": "^3.0.3",
     "inquirer": "8.1.2",
     "is-wsl": "^2.2.0",
