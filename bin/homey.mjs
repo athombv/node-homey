@@ -1,15 +1,14 @@
 'use strict';
 
-import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
 
+import updateNotifier from 'update-notifier';
+import semver from 'semver';
 import yargs from 'yargs';
+import Log from '../lib/Log.js';
+import AthomMessage from '../services/AthomMessage.js';
 
-const require = createRequire(import.meta.url);
-const updateNotifier = require('update-notifier');
-const semver = require('semver');
-const pkg = require('../package.json');
-const Log = require('../lib/Log');
-const AthomMessage = require('../services/AthomMessage');
+const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 
 const MINIMUM_NODE_VERSION = 'v20.19.0';
 

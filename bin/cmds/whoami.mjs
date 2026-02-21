@@ -1,11 +1,8 @@
 'use strict';
 
-import { createRequire } from 'node:module';
 import colors from 'colors';
-
-const require = createRequire(import.meta.url);
-const Log = require('../../lib/Log');
-const AthomApi = require('../../services/AthomApi');
+import Log from '../../lib/Log.js';
+import AthomApi from '../../services/AthomApi.js';
 
 export default async function handler() {
   try {

@@ -1,10 +1,7 @@
 'use strict';
 
-import { createRequire } from 'node:module';
 import open from 'open';
-
-const require = createRequire(import.meta.url);
-const Log = require('../../lib/Log');
+import Log from '../../lib/Log.js';
 
 export default async function handler() {
   try {
