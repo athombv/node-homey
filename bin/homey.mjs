@@ -10,7 +10,7 @@ import AthomMessage from '../services/AthomMessage.js';
 
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 
-const MINIMUM_NODE_VERSION = 'v20.19.0';
+const MINIMUM_NODE_VERSION = 'v22.0.0';
 
 try {
   if (semver.lt(process.version, MINIMUM_NODE_VERSION)) {

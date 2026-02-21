@@ -37,10 +37,10 @@ jobs:
         with:
           token: ${{ secrets.HOMEY_GITHUB_ACTIONS_BOT_PERSONAL_ACCESS_TOKEN }}
 
-      - name: Set up node 20 environment
+      - name: Set up node 22 environment
         uses: actions/setup-node@v4
         with:
-          node-version: '20.19.0'
+          node-version: '22'
           registry-url: 'https://npm.pkg.github.com'
           
       - name: Version
