@@ -29,7 +29,9 @@ updateNotifier({ pkg }).notify({
 
 await yargs(process.argv.slice(2))
   .scriptName('homey')
-  .commandDir('./cmds')
+  .commandDir('./cmds', {
+    extensions: ['.js'],
+  })
   .demandCommand()
   .strict()
   .help()

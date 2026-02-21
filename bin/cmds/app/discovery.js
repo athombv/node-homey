@@ -3,7 +3,9 @@
 exports.desc = 'Discovery related commands';
 exports.builder = (yargs) => {
   return yargs
-    .commandDir('discovery')
+    .commandDir('discovery', {
+      extensions: ['.js'],
+    })
     .demandCommand()
     .help();
 };
