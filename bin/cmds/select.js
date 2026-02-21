@@ -5,7 +5,10 @@ const AthomApi = require('../../services/AthomApi');
 
 exports.desc = 'Select a Homey as active';
 exports.builder = (yargs) => {
-  yargs
+  return yargs
+    .commandDir('select', {
+      extensions: ['.js'],
+    })
     .option('current', {
       alias: 'c',
       desc: 'Show the currently selected Homey',
