@@ -30,9 +30,9 @@ jobs:
 
       # Setup
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 20
           registry-url: 'https://npm.pkg.github.com'
 
       # Lint
@@ -41,4 +41,3 @@ jobs:
           npm run lint
         env:
           NODE_AUTH_TOKEN: ${{ secrets.HOMEY_GITHUB_ACTIONS_BOT_PERSONAL_ACCESS_TOKEN }}
-
