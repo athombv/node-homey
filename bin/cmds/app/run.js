@@ -1,7 +1,7 @@
 'use strict';
 
 const Log = require('../../../lib/Log');
-const App = require('../../../lib/App');
+const AppFactory = require('../../../lib/AppFactory');
 
 exports.desc = 'Run a Homey App in development mode';
 exports.builder = (yargs) => {
@@ -40,18 +40,24 @@ exports.builder = (yargs) => {
       default: undefined,
       type: 'string',
       description: 'Path to the Docker socket.',
+    })
+    .option('find-links', {
+      default: undefined,
+      type: 'string',
+      desc: 'Additional location to search for candidate Python package distributions',
     });
 };
 exports.handler = async (yargs) => {
   try {
-    const app = new App(yargs.path);
+    const app = AppFactory.getAppInstance(yargs.path);
     await app.run({
-      remote: yargs.remote,
       clean: yargs.clean,
+      remote: yargs.remote,
       skipBuild: yargs.skipBuild,
       linkModules: yargs.linkModules,
       network: yargs.network,
       dockerSocketPath: yargs.dockerSocketPath,
+      findLinks: yargs.findLinks,
     });
   } catch (err) {
     if (err instanceof Error && err.stack) {
