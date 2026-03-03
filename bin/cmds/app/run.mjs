@@ -1,5 +1,3 @@
-'use strict';
-
 import Log from '../../../lib/Log.js';
 import AppFactory from '../../../lib/AppFactory.js';
 
@@ -34,7 +32,8 @@ export const builder = (yargs) => {
       alias: 'n',
       default: 'bridge',
       type: 'string',
-      description: 'Docker network mode. Must match name from `docker network ls`. Only works when running the app inside Docker.',
+      description:
+        'Docker network mode. Must match name from `docker network ls`. Only works when running the app inside Docker.',
     })
     .option('docker-socket-path', {
       default: undefined,

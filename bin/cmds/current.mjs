@@ -1,5 +1,3 @@
-'use strict';
-
 import Log from '../../lib/Log.js';
 import AthomApi from '../../services/AthomApi.js';
 

@@ -1,13 +1,6 @@
-'use strict';
-
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
-import {
-  assertSuccess,
-  createIsolatedHomeyHome,
-  removeHomeyHome,
-  runHomey,
-} from './helpers.mjs';
+import { assertSuccess, createIsolatedHomeyHome, removeHomeyHome, runHomey } from './helpers.mjs';
 
 describe('CLI select', () => {
   it('prints a no-active-homey message for "select --current" when no Homey is selected', (t) => {

@@ -1,10 +1,8 @@
-'use strict';
-
 import Log from '../../../lib/Log.js';
 import AppFactory from '../../../lib/AppFactory.js';
 
 export const command = 'version <next>';
-export const desc = 'Update a Homey App\'s version';
+export const desc = "Update a Homey App's version";
 export const builder = (yargs) => {
   return yargs
     .positional('next', {
@@ -14,7 +12,8 @@ export const builder = (yargs) => {
     .option('changelog', {
       default: null,
       type: 'string',
-      description: 'What\'s new in this version? Use dot-notation for translation. Example: --changelog.en "Add new feature" --changelog.de "Neue Funktionalität"',
+      description:
+        'What\'s new in this version? Use dot-notation for translation. Example: --changelog.en "Add new feature" --changelog.de "Neue Funktionalität"',
     })
     .option('commit', {
       description: 'Create a git commit and tag for the new version',

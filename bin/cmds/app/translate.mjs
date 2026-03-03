@@ -1,5 +1,3 @@
-'use strict';
-
 import colors from 'colors';
 
 import Log from '../../../lib/Log.js';
@@ -17,7 +15,8 @@ export const builder = (yargs) => {
     .option('api-key', {
       default: process.env.OPENAI_API_KEY,
       type: 'string',
-      description: 'OpenAI API key. You can create an API Key on https://platform.openai.com/api-keys.',
+      description:
+        'OpenAI API key. You can create an API Key on https://platform.openai.com/api-keys.',
     })
     .option('model', {
       default: 'gpt-4o',
@@ -26,7 +25,8 @@ export const builder = (yargs) => {
     })
     .option('file', {
       type: 'string',
-      description: 'Absolute path to a single file to translate, instead of automatically translating the entire folder.',
+      description:
+        'Absolute path to a single file to translate, instead of automatically translating the entire folder.',
     });
 };
 export const handler = async (yargs) => {
@@ -50,7 +50,11 @@ export const handler = async (yargs) => {
     });
 
     Log('');
-    Log(colors.yellow('The app has been translated using AI, so results may vary. Please check every file manually before committing.'));
+    Log(
+      colors.yellow(
+        'The app has been translated using AI, so results may vary. Please check every file manually before committing.',
+      ),
+    );
 
     process.exit(0);
   } catch (err) {
