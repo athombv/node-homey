@@ -63,4 +63,25 @@ describe('ZWave remote JSON loading', () => {
 
     await assert.rejects(async () => ZWave.getSigmaDetails('123'), /Invalid Sigma Product ID/);
   });
+
+  it('throws the expected error when response stream emits an error', async () => {
+    mock.method(https, 'get', (_url, _options, callback) => {
+      const request = new EventEmitter();
+      request.destroy = () => {};
+
+      const response = new EventEmitter();
+      response.statusCode = 200;
+      response.statusMessage = 'OK';
+      response.setEncoding = () => {};
+
+      process.nextTick(() => {
+        callback(response);
+        response.emit('error', new Error('stream exploded'));
+      });
+
+      return request;
+    });
+
+    await assert.rejects(async () => ZWave.getSigmaDetails('123'), /Invalid Sigma Product ID/);
+  });
 });
