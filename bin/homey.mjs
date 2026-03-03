@@ -2,7 +2,9 @@
 
 'use strict';
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import updateNotifier from 'update-notifier';
 import semver from 'semver';
@@ -11,6 +13,7 @@ import Log from '../lib/Log.js';
 import AthomMessage from '../services/AthomMessage.js';
 
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+const COMMANDS_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'cmds');
 
 const MINIMUM_NODE_VERSION = 'v20.19.0';
 const rawArgs = process.argv.slice(2);
@@ -18,6 +21,66 @@ const firstCommand = rawArgs.find((arg) => !arg.startsWith('-'));
 const isCompletionGeneration = firstCommand === 'completion';
 const isCompletionQuery = rawArgs.includes('--get-yargs-completions');
 const isCompletionMode = isCompletionGeneration || isCompletionQuery;
+
+function isDirectory(targetPath) {
+  try {
+    return statSync(targetPath).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+function isFile(targetPath) {
+  try {
+    return statSync(targetPath).isFile();
+  } catch {
+    return false;
+  }
+}
+
+function getFileBackedCommandCandidates(commandPath) {
+  let currentDir = COMMANDS_DIR;
+
+  for (const token of commandPath) {
+    const nextDir = path.join(currentDir, token);
+    if (isDirectory(nextDir)) {
+      currentDir = nextDir;
+      continue;
+    }
+
+    const commandFile = path.join(currentDir, `${token}.mjs`);
+    if (!isFile(commandFile)) {
+      return [];
+    }
+
+    if (isDirectory(nextDir)) {
+      currentDir = nextDir;
+      continue;
+    }
+
+    return [];
+  }
+
+  try {
+    return readdirSync(currentDir, { withFileTypes: true })
+      .filter((entry) => entry.isFile() && entry.name.endsWith('.mjs'))
+      .map((entry) => entry.name.slice(0, -'.mjs'.length));
+  } catch {
+    return [];
+  }
+}
+
+function shouldDropCurrentCompletionToken(completionArgs) {
+  const currentToken = completionArgs[completionArgs.length - 1];
+  if (currentToken === '') {
+    return false;
+  }
+
+  const commandPath = completionArgs.slice(0, -1);
+  const candidateSet = new Set(getFileBackedCommandCandidates(commandPath));
+
+  return candidateSet.has(currentToken);
+}
 
 const normalizedArgs = [...rawArgs];
 if (isCompletionQuery) {
@@ -30,9 +93,9 @@ if (isCompletionQuery) {
   }
 
   // Some shells send the current token without a trailing empty token when
-  // completing in-place (e.g. `homey api<TAB>`). Drop that current token so
-  // yargs returns candidates for the current level instead of the next level.
-  if (completionArgs.length > 0 && completionArgs[completionArgs.length - 1] !== '') {
+  // completing in-place (e.g. `homey api<TAB>`). Only drop the token when it
+  // already fully matches a known command at this level.
+  if (completionArgs.length > 0 && shouldDropCurrentCompletionToken(completionArgs)) {
     completionArgs.pop();
   }
 

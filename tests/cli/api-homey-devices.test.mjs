@@ -42,6 +42,17 @@ describe('CLI api homey devices', () => {
     assert.match(result.stdout, /^update-device$/m);
   });
 
+  it('keeps partial operation tokens for completion filtering', (t) => {
+    const homeyHome = createIsolatedHomeyHome();
+    t.after(() => removeHomeyHome(homeyHome));
+
+    const result = runHomey(['--get-yargs-completions', 'api', 'homey', 'devices', 'get-d'], homeyHome);
+
+    assert.strictEqual(result.status, 0);
+    assert.match(result.stdout, /^get-device$/m);
+    assert.match(result.stdout, /^get-devices$/m);
+  });
+
   it('fails with guidance when no Homey is selected in normal mode', (t) => {
     const homeyHome = createIsolatedHomeyHome();
     t.after(() => removeHomeyHome(homeyHome));
@@ -50,6 +61,18 @@ describe('CLI api homey devices', () => {
 
     assertFailure(result, 'homey api homey devices');
     assert.match(result.stdout, /No active Homey selected\. Run `homey select` to choose one\./);
+  });
+
+  it('returns JSON-formatted errors when --json is provided', (t) => {
+    const homeyHome = createIsolatedHomeyHome();
+    t.after(() => removeHomeyHome(homeyHome));
+
+    const result = runHomey(['api', 'homey', 'devices', '--json'], homeyHome);
+
+    assertFailure(result, 'homey api homey devices --json');
+    assert.doesNotThrow(() => JSON.parse(result.stdout));
+    const payload = JSON.parse(result.stdout);
+    assert.match(payload.error, /No active Homey selected/);
   });
 
   it('requires --address when --token is provided', (t) => {

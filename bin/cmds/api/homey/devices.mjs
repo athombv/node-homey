@@ -22,6 +22,17 @@ function getManager(api) {
   return manager;
 }
 
+function logCommandError(err, argv) {
+  if (argv.json) {
+    Log(JSON.stringify({
+      error: err?.message ?? String(err),
+    }, null, 2));
+    return;
+  }
+
+  Log.error(err);
+}
+
 async function executeOperation(argv, operation) {
   const timeout = getRequestTimeout(argv.timeout);
   const api = await createHomeyApiClient({
@@ -65,7 +76,7 @@ export const builder = (yargs) => {
           await executeOperation(argv, operation);
           process.exit(0);
         } catch (err) {
-          Log.error(err);
+          logCommandError(err, argv);
           process.exit(1);
         }
       },
@@ -90,7 +101,7 @@ export const handler = async (argv) => {
     await executeOperation(argv, defaultOperation);
     process.exit(0);
   } catch (err) {
-    Log.error(err);
+    logCommandError(err, argv);
     process.exit(1);
   }
 };
