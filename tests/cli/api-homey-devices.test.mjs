@@ -7,17 +7,9 @@ import {
   removeHomeyHome,
   runHomey,
 } from './helpers.mjs';
+import ApiHomeyTestHelpers from './api-homey-helpers.mjs';
 
-function assertFailure(result, command) {
-  assert.notStrictEqual(
-    result.status,
-    0,
-    `Expected non-zero exit code for "${command}".\nSTDERR:\n${result.stderr}\nSTDOUT:\n${result.stdout}`,
-  );
-
-  assert.doesNotMatch(result.stdout, /homey update check failed/);
-  assert.doesNotMatch(result.stderr, /homey update check failed/);
-}
+const { assertFailure } = ApiHomeyTestHelpers;
 
 describe('CLI api homey devices', () => {
   it('shows manager help without requiring an active Homey', (t) => {
