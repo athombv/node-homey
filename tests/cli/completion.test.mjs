@@ -60,6 +60,7 @@ describe('CLI completion', () => {
 
     assert.match(result.stdout, /^completion$/m);
     assert.match(result.stdout, /^app$/m);
+    assert.match(result.stdout, /^api$/m);
     assert.doesNotMatch(result.stdout, /homey update check failed/);
     assert.doesNotMatch(result.stderr, /homey update check failed/);
   });
