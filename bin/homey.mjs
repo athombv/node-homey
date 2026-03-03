@@ -13,6 +13,11 @@ import AthomMessage from '../services/AthomMessage.js';
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 
 const MINIMUM_NODE_VERSION = 'v20.19.0';
+const rawArgs = process.argv.slice(2);
+const firstCommand = rawArgs.find((arg) => !arg.startsWith('-'));
+const isCompletionGeneration = firstCommand === 'completion';
+const isCompletionQuery = rawArgs.includes('--get-yargs-completions');
+const isCompletionMode = isCompletionGeneration || isCompletionQuery;
 
 try {
   if (semver.lt(process.version, MINIMUM_NODE_VERSION)) {
@@ -24,16 +29,19 @@ try {
   process.exit(1);
 }
 
-await AthomMessage.notify();
-updateNotifier({ pkg }).notify({
-  isGlobal: true,
-});
+if (!isCompletionMode) {
+  await AthomMessage.notify();
+  updateNotifier({ pkg }).notify({
+    isGlobal: true,
+  });
+}
 
 await yargs(process.argv.slice(2))
   .scriptName('homey')
   .commandDir('./cmds', {
     extensions: ['.mjs'],
   })
+  .completion('completion', 'Generate shell completion script')
   .demandCommand()
   .strict()
   .help()
