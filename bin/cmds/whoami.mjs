@@ -4,7 +4,8 @@ import colors from 'colors';
 import Log from '../../lib/Log.js';
 import AthomApi from '../../services/AthomApi.js';
 
-export default async function handler() {
+export const desc = 'Show the current logged in user';
+export const handler = async () => {
   try {
     const profile = await AthomApi.getProfile();
     Log(`${profile.firstname} ${profile.lastname} <${profile.email}>`);
@@ -18,4 +19,4 @@ export default async function handler() {
     Log.error(err);
     process.exit(1);
   }
-}
+};

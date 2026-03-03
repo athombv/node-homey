@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 'use strict';
 
 // eslint-disable-next-line node/no-unsupported-features/es-syntax, import/extensions

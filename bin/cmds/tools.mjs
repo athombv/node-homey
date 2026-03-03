@@ -3,7 +3,8 @@
 import open from 'open';
 import Log from '../../lib/Log.js';
 
-export default async function handler() {
+export const desc = 'Open Homey Developer Tools';
+export const handler = async () => {
   try {
     const url = 'https://tools.developer.homey.app';
     Log.success(`Opening URL: ${url}`);
@@ -13,4 +14,4 @@ export default async function handler() {
     Log.error(err);
     process.exit(1);
   }
-}
+};

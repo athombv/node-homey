@@ -17,6 +17,30 @@ $ homey --help
 
 Or read the [getting started](https://apps.developer.homey.app/the-basics/getting-started) documentation.
 
+## Shell completion
+
+### Bash
+Add this line to your `~/.bashrc`:
+```bash
+homey completion >> ~/.bashrc
+```
+
+Then restart your shell, or run:
+```bash
+source ~/.bashrc
+```
+
+### Zsh
+Add this line to your `~/.zshrc`:
+```bash
+SHELL=/bin/zsh homey completion >> ~/.zshrc
+```
+
+Then restart your shell, or run:
+```bash
+source ~/.zshrc
+```
+
 ## Homey Apps SDK Documentation
 Please visit https://homey.app/developer for more information.
 

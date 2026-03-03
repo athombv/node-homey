@@ -3,7 +3,8 @@
 import Log from '../../lib/Log.js';
 import AthomApi from '../../services/AthomApi.js';
 
-export default async function handler() {
+export const desc = 'Show the active Homey';
+export const handler = async () => {
   try {
     const activeHomey = await AthomApi.getSelectedHomey();
 
@@ -18,4 +19,4 @@ export default async function handler() {
     Log.error(err);
     process.exit(1);
   }
-}
+};
