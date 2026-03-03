@@ -12,9 +12,12 @@
     "/config.js"
   ],
   "scripts": {
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "test": "node --test"
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --max-warnings=0 --fix",
+    "prettier": "prettier --write .",
+    "prettier:check": "prettier --check .",
+    "test": "node --test",
+    "prepare": "husky"
   },
   "bin": {
     "homey": "bin/homey.mjs"
@@ -33,7 +36,6 @@
     "colors": "^1.1.2 <=1.4.0",
     "deepmerge": "^4.3.1",
     "dockerode": "^4.0.2",
-    "eslint": "^7.32.0",
     "express": "^4.19.2",
     "figures": "^3.2.0",
     "filesize": "^6.4.0",
@@ -61,6 +63,20 @@
     "yargs": "^18.0.0"
   },
   "devDependencies": {
-    "eslint-config-athom": "^3.1.5"
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.0.2",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.4.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.3.2",
+    "prettier": "^3.8.1"
+  },
+  "lint-staged": {
+    "**/*.{js,mjs}": [
+      "eslint --max-warnings=0 --fix"
+    ],
+    "**/*.{js,mjs,json,md,yml,yaml,html}": [
+      "prettier --write"
+    ]
   }
 }

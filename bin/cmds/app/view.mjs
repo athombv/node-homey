@@ -1,5 +1,3 @@
-'use strict';
-
 import open from 'open';
 import Log from '../../../lib/Log.js';
 import App from '../../../lib/App.js';

@@ -1,5 +1,3 @@
-'use strict';
-
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -39,9 +37,7 @@ function filePathToCommand(filePath) {
 }
 
 describe('CLI command help', () => {
-  const commands = getCommandFiles(COMMANDS_DIR)
-    .map(filePathToCommand)
-    .sort();
+  const commands = getCommandFiles(COMMANDS_DIR).map(filePathToCommand).sort();
 
   for (const command of commands) {
     it(`supports --help for "${command}"`, () => {

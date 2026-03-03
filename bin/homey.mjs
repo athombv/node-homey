@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-'use strict';
-
 import { readFileSync } from 'node:fs';
 
 import updateNotifier from 'update-notifier';
@@ -21,11 +19,15 @@ const isCompletionMode = isCompletionGeneration || isCompletionQuery;
 
 try {
   if (semver.lt(process.version, MINIMUM_NODE_VERSION)) {
-    Log(`Homey CLI requires Node.js ${MINIMUM_NODE_VERSION} or higher.\nPlease upgrade your Node.js version and try again.`);
+    Log(
+      `Homey CLI requires Node.js ${MINIMUM_NODE_VERSION} or higher.\nPlease upgrade your Node.js version and try again.`,
+    );
     process.exit(1);
   }
 } catch (err) {
-  Log(`Failed to determine Node.js version, please make sure you're using version ${MINIMUM_NODE_VERSION} or higher.`);
+  Log(
+    `Failed to determine Node.js version, please make sure you're using version ${MINIMUM_NODE_VERSION} or higher.`,
+  );
   process.exit(1);
 }
 

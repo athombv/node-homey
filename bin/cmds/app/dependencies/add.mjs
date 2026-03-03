@@ -1,5 +1,3 @@
-'use strict';
-
 import Log from '../../../../lib/Log.js';
 import AppFactory from '../../../../lib/AppFactory.js';
 

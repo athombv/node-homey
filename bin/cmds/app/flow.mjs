@@ -1,5 +1,3 @@
-'use strict';
-
 export const desc = 'Flow related commands';
 export const builder = (yargs) => {
   return yargs

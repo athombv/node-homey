@@ -1,5 +1,3 @@
-'use strict';
-
 import Table from 'cli-table';
 import colors from 'colors';
 import Log from '../../lib/Log.js';
@@ -27,23 +25,25 @@ export const handler = async () => {
     });
 
     homeys.sort((a, b) => {
-      return -(a.state || '').localeCompare((b.state || ''));
+      return -(a.state || '').localeCompare(b.state || '');
     });
 
     homeys.forEach((homey) => {
-      table.push([
-        homey.id,
-        homey.name,
-        homey.platform,
-        homey.platformVersion,
-        homey.softwareVersion,
-        homey.apiVersion,
-        homey.language,
-        homey.users && homey.users.length,
-        homey.role,
-        homey.region || '-',
-        homey.usb ? 'Yes' : '-',
-      ].map((value) => value || '-'));
+      table.push(
+        [
+          homey.id,
+          homey.name,
+          homey.platform,
+          homey.platformVersion,
+          homey.softwareVersion,
+          homey.apiVersion,
+          homey.language,
+          homey.users && homey.users.length,
+          homey.role,
+          homey.region || '-',
+          homey.usb ? 'Yes' : '-',
+        ].map((value) => value || '-'),
+      );
     });
 
     Log(table.toString());
