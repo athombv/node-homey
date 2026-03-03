@@ -19,14 +19,17 @@ export function createIsolatedHomeyHome(extraSettings = {}) {
   return homeyHome;
 }
 
-export function runHomey(args, homeyHome) {
-  return spawnSync('node', ['bin/homey.mjs', ...args], {
+export function runHomey(args, homeyHome, options = {}) {
+  const { env = {} } = options;
+
+  return spawnSync(process.execPath, ['bin/homey.mjs', ...args], {
     cwd: REPO_ROOT,
     encoding: 'utf8',
     env: {
       ...process.env,
       HOMEY_HOME: homeyHome,
       NO_UPDATE_NOTIFIER: '1',
+      ...env,
     },
   });
 }

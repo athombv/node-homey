@@ -48,6 +48,31 @@ Then restart your shell, or run:
 source ~/.zshrc
 ```
 
+## Homey API CLI
+
+Use `homey api homey` for direct Homey API access.
+
+### Raw requests
+
+```bash
+homey api homey raw --path /api/manager/system/
+homey api homey raw -X POST --path /api/manager/flow/flow --body '{"name":"Test Flow"}'
+homey api homey raw -X POST --path /api/manager/flow/flow --body @payload.json
+homey api homey raw --path /api/manager/system/ --token <TOKEN> --address http://192.168.1.100
+```
+
+`--body` is only supported for `POST` and `PUT`, matching the `homey-api` call behavior.
+
+### Schema introspection
+
+```bash
+homey api homey schema
+homey api homey schema --manager devices --operation get-devices --json
+homey api homey schema --json --jq '.managers | keys'
+```
+
+`--jq` requires the `jq` binary to be installed and available in `PATH`.
+
 ## Homey Apps SDK Documentation
 
 Please visit https://homey.app/developer for more information.
