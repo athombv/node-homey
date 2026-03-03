@@ -66,7 +66,7 @@ describe('CLI completion', () => {
   });
 
   it('handles completion queries that include the command name token', () => {
-    const result = runHomey(['--get-yargs-completions', 'homey', 'api', '']);
+    const result = runHomey(['--get-yargs-completions', 'homey', 'api']);
 
     assert.strictEqual(
       result.status,
@@ -74,7 +74,7 @@ describe('CLI completion', () => {
       `Expected exit code 0 for "--get-yargs-completions homey api", got ${result.status}.\nSTDERR:\n${result.stderr}\nSTDOUT:\n${result.stdout}`,
     );
 
-    assert.match(result.stdout, /^homey$/m);
+    assert.match(result.stdout, /^api$/m);
     assert.doesNotMatch(result.stdout, /^devices$/m);
     assert.doesNotMatch(result.stdout, /homey update check failed/);
     assert.doesNotMatch(result.stderr, /homey update check failed/);

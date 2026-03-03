@@ -23,10 +23,20 @@ const normalizedArgs = [...rawArgs];
 if (isCompletionQuery) {
   const completionFlagIndex = normalizedArgs.indexOf('--get-yargs-completions');
   const completionArgsStartIndex = completionFlagIndex + 1;
+  const completionArgs = normalizedArgs.slice(completionArgsStartIndex);
 
-  if (normalizedArgs[completionArgsStartIndex] === 'homey') {
-    normalizedArgs.splice(completionArgsStartIndex, 1);
+  if (completionArgs[0] === 'homey') {
+    completionArgs.shift();
   }
+
+  // Some shells send the current token without a trailing empty token when
+  // completing in-place (e.g. `homey api<TAB>`). Drop that current token so
+  // yargs returns candidates for the current level instead of the next level.
+  if (completionArgs.length > 0 && completionArgs[completionArgs.length - 1] !== '') {
+    completionArgs.pop();
+  }
+
+  normalizedArgs.splice(completionArgsStartIndex, normalizedArgs.length - completionArgsStartIndex, ...completionArgs);
 }
 
 try {
