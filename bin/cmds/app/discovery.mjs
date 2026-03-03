@@ -1,5 +1,3 @@
-'use strict';
-
 export const desc = 'Discovery related commands';
 export const builder = (yargs) => {
   return yargs

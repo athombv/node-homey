@@ -1,5 +1,3 @@
-'use strict';
-
 import colors from 'colors';
 import Log from '../../lib/Log.js';
 import AthomApi from '../../services/AthomApi.js';

@@ -22,14 +22,12 @@ on:
           - major
           - minor
           - patch
-        
 
 jobs:
   publish:
     name: Publish
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout git repository
         uses: actions/checkout@v3
         with:
@@ -40,7 +38,7 @@ jobs:
         with:
           node-version: '20.19.0'
           registry-url: 'https://npm.pkg.github.com'
-          
+
       - name: Version
         run: |
           git config --local user.email "sysadmin+githubactions@athom.com"

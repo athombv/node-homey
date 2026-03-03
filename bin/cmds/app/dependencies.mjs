@@ -1,5 +1,3 @@
-'use strict';
-
 export const desc = 'Dependency related commands (Python only)';
 export const builder = (yargs) => {
   return yargs

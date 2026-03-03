@@ -1,5 +1,3 @@
-'use strict';
-
 import assert from 'node:assert';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';

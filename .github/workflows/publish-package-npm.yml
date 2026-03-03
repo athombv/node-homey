@@ -23,7 +23,7 @@ on:
       - production
 
 permissions:
-  id-token: write  # Required for OIDC
+  id-token: write # Required for OIDC
   contents: read
 
 jobs:
@@ -87,7 +87,7 @@ jobs:
         run: |
           npm publish --tag beta
 
-       # Post a Slack notification on success/failure
+        # Post a Slack notification on success/failure
       - name: Slack notify
         if: always()
         uses: innocarpe/actions-slack@v1
