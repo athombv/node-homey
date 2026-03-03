@@ -1,3 +1,5 @@
+'use strict';
+
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';

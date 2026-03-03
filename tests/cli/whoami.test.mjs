@@ -1,5 +1,12 @@
+'use strict';
+
 import assert from 'node:assert';
-import { afterEach, describe, it, mock } from 'node:test';
+import {
+  afterEach,
+  describe,
+  it,
+  mock,
+} from 'node:test';
 
 import Log from '../../lib/Log.js';
 import AthomApi from '../../services/AthomApi.js';
