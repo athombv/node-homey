@@ -12,8 +12,6 @@ name: Update Package Version
 
 on:
   workflow_dispatch:
-    branches:
-    - master
     inputs:
       newversion:
         type: choice
