@@ -77,8 +77,11 @@ export const builder = (yargs) => {
 
 export const handler = async (argv) => {
   try {
+    const preferredDefaultOperationId = 'getDevices';
     const defaultOperation = managerDefinition.operations
-      .find((operation) => operation.id === managerDefinition.defaultOperationId);
+      .find((operation) => operation.id === preferredDefaultOperationId)
+      || managerDefinition.operations
+        .find((operation) => operation.id === managerDefinition.defaultOperationId);
 
     if (!defaultOperation) {
       throw new Error('No default operation configured for devices manager.');
