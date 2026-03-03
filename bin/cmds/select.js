@@ -6,6 +6,11 @@ const AthomApi = require('../../services/AthomApi');
 exports.desc = 'Select a Homey as active';
 exports.builder = (yargs) => {
   yargs
+    .option('current', {
+      alias: 'c',
+      desc: 'Show the currently selected Homey',
+      type: 'boolean',
+    })
     .option('id', {
       alias: 'i',
       desc: 'ID of the Homey',
@@ -20,6 +25,18 @@ exports.builder = (yargs) => {
 
 exports.handler = async (yargs) => {
   try {
+    if (yargs.current) {
+      const activeHomey = await AthomApi.getSelectedHomey();
+
+      if (!activeHomey) {
+        Log('No active Homey selected. Run `homey select` to choose one.');
+        process.exit(0);
+      }
+
+      Log(`Active Homey: ${activeHomey.name} (${activeHomey.id})`);
+      process.exit(0);
+    }
+
     await AthomApi.selectActiveHomey({
       id: yargs.id,
       name: yargs.name,

@@ -4,5 +4,13 @@
         "consistent-return": "off",
         "prefer-destructuring": "off",
         "no-process-exit": "off"
-    }
+    },
+    "overrides": [
+        {
+            "files": ["**/*.mjs"],
+            "rules": {
+                "import/extensions": "off"
+            }
+        }
+    ]
 }

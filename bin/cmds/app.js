@@ -3,7 +3,9 @@
 exports.desc = 'App related commands';
 exports.builder = (yargs) => {
   return yargs
-    .commandDir('app')
+    .commandDir('app', {
+      extensions: ['.js'],
+    })
     .option('path', {
       alias: 'p',
       type: 'string',
