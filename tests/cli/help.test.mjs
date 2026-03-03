@@ -1,11 +1,11 @@
-'use strict';
+import assert from 'node:assert';
+import fs from 'node:fs';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { describe, it } from 'node:test';
+import { fileURLToPath } from 'node:url';
 
-const assert = require('assert');
-const fs = require('fs');
-const path = require('path');
-const { spawnSync } = require('child_process');
-const { describe, it } = require('node:test');
-
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.join(__dirname, '..', '..');
 const COMMANDS_DIR = path.join(REPO_ROOT, 'bin', 'cmds');
 

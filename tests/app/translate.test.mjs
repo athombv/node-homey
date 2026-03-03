@@ -1,8 +1,6 @@
-'use strict';
-
-const assert = require('assert');
-const { describe, it } = require('node:test');
-const Translate = require('../../lib/app/Translate');
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
+import Translate from '../../lib/app/Translate.js';
 
 const translate = new Translate({ appPath: '/path/to/app' });
 
