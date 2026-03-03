@@ -3,9 +3,9 @@
 import { createHomeyManagerCommand } from '../../../../lib/api/ApiManagerCommand.mjs';
 
 const command = createHomeyManagerCommand({
-  managerIdCamelCase: 'devices',
-  description: 'Devices manager operations',
-  preferredDefaultOperationIds: ['getDevices'],
+  managerIdCamelCase: 'flow',
+  description: 'Flow manager operations',
+  preferredDefaultOperationIds: ['getFlows'],
 });
 
 export const {
