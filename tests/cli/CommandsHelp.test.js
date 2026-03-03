@@ -20,7 +20,7 @@ function getCommandFiles(dirPath) {
       continue;
     }
 
-    if (dirent.isFile() && dirent.name.endsWith('.js')) {
+    if (dirent.isFile() && dirent.name.endsWith('.mjs')) {
       commandFiles.push(fullPath);
     }
   }
@@ -31,7 +31,7 @@ function getCommandFiles(dirPath) {
 function filePathToCommand(filePath) {
   const relative = path.relative(COMMANDS_DIR, filePath);
   return relative
-    .replace(/\.js$/, '')
+    .replace(/\.mjs$/, '')
     .split(path.sep)
     .join(' ');
 }
@@ -43,7 +43,7 @@ describe('CLI command help', () => {
 
   for (const command of commands) {
     it(`supports --help for "${command}"`, () => {
-      const args = ['bin/homey.js', ...command.split(' '), '--help'];
+      const args = ['bin/homey.mjs', ...command.split(' '), '--help'];
       const result = spawnSync('node', args, {
         cwd: REPO_ROOT,
         encoding: 'utf8',
@@ -56,4 +56,17 @@ describe('CLI command help', () => {
       );
     });
   }
+
+  it('supports --help through the compatibility JS launcher', () => {
+    const result = spawnSync('node', ['bin/homey.js', '--help'], {
+      cwd: REPO_ROOT,
+      encoding: 'utf8',
+    });
+
+    assert.strictEqual(
+      result.status,
+      0,
+      `Expected exit code 0 for "bin/homey.js --help", got ${result.status}.\nSTDERR:\n${result.stderr}\nSTDOUT:\n${result.stdout}`,
+    );
+  });
 });

@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 'use strict';
 
 import { readFileSync } from 'node:fs';
@@ -30,7 +32,7 @@ updateNotifier({ pkg }).notify({
 await yargs(process.argv.slice(2))
   .scriptName('homey')
   .commandDir('./cmds', {
-    extensions: ['.js'],
+    extensions: ['.mjs'],
   })
   .demandCommand()
   .strict()

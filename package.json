@@ -17,7 +17,7 @@
     "test": "node --test"
   },
   "bin": {
-    "homey": "bin/homey.js"
+    "homey": "bin/homey.mjs"
   },
   "engines": {
     "node": ">=20.19.0"
