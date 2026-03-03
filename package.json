@@ -45,8 +45,6 @@
     "homey-lib": "^2.44.5",
     "ignore-walk": "^3.0.3",
     "inquirer": "8.1.2",
-    "is-wsl": "^2.2.0",
-    "node-fetch": "^2.7.0",
     "object-path": "^0.11.4",
     "open": "^8.4.2",
     "openai": "^4.52.7",
@@ -58,7 +56,6 @@
     "socket.io-client": "^4.7.5",
     "tar-fs": "^2.1.1",
     "tmp-promise": "^3.0.3",
-    "underscore": "^1.13.6",
     "update-notifier": "^5.1.0",
     "yargs": "^18.0.0"
   },
