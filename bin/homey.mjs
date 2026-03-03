@@ -19,6 +19,16 @@ const isCompletionGeneration = firstCommand === 'completion';
 const isCompletionQuery = rawArgs.includes('--get-yargs-completions');
 const isCompletionMode = isCompletionGeneration || isCompletionQuery;
 
+const normalizedArgs = [...rawArgs];
+if (isCompletionQuery) {
+  const completionFlagIndex = normalizedArgs.indexOf('--get-yargs-completions');
+  const completionArgsStartIndex = completionFlagIndex + 1;
+
+  if (normalizedArgs[completionArgsStartIndex] === 'homey') {
+    normalizedArgs.splice(completionArgsStartIndex, 1);
+  }
+}
+
 try {
   if (semver.lt(process.version, MINIMUM_NODE_VERSION)) {
     Log(`Homey CLI requires Node.js ${MINIMUM_NODE_VERSION} or higher.\nPlease upgrade your Node.js version and try again.`);
@@ -36,7 +46,7 @@ if (!isCompletionMode) {
   });
 }
 
-await yargs(process.argv.slice(2))
+await yargs(normalizedArgs)
   .scriptName('homey')
   .commandDir('./cmds', {
     extensions: ['.mjs'],
