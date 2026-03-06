@@ -1,6 +1,5 @@
-'use strict';
-
 import Log from '../../../lib/Log.js';
+import { applyHomeyApiExecutionOptions } from '../../../lib/api/ApiCommandOptions.mjs';
 import { parseHeaders, parseJsonInput, parseRawInput } from '../../../lib/api/ApiCommandParser.mjs';
 import { applyJqFilter } from '../../../lib/api/ApiCommandJq.mjs';
 import {
@@ -8,6 +7,9 @@ import {
   createHomeyApiClient,
   getRequestTimeout,
 } from '../../../lib/api/ApiCommandRuntime.mjs';
+
+export const command = 'raw';
+export const aliases = ['call', 'request'];
 
 const REQUEST_BODY_METHODS = new Set(['POST', 'PUT']);
 const SENSITIVE_HEADER_NAMES = new Set(['authorization', 'cookie', 'set-cookie']);
@@ -196,7 +198,7 @@ function printResponseBody({ result, argv }) {
 
 export const desc = 'Perform a raw Homey API request';
 export const builder = (yargs) => {
-  return yargs
+  return applyHomeyApiExecutionOptions(yargs)
     .option('method', {
       alias: 'X',
       type: 'string',

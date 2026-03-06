@@ -1,5 +1,3 @@
-'use strict';
-
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
 import { createIsolatedHomeyHome, removeHomeyHome, runHomey } from './helpers.mjs';

@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-'use strict';
-
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -9,6 +7,13 @@ import { fileURLToPath } from 'node:url';
 import updateNotifier from 'update-notifier';
 import semver from 'semver';
 import yargs from 'yargs';
+import { aliases as rawCommandAliases } from './cmds/api/raw.mjs';
+import {
+  getHomeyManagerDefinition,
+  getHomeyManagerDefinitions,
+} from '../lib/api/ApiCommandDefinition.mjs';
+import { loadHomeyManagerCommandExtension } from '../lib/api/ApiManagerExtension.mjs';
+import { getManagerCommandNames } from '../lib/api/ApiManagerCommand.mjs';
 import Log from '../lib/Log.js';
 import AthomMessage from '../services/AthomMessage.js';
 
@@ -70,6 +75,42 @@ function getFileBackedCommandCandidates(commandPath) {
   }
 }
 
+function getDynamicCommandCandidates(commandPath) {
+  if (commandPath[0] !== 'api') {
+    return [];
+  }
+
+  if (commandPath.length === 1) {
+    return [
+      ...getHomeyManagerDefinitions().map(
+        (managerDefinition) => managerDefinition.managerIdCamelCase,
+      ),
+      ...rawCommandAliases,
+    ];
+  }
+
+  if (commandPath.length === 2) {
+    const managerDefinition = getHomeyManagerDefinition(commandPath[1]);
+
+    if (!managerDefinition) {
+      return [];
+    }
+
+    const extension = loadHomeyManagerCommandExtension(managerDefinition.managerIdCamelCase);
+
+    return getManagerCommandNames(managerDefinition, extension);
+  }
+
+  return [];
+}
+
+function getCommandCandidates(commandPath) {
+  const fileBackedCandidates = getFileBackedCommandCandidates(commandPath);
+  const dynamicCandidates = getDynamicCommandCandidates(commandPath);
+
+  return [...new Set([...fileBackedCandidates, ...dynamicCandidates])];
+}
+
 function shouldDropCurrentCompletionToken(completionArgs) {
   const currentToken = completionArgs[completionArgs.length - 1];
   if (currentToken === '') {
@@ -77,7 +118,7 @@ function shouldDropCurrentCompletionToken(completionArgs) {
   }
 
   const commandPath = completionArgs.slice(0, -1);
-  const candidateSet = new Set(getFileBackedCommandCandidates(commandPath));
+  const candidateSet = new Set(getCommandCandidates(commandPath));
 
   return candidateSet.has(currentToken);
 }
@@ -129,6 +170,9 @@ if (!isCompletionMode) {
 
 await yargs(normalizedArgs)
   .scriptName('homey')
+  .version('version', 'Show version number', pkg.version)
+  .alias('version', 'v')
+  .global(['version', 'v'], false)
   .commandDir('./cmds', {
     extensions: ['.mjs'],
   })

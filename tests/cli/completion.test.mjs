@@ -19,6 +19,34 @@ function runHomey(args, env = {}) {
 }
 
 describe('CLI completion', () => {
+  it('shows the root version option in help output', () => {
+    const result = runHomey(['--help']);
+
+    assert.strictEqual(
+      result.status,
+      0,
+      `Expected exit code 0 for "homey --help", got ${result.status}.\nSTDERR:\n${result.stderr}\nSTDOUT:\n${result.stdout}`,
+    );
+
+    assert.match(result.stdout, /--version/);
+    assert.doesNotMatch(result.stdout, /homey update check failed/);
+    assert.doesNotMatch(result.stderr, /homey update check failed/);
+  });
+
+  it('prints the top-level CLI version', () => {
+    const result = runHomey(['--version']);
+
+    assert.strictEqual(
+      result.status,
+      0,
+      `Expected exit code 0 for "homey --version", got ${result.status}.\nSTDERR:\n${result.stderr}\nSTDOUT:\n${result.stdout}`,
+    );
+
+    assert.match(result.stdout, /^[0-9]+\.[0-9]+\.[0-9]+\s*$/);
+    assert.doesNotMatch(result.stdout, /homey update check failed/);
+    assert.doesNotMatch(result.stderr, /homey update check failed/);
+  });
+
   it('prints a bash completion script', () => {
     const result = runHomey(['completion']);
 

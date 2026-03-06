@@ -1,9 +1,8 @@
-'use strict';
-
 import Table from 'cli-table';
 import colors from 'colors';
 
 import Log from '../../../lib/Log.js';
+import { applyJsonOutputOption } from '../../../lib/api/ApiCommandOptions.mjs';
 import { camelToKebab, getHomeyApiSpecification } from '../../../lib/api/ApiCommandDefinition.mjs';
 import { applyJqFilter } from '../../../lib/api/ApiCommandJq.mjs';
 
@@ -167,7 +166,7 @@ function printSchema({ filteredSchema, argv }) {
 
 export const desc = 'Inspect available Homey API managers and operations';
 export const builder = (yargs) => {
-  return yargs
+  return applyJsonOutputOption(yargs)
     .option('manager', {
       type: 'string',
       description: 'Filter by manager idCamelCase, manager id, or specification key',

@@ -1,5 +1,3 @@
-'use strict';
-
 import assert from 'node:assert';
 import { spawnSync } from 'node:child_process';
 import { describe, it } from 'node:test';
@@ -19,6 +17,11 @@ describe('CLI api schema', () => {
     assert.match(result.stdout, /Inspect available Homey API managers and operations/);
     assert.match(result.stdout, /--manager/);
     assert.match(result.stdout, /--operation/);
+    assert.match(result.stdout, /--json/);
+    assert.doesNotMatch(result.stdout, /--timeout/);
+    assert.doesNotMatch(result.stdout, /--token/);
+    assert.doesNotMatch(result.stdout, /--address/);
+    assert.doesNotMatch(result.stdout, /--homey-id/);
   });
 
   it('prints a human-readable schema summary by default', (t) => {

@@ -1,12 +1,6 @@
-'use strict';
-
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
 import { createIsolatedHomeyHome, removeHomeyHome, runHomey } from './helpers.mjs';
-import ApiHomeyTestHelpers from './api-homey-helpers.mjs';
-
-const { assertFailure } = ApiHomeyTestHelpers;
-
 describe('CLI api system', () => {
   it('shows manager help and dynamic operations', (t) => {
     const homeyHome = createIsolatedHomeyHome();
@@ -23,13 +17,14 @@ describe('CLI api system', () => {
     assert.match(completionResult.stdout, /^reboot$/m);
   });
 
-  it('fails with guidance when no Homey is selected for default command', (t) => {
+  it('lists available commands when invoked without a subcommand', (t) => {
     const homeyHome = createIsolatedHomeyHome();
     t.after(() => removeHomeyHome(homeyHome));
 
     const result = runHomey(['api', 'system'], homeyHome);
 
-    assertFailure(result, 'homey api system');
-    assert.match(result.stdout, /No active Homey selected\. Run `homey select` to choose one\./);
+    assert.strictEqual(result.status, 0);
+    assert.match(result.stdout, /System manager operations/);
+    assert.match(result.stdout, /get-info/);
   });
 });

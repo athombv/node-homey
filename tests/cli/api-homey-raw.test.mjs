@@ -1,5 +1,3 @@
-'use strict';
-
 import assert from 'node:assert';
 import { spawn } from 'node:child_process';
 import { describe, it } from 'node:test';
@@ -19,6 +17,11 @@ describe('CLI api raw', () => {
     assert.match(result.stdout, /Perform a raw Homey API request/);
     assert.match(result.stdout, /--path/);
     assert.match(result.stdout, /--header/);
+    assert.match(result.stdout, /--json/);
+    assert.match(result.stdout, /--timeout/);
+    assert.match(result.stdout, /--token/);
+    assert.match(result.stdout, /--address/);
+    assert.match(result.stdout, /--homey-id/);
   });
 
   it('supports the call alias', (t) => {
@@ -26,6 +29,16 @@ describe('CLI api raw', () => {
     t.after(() => removeHomeyHome(homeyHome));
 
     const result = runHomey(['api', 'call', '--help'], homeyHome);
+
+    assert.strictEqual(result.status, 0);
+    assert.match(result.stdout, /Perform a raw Homey API request/);
+  });
+
+  it('supports the request alias', (t) => {
+    const homeyHome = createIsolatedHomeyHome();
+    t.after(() => removeHomeyHome(homeyHome));
+
+    const result = runHomey(['api', 'request', '--help'], homeyHome);
 
     assert.strictEqual(result.status, 0);
     assert.match(result.stdout, /Perform a raw Homey API request/);
