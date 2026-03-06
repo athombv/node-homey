@@ -8,12 +8,12 @@ import ApiHomeyTestHelpers from './api-homey-helpers.mjs';
 
 const { assertFailure } = ApiHomeyTestHelpers;
 
-describe('CLI api homey schema', () => {
+describe('CLI api schema', () => {
   it('shows help without requiring an active Homey', (t) => {
     const homeyHome = createIsolatedHomeyHome();
     t.after(() => removeHomeyHome(homeyHome));
 
-    const result = runHomey(['api', 'homey', 'schema', '--help'], homeyHome);
+    const result = runHomey(['api', 'schema', '--help'], homeyHome);
 
     assert.strictEqual(result.status, 0);
     assert.match(result.stdout, /Inspect available Homey API managers and operations/);
@@ -25,9 +25,9 @@ describe('CLI api homey schema', () => {
     const homeyHome = createIsolatedHomeyHome();
     t.after(() => removeHomeyHome(homeyHome));
 
-    const result = runHomey(['api', 'homey', 'schema'], homeyHome);
+    const result = runHomey(['api', 'schema'], homeyHome);
 
-    assertSuccess(result, 'homey api homey schema');
+    assertSuccess(result, 'homey api schema');
     assert.match(result.stdout, /devices/i);
     assert.match(result.stdout, /get-devices/);
   });
@@ -37,14 +37,11 @@ describe('CLI api homey schema', () => {
     t.after(() => removeHomeyHome(homeyHome));
 
     const result = runHomey(
-      ['api', 'homey', 'schema', '--manager', 'devices', '--operation', 'get-devices', '--json'],
+      ['api', 'schema', '--manager', 'devices', '--operation', 'get-devices', '--json'],
       homeyHome,
     );
 
-    assertSuccess(
-      result,
-      'homey api homey schema --manager devices --operation get-devices --json',
-    );
+    assertSuccess(result, 'homey api schema --manager devices --operation get-devices --json');
     const payload = JSON.parse(result.stdout);
     assert.ok(payload.managers);
     assert.ok(payload.managers.ManagerDevices);
@@ -55,9 +52,9 @@ describe('CLI api homey schema', () => {
     const homeyHome = createIsolatedHomeyHome();
     t.after(() => removeHomeyHome(homeyHome));
 
-    const result = runHomey(['api', 'homey', 'schema', '--manager', 'missing-manager'], homeyHome);
+    const result = runHomey(['api', 'schema', '--manager', 'missing-manager'], homeyHome);
 
-    assertFailure(result, 'homey api homey schema --manager missing-manager');
+    assertFailure(result, 'homey api schema --manager missing-manager');
     assert.match(result.stdout, /No manager matched filter "missing-manager"/);
   });
 
@@ -75,11 +72,11 @@ describe('CLI api homey schema', () => {
     t.after(() => removeHomeyHome(homeyHome));
 
     const result = runHomey(
-      ['api', 'homey', 'schema', '--json', '--jq', '.managers | keys | length'],
+      ['api', 'schema', '--json', '--jq', '.managers | keys | length'],
       homeyHome,
     );
 
-    assertSuccess(result, 'homey api homey schema --json --jq .managers|keys|length');
+    assertSuccess(result, 'homey api schema --json --jq .managers|keys|length');
     assert.match(result.stdout, /^[0-9]+\s*$/);
   });
 
@@ -87,13 +84,13 @@ describe('CLI api homey schema', () => {
     const homeyHome = createIsolatedHomeyHome();
     t.after(() => removeHomeyHome(homeyHome));
 
-    const result = runHomey(['api', 'homey', 'schema', '--json', '--jq', '.managers'], homeyHome, {
+    const result = runHomey(['api', 'schema', '--json', '--jq', '.managers'], homeyHome, {
       env: {
         PATH: '',
       },
     });
 
-    assertFailure(result, 'homey api homey schema --json --jq .managers');
+    assertFailure(result, 'homey api schema --json --jq .managers');
     const payload = JSON.parse(result.stdout);
     assert.match(payload.error, /jq.*not found/i);
   });

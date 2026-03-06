@@ -1,14 +1,13 @@
 ---
 name: homey-cli-homey-api
-description: Homey CLI workflow focused only on `homey api homey` typed and raw commands. Use when a task needs manager or operation discovery via `homey api homey schema`, raw Homey API requests via `homey api homey raw|call|request`, JSON filtering with `--jq`, auth or timeout troubleshooting for Homey API calls, or exact copy-pastable `homey api homey` command sequences.
-allowed-tools: Bash(npx homey:*), Bash(homey:*)
+description: Homey CLI workflow focused only on `homey api` typed and raw commands. Use when a task needs manager or operation discovery via `homey api schema`, raw Homey API requests via `homey api raw|call|request`, JSON filtering with `--jq`, auth or timeout troubleshooting for Homey API calls, or exact copy-pastable `homey api` command sequences.
 ---
 
-# Homey CLI `api homey`
+# Homey CLI `api`
 
 ## Overview
 
-Operate the `homey api homey` command surface for end users.
+Operate the `homey api` command surface for end users.
 Assume the `homey` CLI is installed and available in `PATH`.
 
 ## Core Workflow
@@ -22,10 +21,10 @@ Every Homey API CLI task follows this sequence:
 5. Run command, parse result, and adjust.
 
 ```bash
-homey api homey schema
-homey api homey schema --manager devices --operation get-devices --json
-homey api homey devices get-device --id <device-id>
-homey api homey raw --path /api/manager/system/
+homey api schema
+homey api schema --manager devices --operation get-devices --json
+homey api devices get-device --id <device-id>
+homey api raw --path /api/manager/system/
 ```
 
 ## Command Selection
@@ -38,22 +37,22 @@ homey api homey raw --path /api/manager/system/
 
 ```bash
 # Discoverability
-homey api homey --help
-homey api homey schema
-homey api homey schema --manager devices
-homey api homey schema --manager devices --operation get-devices --json
-homey api homey schema --json --jq '.managers | keys'
+homey api --help
+homey api schema
+homey api schema --manager devices
+homey api schema --manager devices --operation get-devices --json
+homey api schema --json --jq '.managers | keys'
 
 # Typed manager calls
-homey api homey devices
-homey api homey devices get-device --id <device-id>
-homey api homey flow get-flows
-homey api homey system get-info
+homey api devices
+homey api devices get-device --id <device-id>
+homey api flow get-flows
+homey api system get-info
 
 # Raw calls
-homey api homey raw --path /api/manager/system/
-homey api homey raw -X POST --path /api/manager/flow/flow --body '{"name":"My Flow"}'
-homey api homey raw --path /api/manager/system/ --include --verbose
+homey api raw --path /api/manager/system/
+homey api raw -X POST --path /api/manager/flow/flow --body '{"name":"My Flow"}'
+homey api raw --path /api/manager/system/ --include --verbose
 ```
 
 ## Common Patterns
@@ -61,13 +60,13 @@ homey api homey raw --path /api/manager/system/ --include --verbose
 ### Local selected Homey read call
 
 ```bash
-homey api homey devices --json
+homey api devices --json
 ```
 
 ### Token mode raw call
 
 ```bash
-homey api homey raw \
+homey api raw \
   --path /api/manager/system/ \
   --token '<token>' \
   --address 'http://192.168.1.100'
@@ -76,7 +75,7 @@ homey api homey raw \
 ### POST JSON from file
 
 ```bash
-homey api homey raw \
+homey api raw \
   -X POST \
   --path /api/manager/flow/flow \
   --body @payload.json

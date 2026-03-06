@@ -1,6 +1,6 @@
 # Command Reference
 
-Use this reference for exact `homey api homey` command syntax.
+Use this reference for exact `homey api` command syntax.
 
 ## Prefix
 
@@ -10,10 +10,10 @@ Use the installed Homey CLI command:
 homey
 ```
 
-## Top-Level API Homey
+## Top-Level API
 
 ```bash
-homey api homey --help
+homey api --help
 ```
 
 Global options inherited by all subcommands:
@@ -26,11 +26,11 @@ Global options inherited by all subcommands:
 ## Schema Command
 
 ```bash
-homey api homey schema
-homey api homey schema --manager devices
-homey api homey schema --operation get-devices
-homey api homey schema --manager devices --operation get-devices --json
-homey api homey schema --json --jq '.managers | keys'
+homey api schema
+homey api schema --manager devices
+homey api schema --operation get-devices
+homey api schema --manager devices --operation get-devices --json
+homey api schema --json --jq '.managers | keys'
 ```
 
 Schema options:
@@ -42,36 +42,36 @@ Schema options:
 ## Typed Manager Commands
 
 ```bash
-homey api homey devices --help
-homey api homey flow --help
-homey api homey system --help
+homey api devices --help
+homey api flow --help
+homey api system --help
 ```
 
 Common examples:
 
 ```bash
-homey api homey devices
-homey api homey devices get-device --id <device-id>
-homey api homey flow get-flows
-homey api homey system get-info
+homey api devices
+homey api devices get-device --id <device-id>
+homey api flow get-flows
+homey api system get-info
 ```
 
 ## Raw Command
 
 Aliases:
 
-- `homey api homey raw ...`
-- `homey api homey call ...`
-- `homey api homey request ...`
+- `homey api raw ...`
+- `homey api call ...`
+- `homey api request ...`
 
 Examples:
 
 ```bash
-homey api homey raw --path /api/manager/system/
-homey api homey raw -X POST --path /api/manager/flow/flow --body '{"name":"My Flow"}'
-homey api homey raw -X POST --path /api/manager/flow/flow --body @payload.json
-homey api homey raw --path /api/manager/system/ --include --verbose
-homey api homey raw --path /api/manager/system/ --json --jq '.name'
+homey api raw --path /api/manager/system/
+homey api raw -X POST --path /api/manager/flow/flow --body '{"name":"My Flow"}'
+homey api raw -X POST --path /api/manager/flow/flow --body @payload.json
+homey api raw --path /api/manager/system/ --include --verbose
+homey api raw --path /api/manager/system/ --json --jq '.name'
 ```
 
 Raw-specific options:
@@ -99,13 +99,13 @@ Selected Homey mode (default):
 
 ```bash
 homey select
-homey api homey devices
+homey api devices
 ```
 
 Token mode:
 
 ```bash
-homey api homey raw \
+homey api raw \
   --path /api/manager/system/ \
   --token '<token>' \
   --address 'http://192.168.1.100'

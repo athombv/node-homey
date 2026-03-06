@@ -8,12 +8,12 @@ import ApiHomeyTestHelpers from './api-homey-helpers.mjs';
 
 const { assertFailure } = ApiHomeyTestHelpers;
 
-describe('CLI api homey raw', () => {
+describe('CLI api raw', () => {
   it('shows help without requiring an active Homey', (t) => {
     const homeyHome = createIsolatedHomeyHome();
     t.after(() => removeHomeyHome(homeyHome));
 
-    const result = runHomey(['api', 'homey', 'raw', '--help'], homeyHome);
+    const result = runHomey(['api', 'raw', '--help'], homeyHome);
 
     assert.strictEqual(result.status, 0);
     assert.match(result.stdout, /Perform a raw Homey API request/);
@@ -25,7 +25,7 @@ describe('CLI api homey raw', () => {
     const homeyHome = createIsolatedHomeyHome();
     t.after(() => removeHomeyHome(homeyHome));
 
-    const result = runHomey(['api', 'homey', 'call', '--help'], homeyHome);
+    const result = runHomey(['api', 'call', '--help'], homeyHome);
 
     assert.strictEqual(result.status, 0);
     assert.match(result.stdout, /Perform a raw Homey API request/);
@@ -35,9 +35,9 @@ describe('CLI api homey raw', () => {
     const homeyHome = createIsolatedHomeyHome();
     t.after(() => removeHomeyHome(homeyHome));
 
-    const result = runHomey(['api', 'homey', 'raw', '--path', 'api/manager/system'], homeyHome);
+    const result = runHomey(['api', 'raw', '--path', 'api/manager/system'], homeyHome);
 
-    assertFailure(result, 'homey api homey raw --path api/manager/system');
+    assertFailure(result, 'homey api raw --path api/manager/system');
     assert.match(result.stdout, /Invalid path/);
   });
 
@@ -46,12 +46,39 @@ describe('CLI api homey raw', () => {
     t.after(() => removeHomeyHome(homeyHome));
 
     const result = runHomey(
-      ['api', 'homey', 'raw', '--path', '/api/manager/system/', '--body', '{"name":"Homey"}'],
+      ['api', 'raw', '--path', '/api/manager/system/', '--body', '{"name":"Homey"}'],
       homeyHome,
     );
 
-    assertFailure(result, 'homey api homey raw --path /api/manager/system/ --body');
+    assertFailure(result, 'homey api raw --path /api/manager/system/ --body');
     assert.match(result.stdout, /--body is only supported with methods POST, PUT/);
+  });
+
+  it('rejects using --address and --homey-id together with --token', (t) => {
+    const homeyHome = createIsolatedHomeyHome();
+    t.after(() => removeHomeyHome(homeyHome));
+
+    const result = runHomey(
+      [
+        'api',
+        'raw',
+        '--path',
+        '/api/manager/system/',
+        '--token',
+        'abc',
+        '--address',
+        'http://127.0.0.1',
+        '--homey-id',
+        'homey-1',
+      ],
+      homeyHome,
+    );
+
+    assertFailure(
+      result,
+      'homey api raw --path /api/manager/system/ --token abc --address http://127.0.0.1 --homey-id homey-1',
+    );
+    assert.match(result.stdout, /--address and --homey-id cannot be used together with --token/);
   });
 
   it('executes a raw request in token mode and supports include/verbose output', async (t) => {
@@ -118,7 +145,6 @@ describe('CLI api homey raw', () => {
     const result = runHomey(
       [
         'api',
-        'homey',
         'raw',
         '--method',
         'POST',
@@ -138,7 +164,7 @@ describe('CLI api homey raw', () => {
       homeyHome,
     );
 
-    assertSuccess(result, 'homey api homey raw --method POST --path /api/manager/system/');
+    assertSuccess(result, 'homey api raw --method POST --path /api/manager/system/');
     assert.match(result.stdout, /HTTP\/1\.1 200/);
     assert.match(result.stdout, /content-type: application\/json/);
     assert.match(result.stdout, /"ok": true/);

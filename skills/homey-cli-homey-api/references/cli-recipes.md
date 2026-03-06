@@ -1,4 +1,4 @@
-# Homey API Homey CLI Recipes
+# Homey API CLI Recipes
 
 ## Command Prefix
 
@@ -11,20 +11,20 @@ homey
 ## Discover Commands
 
 ```bash
-homey api homey --help
-homey api homey schema
-homey api homey schema --manager devices
-homey api homey schema --manager devices --operation get-devices --json
-homey api homey schema --json --jq '.managers | keys'
+homey api --help
+homey api schema
+homey api schema --manager devices
+homey api schema --manager devices --operation get-devices --json
+homey api schema --json --jq '.managers | keys'
 ```
 
 ## Typed Manager Examples
 
 ```bash
-homey api homey devices
-homey api homey devices get-device --id <device-id>
-homey api homey flow get-flows
-homey api homey system get-info
+homey api devices
+homey api devices get-device --id <device-id>
+homey api flow get-flows
+homey api system get-info
 ```
 
 ## Raw Command Examples
@@ -32,13 +32,13 @@ homey api homey system get-info
 Read-only request:
 
 ```bash
-homey api homey raw --path /api/manager/system/
+homey api raw --path /api/manager/system/
 ```
 
 Token mode:
 
 ```bash
-homey api homey raw \
+homey api raw \
   --path /api/manager/system/ \
   --token '<token>' \
   --address 'http://192.168.1.100'
@@ -47,7 +47,7 @@ homey api homey raw \
 POST JSON body:
 
 ```bash
-homey api homey raw \
+homey api raw \
   -X POST \
   --path /api/manager/flow/flow \
   --body '{"name":"My Flow"}'
@@ -56,7 +56,7 @@ homey api homey raw \
 POST body from file:
 
 ```bash
-homey api homey raw \
+homey api raw \
   -X POST \
   --path /api/manager/flow/flow \
   --body @payload.json
@@ -65,7 +65,7 @@ homey api homey raw \
 Include response metadata and diagnostics:
 
 ```bash
-homey api homey raw \
+homey api raw \
   --path /api/manager/system/ \
   --include \
   --verbose

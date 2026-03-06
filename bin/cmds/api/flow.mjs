@@ -1,6 +1,6 @@
 'use strict';
 
-import { createHomeyManagerCommand } from '../../../../lib/api/ApiManagerCommand.mjs';
+import { createHomeyManagerCommand } from '../../../lib/api/ApiManagerCommand.mjs';
 
 const command = createHomeyManagerCommand({
   managerIdCamelCase: 'flow',
@@ -8,8 +8,4 @@ const command = createHomeyManagerCommand({
   preferredDefaultOperationIds: ['getFlows'],
 });
 
-export const {
-  desc,
-  builder,
-  handler,
-} = command;
+export const { desc, builder, handler } = command;

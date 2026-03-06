@@ -8,12 +8,12 @@ import ApiHomeyTestHelpers from './api-homey-helpers.mjs';
 
 const { assertFailure } = ApiHomeyTestHelpers;
 
-describe('CLI api homey devices', () => {
+describe('CLI api devices', () => {
   it('shows manager help without requiring an active Homey', (t) => {
     const homeyHome = createIsolatedHomeyHome();
     t.after(() => removeHomeyHome(homeyHome));
 
-    const result = runHomey(['api', 'homey', 'devices', '--help'], homeyHome);
+    const result = runHomey(['api', 'devices', '--help'], homeyHome);
 
     assert.strictEqual(result.status, 0);
     assert.match(result.stdout, /Devices manager operations/);
@@ -25,7 +25,7 @@ describe('CLI api homey devices', () => {
     const homeyHome = createIsolatedHomeyHome();
     t.after(() => removeHomeyHome(homeyHome));
 
-    const result = runHomey(['--get-yargs-completions', 'api', 'homey', 'devices', ''], homeyHome);
+    const result = runHomey(['--get-yargs-completions', 'api', 'devices', ''], homeyHome);
 
     assert.strictEqual(result.status, 0);
     assert.match(result.stdout, /^get-devices$/m);
@@ -36,10 +36,7 @@ describe('CLI api homey devices', () => {
     const homeyHome = createIsolatedHomeyHome();
     t.after(() => removeHomeyHome(homeyHome));
 
-    const result = runHomey(
-      ['--get-yargs-completions', 'api', 'homey', 'devices', 'get-d'],
-      homeyHome,
-    );
+    const result = runHomey(['--get-yargs-completions', 'api', 'devices', 'get-d'], homeyHome);
 
     assert.strictEqual(result.status, 0);
     assert.match(result.stdout, /^get-device$/m);
@@ -50,9 +47,9 @@ describe('CLI api homey devices', () => {
     const homeyHome = createIsolatedHomeyHome();
     t.after(() => removeHomeyHome(homeyHome));
 
-    const result = runHomey(['api', 'homey', 'devices'], homeyHome);
+    const result = runHomey(['api', 'devices'], homeyHome);
 
-    assertFailure(result, 'homey api homey devices');
+    assertFailure(result, 'homey api devices');
     assert.match(result.stdout, /No active Homey selected\. Run `homey select` to choose one\./);
   });
 
@@ -60,9 +57,9 @@ describe('CLI api homey devices', () => {
     const homeyHome = createIsolatedHomeyHome();
     t.after(() => removeHomeyHome(homeyHome));
 
-    const result = runHomey(['api', 'homey', 'devices', '--json'], homeyHome);
+    const result = runHomey(['api', 'devices', '--json'], homeyHome);
 
-    assertFailure(result, 'homey api homey devices --json');
+    assertFailure(result, 'homey api devices --json');
     assert.doesNotThrow(() => JSON.parse(result.stdout));
     const payload = JSON.parse(result.stdout);
     assert.match(payload.error, /No active Homey selected/);
@@ -72,22 +69,44 @@ describe('CLI api homey devices', () => {
     const homeyHome = createIsolatedHomeyHome();
     t.after(() => removeHomeyHome(homeyHome));
 
-    const result = runHomey(['api', 'homey', 'devices', '--token', 'abc'], homeyHome);
+    const result = runHomey(['api', 'devices', '--token', 'abc'], homeyHome);
 
-    assertFailure(result, 'homey api homey devices --token abc');
-    assert.match(result.stdout, /Missing required option: --address/);
+    assertFailure(result, 'homey api devices --token abc');
+    assert.match(result.stdout, /Missing required option: --address or --homey-id/);
+  });
+
+  it('rejects using --address and --homey-id together with --token', (t) => {
+    const homeyHome = createIsolatedHomeyHome();
+    t.after(() => removeHomeyHome(homeyHome));
+
+    const result = runHomey(
+      [
+        'api',
+        'devices',
+        '--token',
+        'abc',
+        '--address',
+        'http://127.0.0.1',
+        '--homey-id',
+        'homey-1',
+      ],
+      homeyHome,
+    );
+
+    assertFailure(
+      result,
+      'homey api devices --token abc --address http://127.0.0.1 --homey-id homey-1',
+    );
+    assert.match(result.stdout, /--address and --homey-id cannot be used together with --token/);
   });
 
   it('rejects --address without --token', (t) => {
     const homeyHome = createIsolatedHomeyHome();
     t.after(() => removeHomeyHome(homeyHome));
 
-    const result = runHomey(
-      ['api', 'homey', 'devices', '--address', 'http://127.0.0.1'],
-      homeyHome,
-    );
+    const result = runHomey(['api', 'devices', '--address', 'http://127.0.0.1'], homeyHome);
 
-    assertFailure(result, 'homey api homey devices --address http://127.0.0.1');
+    assertFailure(result, 'homey api devices --address http://127.0.0.1');
     assert.match(result.stdout, /--address can only be used together with --token/);
   });
 
@@ -95,9 +114,9 @@ describe('CLI api homey devices', () => {
     const homeyHome = createIsolatedHomeyHome();
     t.after(() => removeHomeyHome(homeyHome));
 
-    const result = runHomey(['api', 'homey', 'devices', '--timeout', '0'], homeyHome);
+    const result = runHomey(['api', 'devices', '--timeout', '0'], homeyHome);
 
-    assertFailure(result, 'homey api homey devices --timeout 0');
+    assertFailure(result, 'homey api devices --timeout 0');
     assert.match(result.stdout, /Invalid timeout/);
   });
 
@@ -105,9 +124,9 @@ describe('CLI api homey devices', () => {
     const homeyHome = createIsolatedHomeyHome();
     t.after(() => removeHomeyHome(homeyHome));
 
-    const result = runHomey(['api', 'homey', 'devices', 'get-device'], homeyHome);
+    const result = runHomey(['api', 'devices', 'get-device'], homeyHome);
 
-    assertFailure(result, 'homey api homey devices get-device');
+    assertFailure(result, 'homey api devices get-device');
     assert.match(result.stderr, /Missing required argument: id/);
   });
 
@@ -177,21 +196,11 @@ describe('CLI api homey devices', () => {
     });
 
     const result = runHomey(
-      [
-        'api',
-        'homey',
-        'devices',
-        '--token',
-        'abc',
-        '--address',
-        `http://127.0.0.1:${port}`,
-        '--jq',
-        'keys',
-      ],
+      ['api', 'devices', '--token', 'abc', '--address', `http://127.0.0.1:${port}`, '--jq', 'keys'],
       homeyHome,
     );
 
-    assertSuccess(result, 'homey api homey devices --token abc --address <mock> --jq keys');
+    assertSuccess(result, 'homey api devices --token abc --address <mock> --jq keys');
     assert.doesNotThrow(() => JSON.parse(result.stdout));
     assert.deepStrictEqual(JSON.parse(result.stdout), ['device-a', 'device-b']);
   });

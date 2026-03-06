@@ -3,12 +3,9 @@
 import Table from 'cli-table';
 import colors from 'colors';
 
-import Log from '../../../../lib/Log.js';
-import {
-  camelToKebab,
-  getHomeyApiSpecification,
-} from '../../../../lib/api/ApiCommandDefinition.mjs';
-import { applyJqFilter } from '../../../../lib/api/ApiCommandJq.mjs';
+import Log from '../../../lib/Log.js';
+import { camelToKebab, getHomeyApiSpecification } from '../../../lib/api/ApiCommandDefinition.mjs';
+import { applyJqFilter } from '../../../lib/api/ApiCommandJq.mjs';
 
 function logCommandError(err, argv) {
   if (argv.json) {
@@ -184,10 +181,10 @@ export const builder = (yargs) => {
       description: 'Filter schema JSON output using a jq expression',
     })
     .example(
-      '$0 api homey schema',
+      '$0 api schema',
       'Print a human-readable overview of the available Homey API operations',
     )
-    .example("$0 api homey schema --json --jq '.managers | keys'", 'List manager keys using jq')
+    .example("$0 api schema --json --jq '.managers | keys'", 'List manager keys using jq')
     .help();
 };
 

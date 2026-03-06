@@ -4,12 +4,12 @@ import assert from 'node:assert';
 import { describe, it } from 'node:test';
 import { createIsolatedHomeyHome, removeHomeyHome, runHomey } from './helpers.mjs';
 
-describe('CLI api homey', () => {
+describe('CLI api', () => {
   it('lists all supported managers in completion', (t) => {
     const homeyHome = createIsolatedHomeyHome();
     t.after(() => removeHomeyHome(homeyHome));
 
-    const result = runHomey(['--get-yargs-completions', 'api', 'homey', ''], homeyHome);
+    const result = runHomey(['--get-yargs-completions', 'api', ''], homeyHome);
 
     assert.strictEqual(result.status, 0);
     assert.match(result.stdout, /^devices$/m);

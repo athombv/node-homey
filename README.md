@@ -50,15 +50,17 @@ source ~/.zshrc
 
 ## Homey API CLI
 
-Use `homey api homey` for direct Homey API access.
+Use `homey api` for direct Homey API access.
 
 ### Raw requests
 
 ```bash
-homey api homey raw --path /api/manager/system/
-homey api homey raw -X POST --path /api/manager/flow/flow --body '{"name":"Test Flow"}'
-homey api homey raw -X POST --path /api/manager/flow/flow --body @payload.json
-homey api homey raw --path /api/manager/system/ --token <TOKEN> --address http://192.168.1.100
+homey api raw --path /api/manager/system/
+homey api raw --homey-id <HOMEY_ID> --path /api/manager/system/
+homey api raw -X POST --path /api/manager/flow/flow --body '{"name":"Test Flow"}'
+homey api raw -X POST --path /api/manager/flow/flow --body @payload.json
+homey api raw --path /api/manager/system/ --token <TOKEN> --address http://192.168.1.100
+homey api raw --path /api/manager/system/ --token <TOKEN> --homey-id <HOMEY_ID>
 ```
 
 `--body` is only supported for `POST` and `PUT`, matching the `homey-api` call behavior.
@@ -66,9 +68,9 @@ homey api homey raw --path /api/manager/system/ --token <TOKEN> --address http:/
 ### Schema introspection
 
 ```bash
-homey api homey schema
-homey api homey schema --manager devices --operation get-devices --json
-homey api homey schema --json --jq '.managers | keys'
+homey api schema
+homey api schema --manager devices --operation get-devices --json
+homey api schema --json --jq '.managers | keys'
 ```
 
 `--jq` requires the `jq` binary to be installed and available in `PATH`.

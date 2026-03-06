@@ -1,17 +1,13 @@
 'use strict';
 
-import Log from '../../../../lib/Log.js';
-import {
-  parseHeaders,
-  parseJsonInput,
-  parseRawInput,
-} from '../../../../lib/api/ApiCommandParser.mjs';
-import { applyJqFilter } from '../../../../lib/api/ApiCommandJq.mjs';
+import Log from '../../../lib/Log.js';
+import { parseHeaders, parseJsonInput, parseRawInput } from '../../../lib/api/ApiCommandParser.mjs';
+import { applyJqFilter } from '../../../lib/api/ApiCommandJq.mjs';
 import {
   callHomeyApi,
   createHomeyApiClient,
   getRequestTimeout,
-} from '../../../../lib/api/ApiCommandRuntime.mjs';
+} from '../../../lib/api/ApiCommandRuntime.mjs';
 
 const REQUEST_BODY_METHODS = new Set(['POST', 'PUT']);
 const SENSITIVE_HEADER_NAMES = new Set(['authorization', 'cookie', 'set-cookie']);
@@ -100,27 +96,43 @@ function redactHeaders(headers) {
   return redactedHeaders;
 }
 
-function printVerbose({ method, path, timeout, tokenMode, metadata }) {
-  console.error(`[homey api homey raw] method=${method} path=${path}`);
-  console.error(`[homey api homey raw] timeoutMs=${timeout}`);
-  console.error(`[homey api homey raw] authMode=${tokenMode ? 'token' : 'selected-homey'}`);
+function getAuthModeLabel({ token, address, homeyId }) {
+  if (token && address) {
+    return 'token-address';
+  }
+
+  if (token && homeyId) {
+    return 'token-homey-id';
+  }
+
+  if (homeyId) {
+    return 'homey-id';
+  }
+
+  return 'selected-homey';
+}
+
+function printVerbose({ method, path, timeout, authMode, metadata }) {
+  console.error(`[homey api raw] method=${method} path=${path}`);
+  console.error(`[homey api raw] timeoutMs=${timeout}`);
+  console.error(`[homey api raw] authMode=${authMode}`);
 
   if (metadata?.request?.url) {
-    console.error(`[homey api homey raw] url=${metadata.request.url}`);
+    console.error(`[homey api raw] url=${metadata.request.url}`);
   }
 
   if (metadata?.request?.headers) {
     console.error(
-      `[homey api homey raw] requestHeaders=${JSON.stringify(redactHeaders(metadata.request.headers))}`,
+      `[homey api raw] requestHeaders=${JSON.stringify(redactHeaders(metadata.request.headers))}`,
     );
   }
 
   if (metadata?.response) {
-    console.error(`[homey api homey raw] status=${metadata.response.status}`);
-    console.error(`[homey api homey raw] contentType=${metadata.response.contentType || '-'}`);
+    console.error(`[homey api raw] status=${metadata.response.status}`);
+    console.error(`[homey api raw] contentType=${metadata.response.contentType || '-'}`);
   }
 
-  console.error(`[homey api homey raw] durationMs=${metadata?.durationMs ?? '-'}`);
+  console.error(`[homey api raw] durationMs=${metadata?.durationMs ?? '-'}`);
 }
 
 function printIncludedResponse({ metadata, bodyText }) {
@@ -226,15 +238,15 @@ export const builder = (yargs) => {
       description: 'Print request diagnostics to stderr',
     })
     .example(
-      '$0 api homey raw --path /api/manager/system/',
+      '$0 api raw --path /api/manager/system/',
       'Perform a GET request to the local Homey API',
     )
     .example(
-      '$0 api homey raw -X POST --path /api/manager/flow/flow --body \'{"name":"Test"}\'',
+      '$0 api raw -X POST --path /api/manager/flow/flow --body \'{"name":"Test"}\'',
       'Send a POST request with a JSON body',
     )
     .example(
-      '$0 api homey raw -X POST --path /api/manager/flow/flow --body @body.json',
+      '$0 api raw -X POST --path /api/manager/flow/flow --body @body.json',
       'Send a POST request body from a file',
     )
     .help();
@@ -250,6 +262,7 @@ export const handler = async (argv) => {
     const api = await createHomeyApiClient({
       token: argv.token,
       address: argv.address,
+      homeyId: argv.homeyId,
     });
 
     const metadata = await callHomeyApi({
@@ -270,7 +283,11 @@ export const handler = async (argv) => {
         method,
         path,
         timeout,
-        tokenMode: Boolean(argv.token),
+        authMode: getAuthModeLabel({
+          token: argv.token,
+          address: argv.address,
+          homeyId: argv.homeyId,
+        }),
         metadata,
       });
     }
