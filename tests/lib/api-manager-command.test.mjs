@@ -2,13 +2,16 @@ import assert from 'node:assert';
 import { afterEach, describe, it, mock } from 'node:test';
 
 import {
+  assertOperationSupportedByHomeyPlatform,
   createHomeyManagerCommand,
   getManagerCommandNames,
 } from '../../lib/api/ApiManagerCommand.mjs';
+import { HOMEY_API_AVAILABILITY } from '../../lib/api/ApiCommandDefinition.mjs';
 
 function createFakeYargs() {
   return {
     commandCalls: [],
+    epilogValue: null,
     helpCalled: false,
     showHelpCalled: false,
     option() {
@@ -22,6 +25,10 @@ function createFakeYargs() {
       this.helpCalled = true;
       return this;
     },
+    epilog(value) {
+      this.epilogValue = value;
+      return this;
+    },
     showHelp() {
       this.showHelpCalled = true;
     },
@@ -33,6 +40,7 @@ function createManagerDefinition() {
     managerName: 'ManagerDevices',
     managerId: 'devices',
     managerIdCamelCase: 'devices',
+    managerCliName: 'devices',
     defaultOperationId: 'getDevices',
     operations: [
       {
@@ -41,6 +49,7 @@ function createManagerDefinition() {
         method: 'GET',
         path: '/devices',
         parameters: {},
+        availability: HOMEY_API_AVAILABILITY.LOCAL,
       },
     ],
   };
@@ -63,7 +72,21 @@ describe('ApiManagerCommand', () => {
       ],
     });
 
-    assert.deepStrictEqual(commandNames, ['get-devices', 'my-method']);
+    assert.deepStrictEqual(commandNames, ['schema', 'get-devices', 'my-method']);
+  });
+
+  it('uses the kebab-case manager CLI name for the top-level command', () => {
+    const managerCommand = createHomeyManagerCommand({
+      managerDefinition: {
+        ...createManagerDefinition(),
+        managerName: 'ManagerGoogleAssistant',
+        managerId: 'google-assistant',
+        managerIdCamelCase: 'googleAssistant',
+        managerCliName: 'google-assistant',
+      },
+    });
+
+    assert.strictEqual(managerCommand.command, 'google-assistant');
   });
 
   it('shows manager help when invoked without a subcommand', async () => {
@@ -109,6 +132,58 @@ describe('ApiManagerCommand', () => {
     assert.throws(
       () => managerCommand.builder(createFakeYargs()),
       /Custom command collision for devices: get-devices/,
+    );
+  });
+
+  it('labels exclusive operations in generated help output', () => {
+    const managerDefinition = createManagerDefinition();
+    const fakeYargs = createFakeYargs();
+    const managerCommand = createHomeyManagerCommand({
+      managerDefinition,
+    });
+
+    managerCommand.builder(fakeYargs);
+
+    const operationCommand = fakeYargs.commandCalls.find(
+      ([commandName]) => commandName === 'get-devices',
+    );
+
+    assert.ok(operationCommand);
+    assert.match(operationCommand[1], /\[local\]/);
+
+    const operationYargs = createFakeYargs();
+    operationCommand[2](operationYargs);
+
+    assert.strictEqual(operationYargs.epilogValue, 'Platform: local.');
+  });
+
+  it('registers a schema subcommand for every generated manager', () => {
+    const managerDefinition = createManagerDefinition();
+    const fakeYargs = createFakeYargs();
+    const managerCommand = createHomeyManagerCommand({
+      managerDefinition,
+    });
+
+    managerCommand.builder(fakeYargs);
+
+    const schemaCommand = fakeYargs.commandCalls.find(([commandName]) => commandName === 'schema');
+
+    assert.ok(schemaCommand);
+    assert.strictEqual(fakeYargs.commandCalls[0][0], 'schema');
+    assert.match(schemaCommand[1], /Inspect schema/);
+  });
+
+  it('rejects execution when the Homey platform does not support the operation', () => {
+    assert.throws(
+      () =>
+        assertOperationSupportedByHomeyPlatform(
+          {
+            cliName: 'delete',
+            availability: HOMEY_API_AVAILABILITY.CLOUD,
+          },
+          'local',
+        ),
+      /requires platform cloud.*local Homey/,
     );
   });
 });

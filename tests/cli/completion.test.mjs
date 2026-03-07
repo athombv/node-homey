@@ -13,6 +13,8 @@ function runHomey(args, env = {}) {
     encoding: 'utf8',
     env: {
       ...process.env,
+      HOMEY_SKIP_STARTUP_NOTIFIERS: '1',
+      NO_UPDATE_NOTIFIER: '1',
       ...env,
     },
   });

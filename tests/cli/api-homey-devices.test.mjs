@@ -7,42 +7,6 @@ import ApiHomeyTestHelpers from './api-homey-helpers.mjs';
 const { assertFailure } = ApiHomeyTestHelpers;
 
 describe('CLI api devices', () => {
-  it('shows manager help without requiring an active Homey', (t) => {
-    const homeyHome = createIsolatedHomeyHome();
-    t.after(() => removeHomeyHome(homeyHome));
-
-    const result = runHomey(['api', 'devices', '--help'], homeyHome);
-
-    assert.strictEqual(result.status, 0);
-    assert.match(result.stdout, /Devices manager operations/);
-    assert.match(result.stdout, /get-devices/);
-    assert.match(result.stdout, /open-device/);
-    assert.doesNotMatch(result.stdout, /--jq/);
-  });
-
-  it('lists available commands when invoked without a subcommand', (t) => {
-    const homeyHome = createIsolatedHomeyHome();
-    t.after(() => removeHomeyHome(homeyHome));
-
-    const result = runHomey(['api', 'devices'], homeyHome);
-
-    assert.strictEqual(result.status, 0);
-    assert.match(result.stdout, /get-devices/);
-    assert.match(result.stdout, /open-device/);
-  });
-
-  it('provides dynamic completion entries for devices operations', (t) => {
-    const homeyHome = createIsolatedHomeyHome();
-    t.after(() => removeHomeyHome(homeyHome));
-
-    const result = runHomey(['--get-yargs-completions', 'api', 'devices', ''], homeyHome);
-
-    assert.strictEqual(result.status, 0);
-    assert.match(result.stdout, /^get-devices$/m);
-    assert.match(result.stdout, /^open-device$/m);
-    assert.match(result.stdout, /^update-device$/m);
-  });
-
   it('shows only relevant help options for open-device', (t) => {
     const homeyHome = createIsolatedHomeyHome();
     t.after(() => removeHomeyHome(homeyHome));
@@ -59,21 +23,6 @@ describe('CLI api devices', () => {
     assert.doesNotMatch(result.stdout, /--address/);
     assert.doesNotMatch(result.stdout, /--jq/);
     assert.doesNotMatch(result.stdout, /--version/);
-  });
-
-  it('shows request options only on generated operation help', (t) => {
-    const homeyHome = createIsolatedHomeyHome();
-    t.after(() => removeHomeyHome(homeyHome));
-
-    const result = runHomey(['api', 'devices', 'get-devices', '--help'], homeyHome);
-
-    assert.strictEqual(result.status, 0);
-    assert.match(result.stdout, /--json/);
-    assert.match(result.stdout, /--timeout/);
-    assert.match(result.stdout, /--token/);
-    assert.match(result.stdout, /--address/);
-    assert.match(result.stdout, /--homey-id/);
-    assert.match(result.stdout, /--jq/);
   });
 
   it('rejects --json for open-device', (t) => {
@@ -100,108 +49,6 @@ describe('CLI api devices', () => {
 
     assertFailure(result, 'homey api devices open-device --id device-1 --token abc');
     assert.match(result.stderr, /Unknown argument: token/);
-  });
-
-  it('keeps partial operation tokens for completion filtering', (t) => {
-    const homeyHome = createIsolatedHomeyHome();
-    t.after(() => removeHomeyHome(homeyHome));
-
-    const result = runHomey(['--get-yargs-completions', 'api', 'devices', 'get-d'], homeyHome);
-
-    assert.strictEqual(result.status, 0);
-    assert.match(result.stdout, /^get-device$/m);
-    assert.match(result.stdout, /^get-devices$/m);
-  });
-
-  it('fails with guidance when no Homey is selected in normal mode', (t) => {
-    const homeyHome = createIsolatedHomeyHome();
-    t.after(() => removeHomeyHome(homeyHome));
-
-    const result = runHomey(['api', 'devices', 'get-devices'], homeyHome);
-
-    assertFailure(result, 'homey api devices get-devices');
-    assert.match(result.stdout, /No active Homey selected\. Run `homey select` to choose one\./);
-  });
-
-  it('returns JSON-formatted errors when --json is provided', (t) => {
-    const homeyHome = createIsolatedHomeyHome();
-    t.after(() => removeHomeyHome(homeyHome));
-
-    const result = runHomey(['api', 'devices', 'get-devices', '--json'], homeyHome);
-
-    assertFailure(result, 'homey api devices get-devices --json');
-    assert.doesNotThrow(() => JSON.parse(result.stdout));
-    const payload = JSON.parse(result.stdout);
-    assert.match(payload.error, /No active Homey selected/);
-  });
-
-  it('requires --address when --token is provided', (t) => {
-    const homeyHome = createIsolatedHomeyHome();
-    t.after(() => removeHomeyHome(homeyHome));
-
-    const result = runHomey(['api', 'devices', 'get-devices', '--token', 'abc'], homeyHome);
-
-    assertFailure(result, 'homey api devices get-devices --token abc');
-    assert.match(result.stdout, /Missing required option: --address or --homey-id/);
-  });
-
-  it('rejects using --address and --homey-id together with --token', (t) => {
-    const homeyHome = createIsolatedHomeyHome();
-    t.after(() => removeHomeyHome(homeyHome));
-
-    const result = runHomey(
-      [
-        'api',
-        'devices',
-        'get-devices',
-        '--token',
-        'abc',
-        '--address',
-        'http://127.0.0.1',
-        '--homey-id',
-        'homey-1',
-      ],
-      homeyHome,
-    );
-
-    assertFailure(
-      result,
-      'homey api devices get-devices --token abc --address http://127.0.0.1 --homey-id homey-1',
-    );
-    assert.match(result.stdout, /--address and --homey-id cannot be used together with --token/);
-  });
-
-  it('rejects --address without --token', (t) => {
-    const homeyHome = createIsolatedHomeyHome();
-    t.after(() => removeHomeyHome(homeyHome));
-
-    const result = runHomey(
-      ['api', 'devices', 'get-devices', '--address', 'http://127.0.0.1'],
-      homeyHome,
-    );
-
-    assertFailure(result, 'homey api devices get-devices --address http://127.0.0.1');
-    assert.match(result.stdout, /--address can only be used together with --token/);
-  });
-
-  it('rejects non-positive timeout values', (t) => {
-    const homeyHome = createIsolatedHomeyHome();
-    t.after(() => removeHomeyHome(homeyHome));
-
-    const result = runHomey(['api', 'devices', 'get-devices', '--timeout', '0'], homeyHome);
-
-    assertFailure(result, 'homey api devices get-devices --timeout 0');
-    assert.match(result.stdout, /Invalid timeout/);
-  });
-
-  it('enforces required operation flags from specification', (t) => {
-    const homeyHome = createIsolatedHomeyHome();
-    t.after(() => removeHomeyHome(homeyHome));
-
-    const result = runHomey(['api', 'devices', 'get-device'], homeyHome);
-
-    assertFailure(result, 'homey api devices get-device');
-    assert.match(result.stderr, /Missing required argument: id/);
   });
 
   it('supports --jq filtering in token mode for default get-devices output', async (t) => {

@@ -25,4 +25,19 @@ describe('CLI current', () => {
     assertSuccess(result, 'homey current');
     assert.match(result.stdout, /Active Homey: My Homey \(abc\)/);
   });
+
+  it('prints the active Homey when the stored selection also contains platform metadata', (t) => {
+    const homeyHome = createIsolatedHomeyHome({
+      activeHomey: {
+        id: 'abc',
+        name: 'My Homey',
+        platform: 'local',
+      },
+    });
+    t.after(() => removeHomeyHome(homeyHome));
+
+    const result = runHomey(['current'], homeyHome);
+    assertSuccess(result, 'homey current');
+    assert.match(result.stdout, /Active Homey: My Homey \(abc\)/);
+  });
 });

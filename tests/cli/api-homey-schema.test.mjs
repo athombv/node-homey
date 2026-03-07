@@ -33,6 +33,9 @@ describe('CLI api schema', () => {
     assertSuccess(result, 'homey api schema');
     assert.match(result.stdout, /devices/i);
     assert.match(result.stdout, /get-devices/);
+    assert.match(result.stdout, /Platform labels:/);
+    assert.match(result.stdout, /Platform/);
+    assert.match(result.stdout, /Scopes/);
   });
 
   it('supports manager and operation filters', (t) => {
@@ -49,6 +52,81 @@ describe('CLI api schema', () => {
     assert.ok(payload.managers);
     assert.ok(payload.managers.ManagerDevices);
     assert.ok(payload.managers.ManagerDevices.operations.getDevices);
+    assert.strictEqual(payload.managers.ManagerDevices.operations.getDevices.availability, 'both');
+  });
+
+  it('supports schema via generated manager commands', (t) => {
+    const homeyHome = createIsolatedHomeyHome();
+    t.after(() => removeHomeyHome(homeyHome));
+
+    const result = runHomey(
+      ['api', 'devices', 'schema', '--operation', 'get-devices', '--json'],
+      homeyHome,
+    );
+
+    assertSuccess(result, 'homey api devices schema --operation get-devices --json');
+    const payload = JSON.parse(result.stdout);
+    assert.ok(payload.managers);
+    assert.ok(payload.managers.ManagerDevices);
+    assert.ok(payload.managers.ManagerDevices.operations.getDevices);
+  });
+
+  it('hides the manager option on manager-scoped schema help', (t) => {
+    const homeyHome = createIsolatedHomeyHome();
+    t.after(() => removeHomeyHome(homeyHome));
+
+    const result = runHomey(['api', 'devices', 'schema', '--help'], homeyHome);
+
+    assert.strictEqual(result.status, 0);
+    assert.match(result.stdout, /--operation/);
+    assert.match(result.stdout, /--json/);
+    assert.doesNotMatch(result.stdout, /--manager/);
+    assert.doesNotMatch(result.stdout, /--timeout/);
+  });
+
+  it('shows platform-exclusive availability in human-readable output', (t) => {
+    const homeyHome = createIsolatedHomeyHome();
+    t.after(() => removeHomeyHome(homeyHome));
+
+    const result = runHomey(
+      ['api', 'schema', '--manager', 'system', '--operation', 'delete'],
+      homeyHome,
+    );
+
+    assertSuccess(result, 'homey api schema --manager system --operation delete');
+    assert.match(result.stdout, /Homey Cloud/);
+    assert.match(result.stdout, /\bcloud\b/);
+  });
+
+  it('prints required params on separate lines in human-readable output', (t) => {
+    const homeyHome = createIsolatedHomeyHome();
+    t.after(() => removeHomeyHome(homeyHome));
+
+    const result = runHomey(
+      ['api', 'schema', '--manager', 'devices', '--operation', 'set-capability-value'],
+      homeyHome,
+    );
+
+    assertSuccess(result, 'homey api schema --manager devices --operation set-capability-value');
+    assert.match(
+      result.stdout,
+      /capability-id \(path\)[\s\S]*device-id \(path\)[\s\S]*value \(body\)/,
+    );
+    assert.match(result.stdout, /homey\.device\.control/);
+  });
+
+  it('exposes platform-exclusive availability in json output', (t) => {
+    const homeyHome = createIsolatedHomeyHome();
+    t.after(() => removeHomeyHome(homeyHome));
+
+    const result = runHomey(
+      ['api', 'schema', '--manager', 'system', '--operation', 'delete', '--json'],
+      homeyHome,
+    );
+
+    assertSuccess(result, 'homey api schema --manager system --operation delete --json');
+    const payload = JSON.parse(result.stdout);
+    assert.strictEqual(payload.managers.ManagerSystem.operations.delete.availability, 'cloud');
   });
 
   it('returns an error for unknown filters', (t) => {

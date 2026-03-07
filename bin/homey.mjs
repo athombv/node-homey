@@ -26,6 +26,7 @@ const firstCommand = rawArgs.find((arg) => !arg.startsWith('-'));
 const isCompletionGeneration = firstCommand === 'completion';
 const isCompletionQuery = rawArgs.includes('--get-yargs-completions');
 const isCompletionMode = isCompletionGeneration || isCompletionQuery;
+const shouldSkipStartupNotifiers = process.env.HOMEY_SKIP_STARTUP_NOTIFIERS === '1';
 
 function isDirectory(targetPath) {
   try {
@@ -82,9 +83,7 @@ function getDynamicCommandCandidates(commandPath) {
 
   if (commandPath.length === 1) {
     return [
-      ...getHomeyManagerDefinitions().map(
-        (managerDefinition) => managerDefinition.managerIdCamelCase,
-      ),
+      ...getHomeyManagerDefinitions().map((managerDefinition) => managerDefinition.managerCliName),
       ...rawCommandAliases,
     ];
   }
@@ -123,6 +122,48 @@ function shouldDropCurrentCompletionToken(completionArgs) {
   return candidateSet.has(currentToken);
 }
 
+function getCompletionQueryContext(completionArgs) {
+  if (completionArgs.length === 0) {
+    return {
+      commandPath: [],
+      currentToken: '',
+    };
+  }
+
+  const currentToken = completionArgs[completionArgs.length - 1];
+
+  if (currentToken === '') {
+    return {
+      commandPath: completionArgs.slice(0, -1),
+      currentToken: '',
+    };
+  }
+
+  return {
+    commandPath: completionArgs.slice(0, -1),
+    currentToken,
+  };
+}
+
+function tryHandleCustomCompletionQuery(completionArgs) {
+  if (completionArgs[0] !== 'api') {
+    return false;
+  }
+
+  const { commandPath, currentToken } = getCompletionQueryContext(completionArgs);
+
+  if (typeof currentToken === 'string' && currentToken.startsWith('-')) {
+    return false;
+  }
+
+  const candidates = getCommandCandidates(commandPath).filter((candidate) => {
+    return currentToken === '' || candidate.startsWith(currentToken);
+  });
+
+  process.stdout.write(`${candidates.join('\n')}${candidates.length ? '\n' : ''}`);
+  return true;
+}
+
 const normalizedArgs = [...rawArgs];
 if (isCompletionQuery) {
   const completionFlagIndex = normalizedArgs.indexOf('--get-yargs-completions');
@@ -145,6 +186,10 @@ if (isCompletionQuery) {
     normalizedArgs.length - completionArgsStartIndex,
     ...completionArgs,
   );
+
+  if (tryHandleCustomCompletionQuery(completionArgs)) {
+    process.exit(0);
+  }
 }
 
 try {
@@ -161,7 +206,7 @@ try {
   process.exit(1);
 }
 
-if (!isCompletionMode) {
+if (!isCompletionMode && !shouldSkipStartupNotifiers) {
   await AthomMessage.notify();
   updateNotifier({ pkg }).notify({
     isGlobal: true,

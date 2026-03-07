@@ -28,6 +28,7 @@ export function runHomey(args, homeyHome, options = {}) {
     env: {
       ...process.env,
       HOMEY_HOME: homeyHome,
+      HOMEY_SKIP_STARTUP_NOTIFIERS: '1',
       NO_UPDATE_NOTIFIER: '1',
       ...env,
     },
