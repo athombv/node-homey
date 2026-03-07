@@ -35,6 +35,7 @@ describe('CLI api', () => {
     assert.strictEqual(result.status, 0);
     assert.match(result.stdout, /^api$/m);
     assert.match(result.stdout, /^devices$/m);
+    assert.match(result.stdout, /^diagnose$/m);
     assert.match(result.stdout, /^flow$/m);
     assert.match(result.stdout, /^google-assistant$/m);
     assert.match(result.stdout, /^raw$/m);
@@ -146,6 +147,21 @@ describe('CLI api', () => {
     assert.match(result.stdout, /--jq/);
   });
 
+  it('shows diagnose help with Homey targeting options', (t) => {
+    const homeyHome = createIsolatedHomeyHome();
+    t.after(() => removeHomeyHome(homeyHome));
+
+    const result = runHomey(['api', 'diagnose', '--help'], homeyHome);
+
+    assert.strictEqual(result.status, 0);
+    assert.match(result.stdout, /Diagnose Homey discovery strategy connectivity/);
+    assert.match(result.stdout, /--homey-id/);
+    assert.match(result.stdout, /--json/);
+    assert.match(result.stdout, /--jq/);
+    assert.doesNotMatch(result.stdout, /--token/);
+    assert.doesNotMatch(result.stdout, /--address/);
+  });
+
   it('fails with guidance when no Homey is selected in normal mode', (t) => {
     const homeyHome = createIsolatedHomeyHome();
     t.after(() => removeHomeyHome(homeyHome));
@@ -153,6 +169,16 @@ describe('CLI api', () => {
     const result = runHomey(['api', 'devices', 'get-devices'], homeyHome);
 
     assertFailure(result, 'homey api devices get-devices');
+    assert.match(result.stdout, /No active Homey selected\. Run `homey select` to choose one\./);
+  });
+
+  it('fails with guidance when no Homey is selected for diagnose', (t) => {
+    const homeyHome = createIsolatedHomeyHome();
+    t.after(() => removeHomeyHome(homeyHome));
+
+    const result = runHomey(['api', 'diagnose'], homeyHome);
+
+    assertFailure(result, 'homey api diagnose');
     assert.match(result.stdout, /No active Homey selected\. Run `homey select` to choose one\./);
   });
 

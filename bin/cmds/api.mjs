@@ -1,6 +1,7 @@
 import { getHomeyManagerDefinitions } from '../../lib/api/ApiCommandDefinition.mjs';
 import { loadHomeyManagerCommandExtension } from '../../lib/api/ApiManagerExtension.mjs';
 import { createHomeyManagerCommand } from '../../lib/api/ApiManagerCommand.mjs';
+import * as diagnoseCommand from './api/diagnose.mjs';
 import * as rawCommand from './api/raw.mjs';
 import {
   builder as schemaBuilder,
@@ -21,6 +22,7 @@ export const desc = 'Direct Homey API commands';
 export const builder = (yargs) => {
   const apiYargs = yargs;
 
+  apiYargs.command(diagnoseCommand);
   apiYargs.command(rawCommand);
   apiYargs.command('schema', schemaDesc, schemaBuilder, schemaHandler);
 

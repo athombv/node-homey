@@ -4,7 +4,7 @@ import { afterEach, describe, it, mock } from 'node:test';
 import { APIErrorHomeyOffline, HomeyAPI, HomeyAPIV3Local } from 'homey-api';
 
 import AthomApi from '../../services/AthomApi.js';
-import { createHomeyApiClient } from '../../lib/api/ApiCommandRuntime.mjs';
+import { createHomeyApiClient, diagnoseHomeyStrategies } from '../../lib/api/ApiCommandRuntime.mjs';
 
 afterEach(() => {
   mock.restoreAll();
@@ -42,6 +42,7 @@ describe('ApiCommandRuntime createHomeyApiClient', () => {
           HomeyAPI.DISCOVERY_STRATEGIES.LOCAL_SECURE,
           HomeyAPI.DISCOVERY_STRATEGIES.LOCAL,
           HomeyAPI.DISCOVERY_STRATEGIES.REMOTE_FORWARDED,
+          HomeyAPI.DISCOVERY_STRATEGIES.CLOUD,
         ],
       },
     ]);
@@ -138,5 +139,178 @@ describe('ApiCommandRuntime createHomeyApiClient', () => {
         }),
       /does not expose a usable local address for token mode/,
     );
+  });
+});
+
+describe('ApiCommandRuntime diagnoseHomeyStrategies', () => {
+  it('tests each local strategy and reports successful routes', async () => {
+    const authenticateCalls = [];
+    const cleanupCalls = [];
+
+    mock.method(AthomApi, 'getHomey', async () => ({
+      id: 'target-homey',
+      name: 'Office Homey',
+      model: 'Homey Pro',
+      platform: HomeyAPI.PLATFORMS.LOCAL,
+      remoteUrlForwarded: 'https://remote.example',
+      authenticate: async ({ strategy }) => {
+        authenticateCalls.push(strategy);
+
+        switch (strategy[0]) {
+          case HomeyAPI.DISCOVERY_STRATEGIES.LOCAL_SECURE:
+            throw new APIErrorHomeyOffline();
+          case HomeyAPI.DISCOVERY_STRATEGIES.LOCAL:
+            return {
+              strategyId: HomeyAPI.DISCOVERY_STRATEGIES.LOCAL,
+              baseUrl: 'http://192.168.1.20',
+              destroy: () => cleanupCalls.push('local:destroy'),
+            };
+          case HomeyAPI.DISCOVERY_STRATEGIES.REMOTE_FORWARDED:
+            return {
+              strategyId: HomeyAPI.DISCOVERY_STRATEGIES.REMOTE_FORWARDED,
+              baseUrl: 'https://remote.example',
+              disconnect: async () => cleanupCalls.push('remote:disconnect'),
+              destroy: () => cleanupCalls.push('remote:destroy'),
+            };
+          case HomeyAPI.DISCOVERY_STRATEGIES.CLOUD:
+            return {
+              strategyId: HomeyAPI.DISCOVERY_STRATEGIES.CLOUD,
+              baseUrl: 'https://cloud.example',
+              disconnect: async () => cleanupCalls.push('cloud:disconnect'),
+              destroy: () => cleanupCalls.push('cloud:destroy'),
+            };
+          case HomeyAPI.DISCOVERY_STRATEGIES.MDNS:
+            throw new Error('mDNS unavailable');
+          default:
+            throw new Error(`Unexpected strategy: ${strategy[0]}`);
+        }
+      },
+    }));
+
+    const report = await diagnoseHomeyStrategies({ homeyId: 'target-homey' });
+
+    assert.deepStrictEqual(authenticateCalls, [
+      [HomeyAPI.DISCOVERY_STRATEGIES.LOCAL_SECURE],
+      [HomeyAPI.DISCOVERY_STRATEGIES.LOCAL],
+      [HomeyAPI.DISCOVERY_STRATEGIES.REMOTE_FORWARDED],
+      [HomeyAPI.DISCOVERY_STRATEGIES.CLOUD],
+      [HomeyAPI.DISCOVERY_STRATEGIES.MDNS],
+    ]);
+    assert.deepStrictEqual(report.preferredStrategyIds, [
+      HomeyAPI.DISCOVERY_STRATEGIES.LOCAL_SECURE,
+      HomeyAPI.DISCOVERY_STRATEGIES.LOCAL,
+      HomeyAPI.DISCOVERY_STRATEGIES.REMOTE_FORWARDED,
+      HomeyAPI.DISCOVERY_STRATEGIES.CLOUD,
+    ]);
+    assert.deepStrictEqual(report.attemptedStrategyIds, [
+      HomeyAPI.DISCOVERY_STRATEGIES.LOCAL_SECURE,
+      HomeyAPI.DISCOVERY_STRATEGIES.LOCAL,
+      HomeyAPI.DISCOVERY_STRATEGIES.REMOTE_FORWARDED,
+      HomeyAPI.DISCOVERY_STRATEGIES.CLOUD,
+      HomeyAPI.DISCOVERY_STRATEGIES.MDNS,
+    ]);
+    assert.deepStrictEqual(report.availableStrategyIds, [
+      HomeyAPI.DISCOVERY_STRATEGIES.LOCAL,
+      HomeyAPI.DISCOVERY_STRATEGIES.REMOTE_FORWARDED,
+      HomeyAPI.DISCOVERY_STRATEGIES.CLOUD,
+    ]);
+    assert.strictEqual(report.selectedStrategyId, HomeyAPI.DISCOVERY_STRATEGIES.LOCAL);
+    assert.strictEqual(report.selectedBaseUrl, 'http://192.168.1.20');
+    assert.match(report.results[0].error, /seems to be offline/);
+    assert.match(
+      report.results.find((result) => result.strategyId === HomeyAPI.DISCOVERY_STRATEGIES.MDNS)
+        ?.error,
+      /mDNS unavailable/,
+    );
+    assert.deepStrictEqual(cleanupCalls, [
+      'local:destroy',
+      'remote:disconnect',
+      'remote:destroy',
+      'cloud:disconnect',
+      'cloud:destroy',
+    ]);
+  });
+
+  it('only tests cloud connectivity for cloud homeys', async () => {
+    const authenticateCalls = [];
+
+    mock.method(AthomApi, 'getHomey', async () => ({
+      id: 'cloud-homey',
+      name: 'Cloud Homey',
+      platform: HomeyAPI.PLATFORMS.CLOUD,
+      authenticate: async ({ strategy }) => {
+        authenticateCalls.push(strategy);
+
+        return {
+          strategyId: HomeyAPI.DISCOVERY_STRATEGIES.CLOUD,
+          baseUrl: 'https://cloud.example',
+        };
+      },
+    }));
+
+    const report = await diagnoseHomeyStrategies({ homeyId: 'cloud-homey' });
+
+    assert.deepStrictEqual(authenticateCalls, [[HomeyAPI.DISCOVERY_STRATEGIES.CLOUD]]);
+    assert.deepStrictEqual(report.attemptedStrategyIds, [HomeyAPI.DISCOVERY_STRATEGIES.CLOUD]);
+    assert.deepStrictEqual(report.availableStrategyIds, [HomeyAPI.DISCOVERY_STRATEGIES.CLOUD]);
+    assert.strictEqual(report.selectedStrategyId, HomeyAPI.DISCOVERY_STRATEGIES.CLOUD);
+    assert.strictEqual(report.selectedBaseUrl, 'https://cloud.example');
+  });
+
+  it('marks remote forwarded as not configured when the Homey has no forwarded url', async () => {
+    const authenticateCalls = [];
+
+    mock.method(AthomApi, 'getHomey', async () => ({
+      id: 'target-homey',
+      name: 'Office Homey',
+      model: 'Homey Pro',
+      platform: HomeyAPI.PLATFORMS.LOCAL,
+      localUrlSecure: 'https://192-168-1-20.homey.homeylocal.com',
+      localUrl: 'http://192.168.1.20',
+      remoteUrlForwarded: null,
+      remoteUrl: 'https://cloud.example',
+      authenticate: async ({ strategy }) => {
+        authenticateCalls.push(strategy);
+
+        switch (strategy[0]) {
+          case HomeyAPI.DISCOVERY_STRATEGIES.LOCAL_SECURE:
+            return {
+              strategyId: HomeyAPI.DISCOVERY_STRATEGIES.LOCAL_SECURE,
+              baseUrl: 'https://192-168-1-20.homey.homeylocal.com',
+            };
+          case HomeyAPI.DISCOVERY_STRATEGIES.LOCAL:
+            return {
+              strategyId: HomeyAPI.DISCOVERY_STRATEGIES.LOCAL,
+              baseUrl: 'http://192.168.1.20',
+            };
+          case HomeyAPI.DISCOVERY_STRATEGIES.CLOUD:
+            return {
+              strategyId: HomeyAPI.DISCOVERY_STRATEGIES.CLOUD,
+              baseUrl: 'https://cloud.example',
+            };
+          case HomeyAPI.DISCOVERY_STRATEGIES.MDNS:
+            throw new Error('mDNS unavailable');
+          default:
+            throw new Error(`Unexpected strategy: ${strategy[0]}`);
+        }
+      },
+    }));
+
+    const report = await diagnoseHomeyStrategies({ homeyId: 'target-homey' });
+    const remoteForwardedResult = report.results.find(
+      (result) => result.strategyId === HomeyAPI.DISCOVERY_STRATEGIES.REMOTE_FORWARDED,
+    );
+
+    assert.deepStrictEqual(authenticateCalls, [
+      [HomeyAPI.DISCOVERY_STRATEGIES.LOCAL_SECURE],
+      [HomeyAPI.DISCOVERY_STRATEGIES.LOCAL],
+      [HomeyAPI.DISCOVERY_STRATEGIES.CLOUD],
+      [HomeyAPI.DISCOVERY_STRATEGIES.MDNS],
+    ]);
+    assert.ok(remoteForwardedResult);
+    assert.strictEqual(remoteForwardedResult.available, false);
+    assert.strictEqual(remoteForwardedResult.status, 'not-configured');
+    assert.strictEqual(remoteForwardedResult.error, 'Not configured for this Homey');
+    assert.strictEqual(remoteForwardedResult.durationMs, 0);
   });
 });
