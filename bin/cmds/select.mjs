@@ -3,11 +3,9 @@ import AthomApi from '../../services/AthomApi.js';
 
 export const desc = 'Select a Homey as active';
 export const builder = (yargs) => {
-  yargs
-    .option('current', {
-      alias: 'c',
-      desc: 'Show the currently selected Homey',
-      type: 'boolean',
+  return yargs
+    .commandDir('select', {
+      extensions: ['.mjs'],
     })
     .option('id', {
       alias: 'i',
@@ -18,26 +16,17 @@ export const builder = (yargs) => {
       alias: 'n',
       desc: 'Name of the Homey',
       type: 'string',
-    });
+    })
+    .example('$0 select --id <HOMEY_ID>', 'Select a Homey by id')
+    .example('$0 select current --json', 'Show the currently selected Homey as JSON')
+    .help();
 };
 
-export const handler = async (yargs) => {
+export const handler = async (argv) => {
   try {
-    if (yargs.current) {
-      const activeHomey = await AthomApi.getSelectedHomey();
-
-      if (!activeHomey) {
-        Log('No active Homey selected. Run `homey select` to choose one.');
-        process.exit(0);
-      }
-
-      Log(`Active Homey: ${activeHomey.name} (${activeHomey.id})`);
-      process.exit(0);
-    }
-
     await AthomApi.selectActiveHomey({
-      id: yargs.id,
-      name: yargs.name,
+      id: argv.id,
+      name: argv.name,
     });
     process.exit(0);
   } catch (err) {

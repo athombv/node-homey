@@ -89,6 +89,21 @@ describe('CLI completion', () => {
     assert.match(result.stdout, /^completion$/m);
     assert.match(result.stdout, /^app$/m);
     assert.match(result.stdout, /^api$/m);
+    assert.doesNotMatch(result.stdout, /^current$/m);
+    assert.doesNotMatch(result.stdout, /homey update check failed/);
+    assert.doesNotMatch(result.stderr, /homey update check failed/);
+  });
+
+  it('returns nested select command suggestions for completion queries', () => {
+    const result = runHomey(['--get-yargs-completions', 'select', '']);
+
+    assert.strictEqual(
+      result.status,
+      0,
+      `Expected exit code 0 for "--get-yargs-completions select", got ${result.status}.\nSTDERR:\n${result.stderr}\nSTDOUT:\n${result.stdout}`,
+    );
+
+    assert.match(result.stdout, /^current$/m);
     assert.doesNotMatch(result.stdout, /homey update check failed/);
     assert.doesNotMatch(result.stderr, /homey update check failed/);
   });
