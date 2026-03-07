@@ -1,6 +1,8 @@
 import assert from 'node:assert';
 import { afterEach, describe, it, mock } from 'node:test';
 
+import { APIErrorHomeyOffline, HomeyAPI } from 'homey-api';
+
 import AthomApi from '../../lib/AthomApi.js';
 import Settings from '../../services/Settings.js';
 
@@ -61,5 +63,71 @@ describe('AthomApi selected Homey persistence', () => {
       name: 'Homey Name',
       platform: 'local',
     });
+  });
+
+  it('authenticates the active Homey with local-first discovery strategies', async () => {
+    const athomApi = new AthomApi();
+    const authenticatedApi = {};
+    const authenticateCalls = [];
+
+    mock.method(Settings, 'get', async (key) => {
+      assert.strictEqual(key, 'activeHomey');
+      return {
+        id: 'homey-id',
+        name: 'Homey Name',
+        platform: 'local',
+      };
+    });
+    mock.method(athomApi, 'getHomey', async (homeyId) => {
+      assert.strictEqual(homeyId, 'homey-id');
+
+      return {
+        id: 'homey-id',
+        name: 'Homey Name',
+        model: 'Homey Pro',
+        usb: '10.0.0.1',
+        authenticate: async (options) => {
+          authenticateCalls.push(options);
+          return authenticatedApi;
+        },
+      };
+    });
+
+    const result = await athomApi.getActiveHomey();
+
+    assert.strictEqual(result, authenticatedApi);
+    assert.deepStrictEqual(authenticateCalls, [
+      {
+        strategy: [
+          HomeyAPI.DISCOVERY_STRATEGIES.LOCAL_SECURE,
+          HomeyAPI.DISCOVERY_STRATEGIES.LOCAL,
+          HomeyAPI.DISCOVERY_STRATEGIES.REMOTE_FORWARDED,
+        ],
+      },
+    ]);
+    assert.strictEqual(await result.__baseUrlPromise, 'http://10.0.0.1:80');
+    assert.strictEqual(result.model, 'Homey Pro');
+  });
+
+  it('maps active Homey offline errors to the CLI-friendly message', async () => {
+    const athomApi = new AthomApi();
+
+    mock.method(Settings, 'get', async () => ({
+      id: 'homey-id',
+      name: 'Homey Name',
+      platform: 'local',
+    }));
+    mock.method(athomApi, 'getHomey', async () => ({
+      id: 'homey-id',
+      name: 'Homey Name',
+      authenticate: async () => {
+        throw new APIErrorHomeyOffline();
+      },
+    }));
+
+    await assert.rejects(
+      () => athomApi.getActiveHomey(),
+      /Homey Name \(homey-id\) seems to be offline/,
+    );
   });
 });

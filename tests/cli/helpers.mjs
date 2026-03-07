@@ -20,11 +20,12 @@ export function createIsolatedHomeyHome(extraSettings = {}) {
 }
 
 export function runHomey(args, homeyHome, options = {}) {
-  const { env = {} } = options;
+  const { env = {}, timeout } = options;
 
   return spawnSync(process.execPath, ['bin/homey.mjs', ...args], {
     cwd: REPO_ROOT,
     encoding: 'utf8',
+    timeout,
     env: {
       ...process.env,
       HOMEY_HOME: homeyHome,

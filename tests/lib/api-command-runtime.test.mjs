@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import { afterEach, describe, it, mock } from 'node:test';
 
-import { HomeyAPI, HomeyAPIV3Local } from 'homey-api';
+import { APIErrorHomeyOffline, HomeyAPI, HomeyAPIV3Local } from 'homey-api';
 
 import AthomApi from '../../services/AthomApi.js';
 import { createHomeyApiClient } from '../../lib/api/ApiCommandRuntime.mjs';
@@ -26,9 +26,8 @@ describe('ApiCommandRuntime createHomeyApiClient', () => {
         name: 'Office Homey',
         model: 'Homey Pro',
         usb: '10.0.0.1',
-        platform: HomeyAPI.PLATFORMS.LOCAL,
-        authenticate: async ({ strategy }) => {
-          authenticateCalls.push(strategy);
+        authenticate: async (options) => {
+          authenticateCalls.push(options);
           return authenticatedApi;
         },
       };
@@ -37,9 +36,32 @@ describe('ApiCommandRuntime createHomeyApiClient', () => {
     const result = await createHomeyApiClient({ homeyId: 'target-homey' });
 
     assert.strictEqual(result, authenticatedApi);
-    assert.deepStrictEqual(authenticateCalls, [[HomeyAPI.DISCOVERY_STRATEGIES.LOCAL]]);
+    assert.deepStrictEqual(authenticateCalls, [
+      {
+        strategy: [
+          HomeyAPI.DISCOVERY_STRATEGIES.LOCAL_SECURE,
+          HomeyAPI.DISCOVERY_STRATEGIES.LOCAL,
+          HomeyAPI.DISCOVERY_STRATEGIES.REMOTE_FORWARDED,
+        ],
+      },
+    ]);
     assert.strictEqual(await result.__baseUrlPromise, 'http://10.0.0.1:80');
     assert.strictEqual(result.model, 'Homey Pro');
+  });
+
+  it('maps offline authenticate failures to the CLI-friendly error', async () => {
+    mock.method(AthomApi, 'getHomey', async () => ({
+      id: 'target-homey',
+      name: 'Office Homey',
+      authenticate: async () => {
+        throw new APIErrorHomeyOffline();
+      },
+    }));
+
+    await assert.rejects(
+      () => createHomeyApiClient({ homeyId: 'target-homey' }),
+      /Office Homey \(target-homey\) seems to be offline/,
+    );
   });
 
   it('prefers the usb address for token mode when resolving by Homey id', async () => {

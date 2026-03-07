@@ -5,6 +5,7 @@ import { applyJqFilter } from '../../../lib/api/ApiCommandJq.mjs';
 import {
   callHomeyApi,
   createHomeyApiClient,
+  disposeHomeyApiClient,
   getRequestTimeout,
 } from '../../../lib/api/ApiCommandRuntime.mjs';
 
@@ -267,43 +268,47 @@ export const handler = async (argv) => {
       homeyId: argv.homeyId,
     });
 
-    const metadata = await callHomeyApi({
-      api,
-      callOptions: {
-        method,
-        path,
-        headers,
-        body,
-        json: argv.requestJson,
-        $timeout: timeout,
-      },
-      captureMetadata: argv.include || argv.verbose,
-    });
-
-    if (argv.verbose) {
-      printVerbose({
-        method,
-        path,
-        timeout,
-        authMode: getAuthModeLabel({
-          token: argv.token,
-          address: argv.address,
-          homeyId: argv.homeyId,
-        }),
-        metadata,
+    try {
+      const metadata = await callHomeyApi({
+        api,
+        callOptions: {
+          method,
+          path,
+          headers,
+          body,
+          json: argv.requestJson,
+          $timeout: timeout,
+        },
+        captureMetadata: argv.include || argv.verbose,
       });
-    }
 
-    const bodyText = printResponseBody({
-      result: metadata.result,
-      argv,
-    });
+      if (argv.verbose) {
+        printVerbose({
+          method,
+          path,
+          timeout,
+          authMode: getAuthModeLabel({
+            token: argv.token,
+            address: argv.address,
+            homeyId: argv.homeyId,
+          }),
+          metadata,
+        });
+      }
 
-    if (argv.include) {
-      printIncludedResponse({
-        metadata,
-        bodyText: bodyText || '',
+      const bodyText = printResponseBody({
+        result: metadata.result,
+        argv,
       });
+
+      if (argv.include) {
+        printIncludedResponse({
+          metadata,
+          bodyText: bodyText || '',
+        });
+      }
+    } finally {
+      await disposeHomeyApiClient(api);
     }
 
     process.exit(0);
