@@ -12,7 +12,6 @@ name: Publish to NPM
 #
 # Secrets:
 # - HOMEY_GITHUB_ACTIONS_BOT_PERSONAL_ACCESS_TOKEN
-# - NPM_AUTH_TOKEN: required for publishing to npm
 # - SLACK_WEBHOOK_URL: required for posting a message in #software
 
 # Note: when publishing a scoped npm package (e.g. @athombv/node-my-package),
@@ -75,43 +74,28 @@ jobs:
             echo "'npm run build' does not exist. Skipping build..."
           fi
 
-      # Configure npmjs authentication for publish after dependencies are installed.
+      # Configure the publish registry; npm publish will authenticate via OIDC.
       - name: Configure NPM for publish
         run: |
           cat <<EOF > "$NPM_CONFIG_USERCONFIG"
           registry=https://registry.npmjs.org/
-          //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}
           EOF
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
-
-      - name: Verify npmjs auth
-        if: github.event_name == 'workflow_dispatch'
-        run: npm whoami --registry https://registry.npmjs.org
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
 
       - name: Publish dry run
         if: github.event_name == 'workflow_dispatch'
-        run: npm publish --dry-run --tag beta
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+        run: npm publish --dry-run --tag beta --registry https://registry.npmjs.org
 
       # Publish when this action is running on branch production.
       - name: Publish
         if: github.ref == 'refs/heads/production'
         run: |
-          npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+          npm publish --registry https://registry.npmjs.org
 
       # Publish to beta when this action is running on branch testing.
       - name: Publish (beta)
         if: github.ref == 'refs/heads/testing'
         run: |
-          npm publish --tag beta
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+          npm publish --tag beta --registry https://registry.npmjs.org
 
         # Post a Slack notification on success/failure
       - name: Slack notify
