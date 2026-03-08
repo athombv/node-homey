@@ -6,8 +6,9 @@ name: Publish to NPM
 # - Ensure you've run `npm version major|minor|patch` on the `master` branch before merging to `production`.
 #
 # This GitHub Workflow:
-# 1. [Optional] If `npm run build` exists. If so, it runs `npm ci` and `npm run build`.
-# 2. Publishes the package to the NPM registry.
+# 1. Installs dependencies with `npm ci`.
+# 2. [Optional] If `npm run build` exists, it runs `npm run build`.
+# 3. Publishes the package to the NPM registry.
 #
 # Secrets:
 # - HOMEY_GITHUB_ACTIONS_BOT_PERSONAL_ACCESS_TOKEN
@@ -58,12 +59,14 @@ jobs:
             exit 1
           fi
 
-      # Run `npm ci && npm run build` if it exists.
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --audit=false
+
+      # Run `npm run build` if it exists.
       - name: Build
         run: |
           if jq --exit-status '.scripts | has("build")' package.json; then
             echo "'npm run build' does exist. Building..."
-            npm ci --ignore-scripts --audit=false
             npm run build
           else
             echo "'npm run build' does not exist. Skipping build..."
