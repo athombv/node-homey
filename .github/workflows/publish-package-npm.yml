@@ -61,6 +61,8 @@ jobs:
 
       - name: Install dependencies
         run: npm ci --ignore-scripts --audit=false
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.HOMEY_GITHUB_ACTIONS_BOT_PERSONAL_ACCESS_TOKEN }}
 
       # Run `npm run build` if it exists.
       - name: Build
@@ -72,23 +74,31 @@ jobs:
             echo "'npm run build' does not exist. Skipping build..."
           fi
 
-      # Configure NPM to use the NPM Registry
-      - name: Configure NPM
+      # Configure npmjs authentication for publish after dependencies are installed.
+      - name: Configure NPM for publish
         run: |
-          npm config set registry https://registry.npmjs.org
-          npm config set @athombv:registry https://registry.npmjs.org
+          cat <<EOF > "$HOME/.npmrc"
+          registry=https://registry.npmjs.org/
+          //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}
+          EOF
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
 
       # Publish when this action is running on branch production.
       - name: Publish
         if: github.ref == 'refs/heads/production'
         run: |
           npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
 
       # Publish to beta when this action is running on branch testing.
       - name: Publish (beta)
         if: github.ref == 'refs/heads/testing'
         run: |
           npm publish --tag beta
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
 
         # Post a Slack notification on success/failure
       - name: Slack notify
