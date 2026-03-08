@@ -77,7 +77,7 @@ jobs:
       # Configure npmjs authentication for publish after dependencies are installed.
       - name: Configure NPM for publish
         run: |
-          cat <<EOF > "$HOME/.npmrc"
+          cat <<EOF > "$NPM_CONFIG_USERCONFIG"
           registry=https://registry.npmjs.org/
           //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}
           EOF
