@@ -20,7 +20,7 @@ import AthomMessage from '../services/AthomMessage.js';
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 const COMMANDS_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'cmds');
 
-const MINIMUM_NODE_VERSION = 'v20.19.0';
+const MINIMUM_NODE_VERSION = 'v22.0.0';
 const rawArgs = process.argv.slice(2);
 const firstCommand = rawArgs.find((arg) => !arg.startsWith('-'));
 const isCompletionGeneration = firstCommand === 'completion';

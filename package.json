@@ -23,7 +23,7 @@
     "homey": "bin/homey.mjs"
   },
   "engines": {
-    "node": ">=20.19.0"
+    "node": ">=22"
   },
   "repository": {
     "url": "https://github.com/athombv/node-homey"
