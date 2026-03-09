@@ -98,13 +98,13 @@ jobs:
           npm publish --tag beta --registry https://registry.npmjs.org
 
         # Post a Slack notification on success/failure
-      # - name: Slack notify
-      #   if: always() && github.event_name != 'workflow_dispatch'
-      #   uses: innocarpe/actions-slack@v1
-      #   with:
-      #     status: ${{ job.status }}
-      #     success_text: '${{github.repository}} - Published ${{ env.package_name }}@${{ env.package_version }} to npm 🚀'
-      #     failure_text: '${{github.repository}} - Failed to publish ${{ env.package_name }}@${{ env.package_version }} to npm'
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      - name: Slack notify
+        if: always() && github.event_name != 'workflow_dispatch'
+        uses: innocarpe/actions-slack@v1
+        with:
+          status: ${{ job.status }}
+          success_text: '${{github.repository}} - Published ${{ env.package_name }}@${{ env.package_version }} to npm 🚀'
+          failure_text: '${{github.repository}} - Failed to publish ${{ env.package_name }}@${{ env.package_version }} to npm'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

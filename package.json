@@ -1,6 +1,6 @@
 {
   "name": "homey",
-  "version": "4.0.6",
+  "version": "4.0.7",
   "description": "Command-line interface and type declarations for Homey Apps",
   "main": "bin/homey.js",
   "files": [
@@ -41,8 +41,8 @@
     "filesize": "^6.4.0",
     "fs-extra": "^10.1.0",
     "get-port": "^5.1.1",
+    "homey-lib": "^2.45.1",
     "homey-api": "^3.17.1",
-    "homey-lib": "^2.44.5",
     "ignore-walk": "^3.0.3",
     "inquirer": "8.1.2",
     "object-path": "^0.11.4",
