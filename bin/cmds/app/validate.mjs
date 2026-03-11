@@ -25,6 +25,7 @@ export const handler = async (yargs) => {
   try {
     const app = AppFactory.getAppInstance(yargs.path);
     await app.preprocess({
+      copyAppProductionDependencies: false,
       dockerSocketPath: yargs.dockerSocketPath,
       findLinks: yargs.findLinks,
     });
