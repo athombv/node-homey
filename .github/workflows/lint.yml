@@ -26,13 +26,14 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # Setup
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: '22'
+          cache: npm
           registry-url: 'https://npm.pkg.github.com'
 
       # Lint
@@ -41,4 +42,3 @@ jobs:
           npm run lint
         env:
           NODE_AUTH_TOKEN: ${{ secrets.HOMEY_GITHUB_ACTIONS_BOT_PERSONAL_ACCESS_TOKEN }}
-
