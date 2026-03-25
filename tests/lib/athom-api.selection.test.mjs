@@ -65,6 +65,39 @@ describe('AthomApi selected Homey persistence', () => {
     });
   });
 
+  it('passes through the selected Homey platform when selecting by id', async () => {
+    const athomApi = new AthomApi();
+
+    mock.method(athomApi, 'getHomeys', async () => [
+      {
+        id: 'homey-id',
+        name: 'Homey Name',
+        platform: 'local',
+      },
+    ]);
+
+    const setActiveHomey = mock.method(
+      athomApi,
+      'setActiveHomey',
+      async (activeHomey) => activeHomey,
+    );
+
+    const result = await athomApi.selectActiveHomey({
+      id: 'homey-id',
+    });
+
+    assert.deepStrictEqual(result, {
+      id: 'homey-id',
+      name: 'Homey Name',
+      platform: 'local',
+    });
+    assert.deepStrictEqual(setActiveHomey.mock.calls[0].arguments[0], {
+      id: 'homey-id',
+      name: 'Homey Name',
+      platform: 'local',
+    });
+  });
+
   it('authenticates the active Homey with local-first discovery strategies', async () => {
     const athomApi = new AthomApi();
     const authenticatedApi = {};

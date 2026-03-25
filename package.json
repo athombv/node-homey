@@ -44,11 +44,13 @@
     "homey-api": "^3.17.7",
     "homey-lib": "^2.48.0",
     "ignore-walk": "^3.0.3",
+    "ink": "^6.8.0",
     "inquirer": "8.1.2",
     "object-path": "^0.11.4",
     "open": "^8.4.2",
     "openai": "^4.52.7",
     "p-queue": "^6.6.2",
+    "react": "^19.2.4",
     "semver": "^7.6.0",
     "sharp": "^0.33.4",
     "smol-toml": "^1.6.0",
@@ -57,7 +59,8 @@
     "tar-fs": "^2.1.1",
     "tmp-promise": "^3.0.3",
     "update-notifier": "^5.1.0",
-    "yargs": "^18.0.0"
+    "yargs": "^18.0.0",
+    "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
