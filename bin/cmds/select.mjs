@@ -28,8 +28,21 @@ function ensureInteractiveTerminal() {
   return Boolean(process.stdin.isTTY && process.stdout.isTTY);
 }
 
+export const SelectCommandHelpers = {
+  async runInteractiveSelection(options) {
+    const { renderHomeySelectRuntime } =
+      await import('../../lib/ui/homey-select/homey-select-runtime.mjs');
+
+    return renderHomeySelectRuntime(options);
+  },
+};
+
 function colorizeWithHex(text, hexColor, output = process.stdout) {
   if (!output?.isTTY || process.env.NO_COLOR) {
+    return text;
+  }
+
+  if (typeof hexColor !== 'string') {
     return text;
   }
 
@@ -46,7 +59,7 @@ function colorizeWithHex(text, hexColor, output = process.stdout) {
 }
 
 export function formatSelectedHomeyName(name, output = process.stdout) {
-  return colorizeWithHex(name, HOMEY_UI_THEME.accentColor, output);
+  return colorizeWithHex(name, HOMEY_UI_THEME.highlight, output);
 }
 
 export async function handler(argv) {
@@ -68,8 +81,7 @@ export async function handler(argv) {
       return;
     }
 
-    const { renderHomeySelectorRuntime } = await import('../../lib/ui/homey-selector-runtime.mjs');
-    const result = await renderHomeySelectorRuntime({
+    const result = await SelectCommandHelpers.runInteractiveSelection({
       loadData: async () => {
         const [homeys, activeHomey] = await Promise.all([
           AthomApi.getHomeys({

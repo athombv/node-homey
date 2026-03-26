@@ -6,7 +6,7 @@ import {
   getHomeyLoginLayout,
   getHomeyLoginPhaseMessage,
   getHomeyLoginPhaseTitle,
-} from '../../lib/ui/homey-login-view.mjs';
+} from '../../lib/ui/homey-login/homey-login-view.mjs';
 
 describe('homey login view helpers', () => {
   it('returns contextual footer text for the login phases', () => {

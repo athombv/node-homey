@@ -13,7 +13,7 @@ export function formatLoggedInProfile(profile = {}) {
 
 export const LoginCommandHelpers = {
   async runInteractiveLogin() {
-    const HomeyLoginRuntime = await import('../../lib/ui/homey-login-runtime.mjs');
+    const HomeyLoginRuntime = await import('../../lib/ui/homey-login/homey-login-runtime.mjs');
     return HomeyLoginRuntime.renderHomeyLoginRuntime({
       createLoginSession() {
         return AthomApi.createLoginSession();

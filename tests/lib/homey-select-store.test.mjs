@@ -1,14 +1,14 @@
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
 import {
-  createHomeySelectorStore,
-  selectHomeySelectorEffectiveSelectedId,
-  selectHomeySelectorInteractiveCount,
-  selectHomeySelectorListModel,
-  selectHomeySelectorRowModel,
-  selectHomeySelectorSelectedHomey,
-  selectHomeySelectorVisibleCount,
-} from '../../lib/ui/homey-selector-store.mjs';
+  createHomeySelectStore,
+  selectHomeySelectEffectiveSelectedId,
+  selectHomeySelectInteractiveCount,
+  selectHomeySelectListModel,
+  selectHomeySelectRowModel,
+  selectHomeySelectSelectedHomey,
+  selectHomeySelectVisibleCount,
+} from '../../lib/ui/homey-select/homey-select-store.mjs';
 
 const sampleHomeys = [
   {
@@ -78,19 +78,19 @@ function createWindowHomeys() {
   ];
 }
 
-describe('homey selector store', () => {
+describe('homey select store', () => {
   it('prefers the active Homey for the effective selection and row model', () => {
-    const store = createHomeySelectorStore({
+    const store = createHomeySelectStore({
       activeHomey: {
         id: 'homey-attic',
       },
       homeys: sampleHomeys,
     });
 
-    assert.strictEqual(selectHomeySelectorInteractiveCount(store.getState()), 2);
-    assert.strictEqual(selectHomeySelectorVisibleCount(store.getState()), 2);
-    assert.strictEqual(selectHomeySelectorEffectiveSelectedId(store.getState()), 'homey-attic');
-    assert.deepStrictEqual(selectHomeySelectorRowModel(store.getState(), 'homey-attic'), {
+    assert.strictEqual(selectHomeySelectInteractiveCount(store.getState()), 2);
+    assert.strictEqual(selectHomeySelectVisibleCount(store.getState()), 2);
+    assert.strictEqual(selectHomeySelectEffectiveSelectedId(store.getState()), 'homey-attic');
+    assert.deepStrictEqual(selectHomeySelectRowModel(store.getState(), 'homey-attic'), {
       homey: sampleHomeys[2],
       isCurrent: true,
       isSelected: true,
@@ -98,7 +98,7 @@ describe('homey selector store', () => {
   });
 
   it('updates query state and falls back to the active Homey when the old selection is filtered out', () => {
-    const store = createHomeySelectorStore({
+    const store = createHomeySelectStore({
       activeHomey: {
         id: 'homey-attic',
       },
@@ -113,25 +113,25 @@ describe('homey selector store', () => {
     store.getState().appendQueryInput('t');
 
     assert.strictEqual(store.getState().query, 'att');
-    assert.strictEqual(selectHomeySelectorVisibleCount(store.getState()), 1);
-    assert.strictEqual(selectHomeySelectorEffectiveSelectedId(store.getState()), 'homey-attic');
-    assert.strictEqual(selectHomeySelectorSelectedHomey(store.getState())?.id, 'homey-attic');
+    assert.strictEqual(selectHomeySelectVisibleCount(store.getState()), 1);
+    assert.strictEqual(selectHomeySelectEffectiveSelectedId(store.getState()), 'homey-attic');
+    assert.strictEqual(selectHomeySelectSelectedHomey(store.getState())?.id, 'homey-attic');
   });
 
   it('wraps navigation at the start and end of the visible list', () => {
-    const store = createHomeySelectorStore({
+    const store = createHomeySelectStore({
       homeys: sampleHomeys,
     });
 
     store.getState().moveSelection(-1);
-    assert.strictEqual(selectHomeySelectorEffectiveSelectedId(store.getState()), 'homey-attic');
+    assert.strictEqual(selectHomeySelectEffectiveSelectedId(store.getState()), 'homey-attic');
 
     store.getState().moveSelection(1);
-    assert.strictEqual(selectHomeySelectorEffectiveSelectedId(store.getState()), 'homey-office');
+    assert.strictEqual(selectHomeySelectEffectiveSelectedId(store.getState()), 'homey-office');
   });
 
   it('derives list window overflow metadata from the store state', () => {
-    const store = createHomeySelectorStore({
+    const store = createHomeySelectStore({
       homeys: createWindowHomeys(),
     });
 
@@ -139,7 +139,7 @@ describe('homey selector store', () => {
       selectedId: 'homey-4',
     });
 
-    assert.deepStrictEqual(selectHomeySelectorListModel(store.getState(), 5), {
+    assert.deepStrictEqual(selectHomeySelectListModel(store.getState(), 5), {
       hasInteractiveHomeys: true,
       hiddenAboveCount: 2,
       hiddenBelowCount: 2,
@@ -150,11 +150,11 @@ describe('homey selector store', () => {
   });
 
   it('transitions from loading to loaded data without sharing state outside the store', () => {
-    const store = createHomeySelectorStore({
+    const store = createHomeySelectStore({
       isLoading: true,
     });
 
-    assert.strictEqual(selectHomeySelectorListModel(store.getState(), 4).listState, 'loading');
+    assert.strictEqual(selectHomeySelectListModel(store.getState(), 4).listState, 'loading');
 
     store.getState().setLoadedData({
       activeHomey: {
@@ -164,7 +164,7 @@ describe('homey selector store', () => {
     });
 
     assert.strictEqual(store.getState().isLoading, false);
-    assert.strictEqual(selectHomeySelectorEffectiveSelectedId(store.getState()), 'homey-attic');
-    assert.strictEqual(selectHomeySelectorListModel(store.getState(), 4).listState, 'items');
+    assert.strictEqual(selectHomeySelectEffectiveSelectedId(store.getState()), 'homey-attic');
+    assert.strictEqual(selectHomeySelectListModel(store.getState(), 4).listState, 'items');
   });
 });

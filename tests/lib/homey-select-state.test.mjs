@@ -10,7 +10,7 @@ import {
   getVisibleHomeyWindowState,
   moveSelectedHomeyId,
   removeLastQueryCharacter,
-} from '../../lib/ui/homey-selector-state.mjs';
+} from '../../lib/ui/homey-select/homey-select-state.mjs';
 
 const sampleHomeys = [
   {
@@ -29,7 +29,7 @@ const sampleHomeys = [
   },
 ];
 
-describe('homey selector state', () => {
+describe('homey select state', () => {
   it('keeps online and state-less homeys for interactive selection', () => {
     assert.deepStrictEqual(
       getInteractiveHomeys(sampleHomeys).map((homey) => homey.id),
@@ -168,6 +168,7 @@ describe('homey selector state', () => {
   it('appends printable input and ignores navigation keys', () => {
     assert.strictEqual(appendQueryInput('ho', 'm', {}), 'hom');
     assert.strictEqual(appendQueryInput('ho', 'me\r', {}), 'home');
+    assert.strictEqual(appendQueryInput('ho', undefined, { leftArrow: true }), 'ho');
     assert.strictEqual(appendQueryInput('ho', '', { downArrow: true }), 'ho');
     assert.strictEqual(appendQueryInput('ho', 'x', { ctrl: true }), 'ho');
   });

@@ -3,18 +3,18 @@ import { describe, it } from 'node:test';
 import {
   formatOverflowMarkerLabel,
   getResponsiveBadgeVisibility,
-  getSelectorFooterText,
-} from '../../lib/ui/homey-selector-view.mjs';
+  getSelectFooterText,
+} from '../../lib/ui/homey-select/homey-select-view.mjs';
 
-describe('homey selector view helpers', () => {
+describe('homey select view helpers', () => {
   it('formats overflow marker labels for singular and plural counts', () => {
     assert.strictEqual(formatOverflowMarkerLabel('above', 1), '1 more above');
     assert.strictEqual(formatOverflowMarkerLabel('below', 4), '4 more below');
   });
 
-  it('returns contextual footer text for the main selector states', () => {
+  it('returns contextual footer text for the main select states', () => {
     assert.strictEqual(
-      getSelectorFooterText({
+      getSelectFooterText({
         hasInteractiveHomeys: true,
         isLoading: true,
         query: '',
@@ -23,7 +23,7 @@ describe('homey selector view helpers', () => {
       'Esc cancel',
     );
     assert.strictEqual(
-      getSelectorFooterText({
+      getSelectFooterText({
         hasInteractiveHomeys: true,
         query: '',
         visibleCount: 3,
@@ -31,7 +31,7 @@ describe('homey selector view helpers', () => {
       '↑/↓ move • type to filter • Enter select • Esc cancel',
     );
     assert.strictEqual(
-      getSelectorFooterText({
+      getSelectFooterText({
         hasInteractiveHomeys: true,
         query: 'of',
         visibleCount: 2,
@@ -39,7 +39,7 @@ describe('homey selector view helpers', () => {
       '↑/↓ move • Enter select • Esc clear',
     );
     assert.strictEqual(
-      getSelectorFooterText({
+      getSelectFooterText({
         hasInteractiveHomeys: true,
         query: 'zzz',
         visibleCount: 0,
@@ -47,7 +47,7 @@ describe('homey selector view helpers', () => {
       'type to filter • Esc clear',
     );
     assert.strictEqual(
-      getSelectorFooterText({
+      getSelectFooterText({
         hasInteractiveHomeys: false,
         query: '',
         visibleCount: 0,

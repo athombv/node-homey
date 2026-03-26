@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import { PassThrough } from 'node:stream';
 import { describe, it } from 'node:test';
-import { renderHomeySelectorRuntime } from '../../lib/ui/homey-selector-runtime.mjs';
+import { renderHomeySelectRuntime } from '../../lib/ui/homey-select/homey-select-runtime.mjs';
 
 function createFakeStdout() {
   const stdout = new PassThrough();
@@ -57,7 +57,7 @@ function waitFor(predicate, timeoutMs = 500) {
       }
 
       if (Date.now() - startedAt >= timeoutMs) {
-        reject(new Error('Timed out waiting for selector runtime output.'));
+        reject(new Error('Timed out waiting for select runtime output.'));
         return;
       }
 
@@ -68,8 +68,8 @@ function waitFor(predicate, timeoutMs = 500) {
   });
 }
 
-describe('homey selector runtime', () => {
-  it('creates an isolated store for each selector run', async () => {
+describe('homey select runtime', () => {
+  it('creates an isolated store for each select run', async () => {
     const homeys = [
       {
         id: 'homey-office',
@@ -92,7 +92,7 @@ describe('homey selector runtime', () => {
       firstRunOutput += chunk.toString();
     });
 
-    const firstRunPromise = renderHomeySelectorRuntime(
+    const firstRunPromise = renderHomeySelectRuntime(
       {
         homeys,
         title: 'Select a Homey',
@@ -118,7 +118,7 @@ describe('homey selector runtime', () => {
       secondRunOutput += chunk.toString();
     });
 
-    const secondRunPromise = renderHomeySelectorRuntime(
+    const secondRunPromise = renderHomeySelectRuntime(
       {
         homeys,
         title: 'Select a Homey',
@@ -142,7 +142,7 @@ describe('homey selector runtime', () => {
       output += chunk.toString();
     });
 
-    const resultPromise = renderHomeySelectorRuntime(
+    const resultPromise = renderHomeySelectRuntime(
       {
         loadData: async () => {
           await new Promise((resolve) => setTimeout(resolve, 10));
@@ -185,7 +185,7 @@ describe('homey selector runtime', () => {
       output += chunk.toString();
     });
 
-    const resultPromise = renderHomeySelectorRuntime(
+    const resultPromise = renderHomeySelectRuntime(
       {
         loadData: () => deferred.promise,
         title: 'Select a Homey',
@@ -224,7 +224,7 @@ describe('homey selector runtime', () => {
     const streams = createRuntimeStreams();
     const expectedError = new Error('boom');
 
-    const result = await renderHomeySelectorRuntime(
+    const result = await renderHomeySelectRuntime(
       {
         loadData: async () => {
           throw expectedError;

@@ -3,11 +3,39 @@ import { afterEach, describe, it, mock } from 'node:test';
 
 import Log from '../../lib/Log.js';
 import AthomApi from '../../services/AthomApi.js';
-import { formatSelectedHomeyName, handler } from '../../bin/cmds/select.mjs';
+import { formatSelectedHomeyName, handler, SelectCommandHelpers } from '../../bin/cmds/select.mjs';
 import ApiHomeyTestHelpers from './api-homey-helpers.mjs';
 import { createIsolatedHomeyHome, removeHomeyHome, runHomey } from './helpers.mjs';
 
 const { assertFailure } = ApiHomeyTestHelpers;
+
+function setTerminalInteractivity({ stdinIsTTY, stdoutIsTTY }) {
+  const stdinDescriptor = Object.getOwnPropertyDescriptor(process.stdin, 'isTTY');
+  const stdoutDescriptor = Object.getOwnPropertyDescriptor(process.stdout, 'isTTY');
+
+  Object.defineProperty(process.stdin, 'isTTY', {
+    configurable: true,
+    value: stdinIsTTY,
+  });
+  Object.defineProperty(process.stdout, 'isTTY', {
+    configurable: true,
+    value: stdoutIsTTY,
+  });
+
+  return () => {
+    if (stdinDescriptor) {
+      Object.defineProperty(process.stdin, 'isTTY', stdinDescriptor);
+    } else {
+      delete process.stdin.isTTY;
+    }
+
+    if (stdoutDescriptor) {
+      Object.defineProperty(process.stdout, 'isTTY', stdoutDescriptor);
+    } else {
+      delete process.stdout.isTTY;
+    }
+  };
+}
 
 afterEach(() => {
   mock.restoreAll();
@@ -81,6 +109,55 @@ describe('CLI select', () => {
       id: undefined,
       name: 'Living Room',
     });
+  });
+
+  it('logs the selected Homey after interactive selection', async () => {
+    const restoreTerminal = setTerminalInteractivity({
+      stdinIsTTY: true,
+      stdoutIsTTY: true,
+    });
+    let exitCode;
+    let loggedMessage;
+    let savedHomey;
+
+    try {
+      mock.method(AthomApi, 'setActiveHomey', async (homey) => {
+        savedHomey = homey;
+      });
+      mock.method(Log, 'warning', () => {
+        throw new Error('Selection should not be cancelled');
+      });
+      mock.method(Log, 'error', (error) => {
+        throw error;
+      });
+      mock.method(console, 'log', (message) => {
+        loggedMessage = message;
+      });
+      mock.method(process, 'exit', (code) => {
+        exitCode = code;
+      });
+
+      mock.method(SelectCommandHelpers, 'runInteractiveSelection', async () => ({
+        homey: {
+          id: 'homey-1',
+          name: 'Living Room',
+          platform: 'local',
+        },
+        status: 'selected',
+      }));
+
+      await handler({});
+
+      assert.strictEqual(exitCode, 0);
+      assert.deepStrictEqual(savedHomey, {
+        id: 'homey-1',
+        name: 'Living Room',
+        platform: 'local',
+      });
+      assert.match(loggedMessage, /You have selected .*Living Room.* as your active Homey\./);
+    } finally {
+      restoreTerminal();
+    }
   });
 
   it('logs an error and exits with code 1 when selection fails', async () => {

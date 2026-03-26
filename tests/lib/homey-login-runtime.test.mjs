@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import { PassThrough } from 'node:stream';
 import { describe, it } from 'node:test';
-import { renderHomeyLoginRuntime } from '../../lib/ui/homey-login-runtime.mjs';
+import { renderHomeyLoginRuntime } from '../../lib/ui/homey-login/homey-login-runtime.mjs';
 
 function createFakeStdout() {
   const stdout = new PassThrough();
