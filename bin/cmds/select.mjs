@@ -28,7 +28,7 @@ function ensureInteractiveTerminal() {
   return Boolean(process.stdin.isTTY && process.stdout.isTTY);
 }
 
-export const SelectCommandHelpers = {
+export const selectCommandHelpers = {
   async runInteractiveSelection(options) {
     const { renderHomeySelectRuntime } =
       await import('../../lib/ui/homey-select/homey-select-runtime.mjs');
@@ -81,7 +81,7 @@ export async function handler(argv) {
       return;
     }
 
-    const result = await SelectCommandHelpers.runInteractiveSelection({
+    const result = await selectCommandHelpers.runInteractiveSelection({
       loadData: async () => {
         const [homeys, activeHomey] = await Promise.all([
           AthomApi.getHomeys({

@@ -11,7 +11,7 @@ export function formatLoggedInProfile(profile = {}) {
   return `You are now logged in as ${profile.firstname} ${profile.lastname} <${profile.email}>`;
 }
 
-export const LoginCommandHelpers = {
+export const loginCommandHelpers = {
   async runInteractiveLogin() {
     const HomeyLoginRuntime = await import('../../lib/ui/homey-login/homey-login-runtime.mjs');
     return HomeyLoginRuntime.renderHomeyLoginRuntime({
@@ -28,12 +28,12 @@ export const LoginCommandHelpers = {
 export const handler = async (yargs) => {
   try {
     if (!ensureInteractiveTerminal()) {
-      await LoginCommandHelpers.runTextLogin();
+      await loginCommandHelpers.runTextLogin();
       process.exit(0);
       return;
     }
 
-    const result = await LoginCommandHelpers.runInteractiveLogin();
+    const result = await loginCommandHelpers.runInteractiveLogin();
 
     if (result.status === 'cancelled') {
       Log.warning('Login cancelled.');

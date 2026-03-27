@@ -7,7 +7,7 @@ function ensureInteractiveTerminal() {
   return Boolean(process.stdin.isTTY && process.stdout.isTTY);
 }
 
-export const AppCreateCommandHelpers = {
+export const appCreateCommandHelpers = {
   async createAppWithAnswers({ answers, appPath }) {
     return AppFactory.createNewAppInstance({
       answers,
@@ -30,12 +30,12 @@ export const AppCreateCommandHelpers = {
 export const handler = async (yargs) => {
   try {
     if (!ensureInteractiveTerminal()) {
-      await AppCreateCommandHelpers.promptCreateApp({ appPath: yargs.path });
+      await appCreateCommandHelpers.promptCreateApp({ appPath: yargs.path });
       process.exit(0);
       return;
     }
 
-    const result = await AppCreateCommandHelpers.runInteractiveCreateWizard();
+    const result = await appCreateCommandHelpers.runInteractiveCreateWizard();
 
     if (result.status === 'cancelled') {
       Log.warning('App creation cancelled.');
@@ -43,7 +43,7 @@ export const handler = async (yargs) => {
       return;
     }
 
-    await AppCreateCommandHelpers.createAppWithAnswers({
+    await appCreateCommandHelpers.createAppWithAnswers({
       answers: result.answers,
       appPath: yargs.path,
     });

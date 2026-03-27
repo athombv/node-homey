@@ -88,6 +88,7 @@ function createLoginSession({
   waitForAuthorizationCode = () => new Promise(() => {}),
 } = {}) {
   let closeCalls = 0;
+  let openBrowserCalls = 0;
 
   return {
     authenticateWithCode,
@@ -97,7 +98,13 @@ function createLoginSession({
     get closeCalls() {
       return closeCalls;
     },
-    openBrowser,
+    async openBrowser() {
+      openBrowserCalls += 1;
+      return openBrowser();
+    },
+    get openBrowserCalls() {
+      return openBrowserCalls;
+    },
     url,
     waitForAuthorizationCode,
   };
@@ -122,7 +129,7 @@ describe('homey login runtime', () => {
 
     await waitFor(() => output.includes('Log in to Athom'));
     await waitFor(() => output.includes('https://my.homey.app/login'));
-    await waitFor(() => output.includes('Paste authorization code'));
+    await waitFor(() => output.includes('Code:'));
 
     streams.stdin.write('\u0003');
 
@@ -155,7 +162,7 @@ describe('homey login runtime', () => {
       streams,
     );
 
-    await waitFor(() => output.includes('Paste authorization code'));
+    await waitFor(() => output.includes('Code:'));
 
     await writeChars(streams.stdin, 'abc123');
     await new Promise((resolve) => {
@@ -175,6 +182,39 @@ describe('homey login runtime', () => {
 
     assert.strictEqual(result.status, 'authenticated');
     assert.strictEqual(result.profile.email, 'alice@example.com');
+  });
+
+  it('opens the browser only once while typing a manual authorization code', async () => {
+    const streams = createRuntimeStreams();
+    let output = '';
+
+    streams.stdout.on('data', (chunk) => {
+      output += chunk.toString();
+    });
+
+    const session = createLoginSession();
+    const resultPromise = renderHomeyLoginRuntime(
+      {
+        createLoginSession: async () => session,
+      },
+      streams,
+    );
+
+    await waitFor(() => output.includes('Code:'));
+
+    await writeChars(streams.stdin, 'abc123');
+    await new Promise((resolve) => {
+      setTimeout(resolve, 50);
+    });
+
+    assert.strictEqual(session.openBrowserCalls, 1);
+
+    streams.stdin.write('\u0003');
+
+    const result = await resultPromise;
+    assert.deepStrictEqual(result, {
+      status: 'cancelled',
+    });
   });
 
   it('shows the timeout state and returns an error result', async () => {
@@ -220,7 +260,7 @@ describe('homey login runtime', () => {
       streams,
     );
 
-    await waitFor(() => output.includes('Paste authorization code'));
+    await waitFor(() => output.includes('Code:'));
 
     streams.stdin.write('a');
     streams.stdin.write('b');

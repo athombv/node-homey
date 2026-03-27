@@ -108,6 +108,37 @@ describe('CLI completion', () => {
     assert.doesNotMatch(result.stderr, /homey update check failed/);
   });
 
+  it('returns nested app command suggestions for completion queries', () => {
+    const result = runHomey(['--get-yargs-completions', 'app', '']);
+
+    assert.strictEqual(
+      result.status,
+      0,
+      `Expected exit code 0 for "--get-yargs-completions app", got ${result.status}.\nSTDERR:\n${result.stderr}\nSTDOUT:\n${result.stdout}`,
+    );
+
+    assert.match(result.stdout, /^driver$/m);
+    assert.match(result.stdout, /^create$/m);
+    assert.doesNotMatch(result.stdout, /homey update check failed/);
+    assert.doesNotMatch(result.stderr, /homey update check failed/);
+  });
+
+  it('returns nested app driver command suggestions for completion queries', () => {
+    const result = runHomey(['--get-yargs-completions', 'app', 'driver', '']);
+
+    assert.strictEqual(
+      result.status,
+      0,
+      `Expected exit code 0 for "--get-yargs-completions app driver", got ${result.status}.\nSTDERR:\n${result.stderr}\nSTDOUT:\n${result.stdout}`,
+    );
+
+    assert.match(result.stdout, /^capabilities$/m);
+    assert.match(result.stdout, /^create$/m);
+    assert.match(result.stdout, /^flow$/m);
+    assert.doesNotMatch(result.stdout, /homey update check failed/);
+    assert.doesNotMatch(result.stderr, /homey update check failed/);
+  });
+
   it('handles completion queries that include the command name token', () => {
     const result = runHomey(['--get-yargs-completions', 'homey', 'api']);
 

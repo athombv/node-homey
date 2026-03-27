@@ -1,8 +1,12 @@
 import assert from 'node:assert';
 import { afterEach, describe, it, mock } from 'node:test';
 
+import {
+  driverCapabilitiesCommandHelpers,
+  handler,
+} from '../../bin/cmds/app/driver/capabilities.mjs';
+import AppFactory from '../../lib/AppFactory.js';
 import Log from '../../lib/Log.js';
-import { appCreateCommandHelpers, handler } from '../../bin/cmds/app/create.mjs';
 
 function setTerminalInteractivity({ stdinIsTTY, stdoutIsTTY }) {
   const stdinDescriptor = Object.getOwnPropertyDescriptor(process.stdin, 'isTTY');
@@ -36,27 +40,35 @@ afterEach(() => {
   mock.restoreAll();
 });
 
-describe('CLI app create', () => {
-  it('uses the Ink wizard in an interactive TTY and submits the collected answers', async () => {
+describe('CLI app driver capabilities', () => {
+  it('uses the interactive flow in a TTY and logs success', async () => {
     const restoreTerminal = setTerminalInteractivity({
       stdinIsTTY: true,
       stdoutIsTTY: true,
     });
-    let createArgs;
+    const app = {};
     let exitCode;
+    let successMessage;
 
     try {
-      mock.method(appCreateCommandHelpers, 'runInteractiveCreateWizard', async () => ({
-        answers: {
-          id: 'com.example.app',
+      mock.method(AppFactory, 'getAppInstance', () => app);
+      mock.method(
+        driverCapabilitiesCommandHelpers,
+        'runInteractiveFlow',
+        async ({ app: nextApp }) => {
+          assert.strictEqual(nextApp, app);
+
+          return {
+            driver: {
+              id: 'light',
+            },
+            driverId: 'light',
+            status: 'updated',
+          };
         },
-        status: 'submitted',
-      }));
-      mock.method(appCreateCommandHelpers, 'createAppWithAnswers', async (args) => {
-        createArgs = args;
-      });
-      mock.method(appCreateCommandHelpers, 'promptCreateApp', async () => {
-        throw new Error('Prompt fallback should not run');
+      );
+      mock.method(Log, 'success', (message) => {
+        successMessage = message;
       });
       mock.method(process, 'exit', (code) => {
         exitCode = code;
@@ -65,48 +77,40 @@ describe('CLI app create', () => {
       await handler({ path: '/tmp/app-root' });
 
       assert.strictEqual(exitCode, 0);
-      assert.deepStrictEqual(createArgs, {
-        answers: {
-          id: 'com.example.app',
-        },
-        appPath: '/tmp/app-root',
-      });
+      assert.strictEqual(successMessage, 'Driver capabilities updated for `light`');
     } finally {
       restoreTerminal();
     }
   });
 
-  it('falls back to the prompt-based flow without an interactive TTY', async () => {
+  it('falls back to the legacy prompt flow without an interactive TTY', async () => {
     const restoreTerminal = setTerminalInteractivity({
       stdinIsTTY: false,
       stdoutIsTTY: false,
     });
-    let promptArgs;
     let exitCode;
+    let changeDriverCapabilitiesCalls = 0;
 
     try {
-      mock.method(appCreateCommandHelpers, 'promptCreateApp', async (args) => {
-        promptArgs = args;
-      });
-      mock.method(appCreateCommandHelpers, 'runInteractiveCreateWizard', async () => {
-        throw new Error('Ink wizard should not run');
-      });
+      mock.method(AppFactory, 'getAppInstance', () => ({
+        async changeDriverCapabilities() {
+          changeDriverCapabilitiesCalls += 1;
+        },
+      }));
       mock.method(process, 'exit', (code) => {
         exitCode = code;
       });
 
-      await handler({ path: '/tmp/fallback-root' });
+      await handler({ path: '/tmp/app-root' });
 
+      assert.strictEqual(changeDriverCapabilitiesCalls, 1);
       assert.strictEqual(exitCode, 0);
-      assert.deepStrictEqual(promptArgs, {
-        appPath: '/tmp/fallback-root',
-      });
     } finally {
       restoreTerminal();
     }
   });
 
-  it('logs cancellation and exits with code 1 when the Ink wizard is cancelled', async () => {
+  it('logs cancellation and exits with code 1 when the interactive flow is cancelled', async () => {
     const restoreTerminal = setTerminalInteractivity({
       stdinIsTTY: true,
       stdoutIsTTY: true,
@@ -115,7 +119,8 @@ describe('CLI app create', () => {
     let warningMessage;
 
     try {
-      mock.method(appCreateCommandHelpers, 'runInteractiveCreateWizard', async () => ({
+      mock.method(AppFactory, 'getAppInstance', () => ({}));
+      mock.method(driverCapabilitiesCommandHelpers, 'runInteractiveFlow', async () => ({
         status: 'cancelled',
       }));
       mock.method(Log, 'warning', (message) => {
@@ -128,7 +133,7 @@ describe('CLI app create', () => {
       await handler({ path: '/tmp/app-root' });
 
       assert.strictEqual(exitCode, 1);
-      assert.strictEqual(warningMessage, 'App creation cancelled.');
+      assert.strictEqual(warningMessage, 'Driver capability update cancelled.');
     } finally {
       restoreTerminal();
     }

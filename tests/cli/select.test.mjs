@@ -3,7 +3,7 @@ import { afterEach, describe, it, mock } from 'node:test';
 
 import Log from '../../lib/Log.js';
 import AthomApi from '../../services/AthomApi.js';
-import { formatSelectedHomeyName, handler, SelectCommandHelpers } from '../../bin/cmds/select.mjs';
+import { formatSelectedHomeyName, handler, selectCommandHelpers } from '../../bin/cmds/select.mjs';
 import ApiHomeyTestHelpers from './api-homey-helpers.mjs';
 import { createIsolatedHomeyHome, removeHomeyHome, runHomey } from './helpers.mjs';
 
@@ -137,7 +137,7 @@ describe('CLI select', () => {
         exitCode = code;
       });
 
-      mock.method(SelectCommandHelpers, 'runInteractiveSelection', async () => ({
+      mock.method(selectCommandHelpers, 'runInteractiveSelection', async () => ({
         homey: {
           id: 'homey-1',
           name: 'Living Room',

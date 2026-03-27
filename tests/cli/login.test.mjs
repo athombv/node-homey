@@ -2,7 +2,7 @@ import assert from 'node:assert';
 import { afterEach, describe, it, mock } from 'node:test';
 
 import Log from '../../lib/Log.js';
-import { LoginCommandHelpers, formatLoggedInProfile, handler } from '../../bin/cmds/login.mjs';
+import { loginCommandHelpers, formatLoggedInProfile, handler } from '../../bin/cmds/login.mjs';
 
 function setTerminalInteractivity({ stdinIsTTY, stdoutIsTTY }) {
   const stdinDescriptor = Object.getOwnPropertyDescriptor(process.stdin, 'isTTY');
@@ -57,7 +57,7 @@ describe('CLI login', () => {
     let successMessage;
 
     try {
-      mock.method(LoginCommandHelpers, 'runInteractiveLogin', async () => ({
+      mock.method(loginCommandHelpers, 'runInteractiveLogin', async () => ({
         profile: {
           email: 'alice@example.com',
           firstname: 'Alice',
@@ -65,7 +65,7 @@ describe('CLI login', () => {
         },
         status: 'authenticated',
       }));
-      mock.method(LoginCommandHelpers, 'runTextLogin', async () => {
+      mock.method(loginCommandHelpers, 'runTextLogin', async () => {
         throw new Error('Text fallback should not run');
       });
       mock.method(Log, 'success', (message) => {
@@ -96,10 +96,10 @@ describe('CLI login', () => {
     let loginCalls = 0;
 
     try {
-      mock.method(LoginCommandHelpers, 'runTextLogin', async () => {
+      mock.method(loginCommandHelpers, 'runTextLogin', async () => {
         loginCalls += 1;
       });
-      mock.method(LoginCommandHelpers, 'runInteractiveLogin', async () => {
+      mock.method(loginCommandHelpers, 'runInteractiveLogin', async () => {
         throw new Error('Fullscreen runtime should not run');
       });
       mock.method(process, 'exit', (code) => {
@@ -124,7 +124,7 @@ describe('CLI login', () => {
     let warningMessage;
 
     try {
-      mock.method(LoginCommandHelpers, 'runInteractiveLogin', async () => ({
+      mock.method(loginCommandHelpers, 'runInteractiveLogin', async () => ({
         status: 'cancelled',
       }));
       mock.method(Log, 'warning', (message) => {
