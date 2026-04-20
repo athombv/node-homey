@@ -11,24 +11,22 @@ export const builder = (yargs) => {
     .option('driver', {
       describe: 'Path to the driver to which the firmware update should be added',
       type: 'string',
-      demandOption: false,
+      demandOption: true,
     })
-    .option('firmware-file', {
-      describe: 'Path to the firmware file',
-      type: 'string',
-      demandOption: false,
+    .option('firmware', {
+      describe: 'Path to a firmware file (can be specified multiple times)',
+      type: 'array',
+      demandOption: true,
     });
 };
 export const handler = async (yargs) => {
   try {
-    const firmwareFile = yargs.firmwareFile
-      ? path.resolve(process.cwd(), yargs.firmwareFile)
-      : undefined;
+    const firmwareFiles = yargs.firmware.map((f) => path.resolve(process.cwd(), f));
 
     const app = new App(yargs.path);
     await app.createFirmwareUpdate({
       driverPath: yargs.driver,
-      firmwareFile,
+      firmwareFiles,
     });
     process.exit(0);
   } catch (err) {
