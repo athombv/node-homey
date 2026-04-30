@@ -1,5 +1,6 @@
 import Log from '../../../lib/Log.js';
 import AppFactory from '../../../lib/AppFactory.js';
+import AppPython from '../../../lib/AppPython.js';
 
 export const desc = 'Validate a Homey App';
 export const builder = (yargs) => {
@@ -25,7 +26,7 @@ export const handler = async (yargs) => {
   try {
     const app = AppFactory.getAppInstance(yargs.path);
     await app.preprocess({
-      copyAppProductionDependencies: false,
+      copyAppProductionDependencies: app instanceof AppPython,
       dockerSocketPath: yargs.dockerSocketPath,
       findLinks: yargs.findLinks,
     });
