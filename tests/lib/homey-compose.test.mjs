@@ -76,7 +76,13 @@ describe('HomeyCompose', () => {
       },
     });
 
-    await HomeyCompose.build({ appPath, usesModules: false });
+    await HomeyCompose.buildIfUsed(
+      {
+        hasHomeyCompose: () => true,
+        usesModules: () => false,
+      },
+      appPath,
+    );
 
     const appJson = JSON.parse(await fs.readFile(path.join(appPath, 'app.json'), 'utf8'));
 
