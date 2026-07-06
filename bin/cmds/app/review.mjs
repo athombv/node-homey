@@ -103,7 +103,6 @@ export const handler = async (yargs) => {
     const result = await reviewer.review({
       appPath,
       manifest,
-      appId: manifest.id,
       brandColor: manifest.brandColor,
       submissionType: yargs.type,
       images,
