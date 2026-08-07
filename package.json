@@ -41,7 +41,7 @@
     "figures": "^3.2.0",
     "filesize": "^6.4.0",
     "fs-extra": "^10.1.0",
-    "get-port": "^5.1.1",
+    "get-port": "^7.2.0",
     "homey-api": "^3.17.7",
     "homey-lib": "^2.51.4",
     "ignore-walk": "^3.0.3",
