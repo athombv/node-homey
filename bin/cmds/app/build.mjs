@@ -13,6 +13,11 @@ export const builder = (yargs) => {
       default: undefined,
       type: 'string',
       desc: 'Additional location to search for candidate Python package distributions',
+    })
+    .option('slim', {
+      type: 'boolean',
+      default: false,
+      desc: 'Remove .d.ts, .d.mts, .d.cts and .map files from node_modules to reduce app size',
     });
 };
 export const handler = async (yargs) => {
@@ -21,6 +26,7 @@ export const handler = async (yargs) => {
     await app.build({
       dockerSocketPath: yargs.dockerSocketPath,
       findLinks: yargs.findLinks,
+      slim: yargs.slim,
     });
     process.exit(0);
   } catch (err) {
