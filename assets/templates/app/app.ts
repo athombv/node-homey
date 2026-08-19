@@ -2,7 +2,7 @@
 
 import Homey from 'homey';
 
-module.exports = class MyApp extends Homey.App {
+export default class MyApp extends Homey.App {
 
   /**
    * onInit is called when the app is initialized.
