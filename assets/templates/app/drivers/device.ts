@@ -1,18 +1,21 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
+// All methods are awaited, but some of the types are outdated.
+
 import Homey from 'homey';
 
-module.exports = class MyDevice extends Homey.Device {
+export default class MyDevice extends Homey.Device {
 
   /**
    * onInit is called when the device is initialized.
    */
-  async onInit() {
+  public override async onInit() {
     this.log('MyDevice has been initialized');
   }
 
   /**
    * onAdded is called when the user adds the device, called just after pairing.
    */
-  async onAdded() {
+  public override async onAdded() {
     this.log('MyDevice has been added');
   }
 
@@ -24,7 +27,7 @@ module.exports = class MyDevice extends Homey.Device {
    * @param {string[]} event.changedKeys An array of keys changed since the previous version
    * @returns {Promise<string|void>} return a custom message that will be displayed
    */
-  async onSettings({
+  public override async onSettings({
     oldSettings,
     newSettings,
     changedKeys,
@@ -33,7 +36,7 @@ module.exports = class MyDevice extends Homey.Device {
     newSettings: { [key: string]: boolean | string | number | undefined | null };
     changedKeys: string[];
   }): Promise<string | void> {
-    this.log("MyDevice settings where changed");
+    this.log('MyDevice settings where changed');
   }
 
   /**
@@ -41,15 +44,15 @@ module.exports = class MyDevice extends Homey.Device {
    * This method can be used this to synchronise the name to the device.
    * @param {string} name The new name
    */
-  async onRenamed(name: string) {
+  public override async onRenamed(name: string) {
     this.log('MyDevice was renamed');
   }
 
   /**
    * onDeleted is called when the user deleted the device.
    */
-  async onDeleted() {
+  public override async onDeleted() {
     this.log('MyDevice has been deleted');
   }
 
-};
+}
