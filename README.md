@@ -18,6 +18,35 @@ $ homey --help
 
 Or read the [getting started](https://apps.developer.homey.app/the-basics/getting-started) documentation.
 
+## Testing
+
+Run the hermetic test suite without a Homey, account credentials, network access, or Docker:
+
+```bash
+npm test
+```
+
+Run the same suite with production coverage and the repository coverage thresholds:
+
+```bash
+npm run test:coverage
+```
+
+The app lifecycle tests copy the example apps in `tests/fixtures/apps` to temporary directories
+before building or modifying them.
+
+### Optional Docker smoke test
+
+With a local Docker daemon running, verify the real Docker connection and container lifecycle:
+
+```bash
+npm run test:docker
+```
+
+The smoke test pulls `alpine:3.20` when it is not available locally, runs a one-shot labeled
+container, and removes the container afterward. It is not part of normal tests or CI. Override the
+image with `HOMEY_TEST_DOCKER_IMAGE` or the socket with `HOMEY_TEST_DOCKER_SOCKET` when needed.
+
 ## Shell completion
 
 ### Bash
