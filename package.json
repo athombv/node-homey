@@ -1,6 +1,6 @@
 {
   "name": "homey",
-  "version": "4.4.2",
+  "version": "4.4.3",
   "description": "Command-line interface and type declarations for Homey Apps",
   "main": "bin/homey.js",
   "files": [
@@ -17,6 +17,8 @@
     "prettier": "prettier --write .",
     "prettier:check": "prettier --check .",
     "test": "node --test",
+    "test:coverage": "node --test --experimental-test-coverage --test-coverage-include='bin/**/*.js' --test-coverage-include='bin/**/*.mjs' --test-coverage-include='lib/**/*.js' --test-coverage-include='lib/**/*.mjs' --test-coverage-include='services/**/*.js' --test-coverage-lines=48 --test-coverage-branches=70 --test-coverage-functions=64",
+    "test:docker": "node --test tests/smoke/docker.mjs",
     "prepare": "husky"
   },
   "bin": {
@@ -43,7 +45,7 @@
     "fs-extra": "^10.1.0",
     "get-port": "^7.2.0",
     "homey-api": "^3.17.7",
-    "homey-lib": "^2.51.4",
+    "homey-lib": "^2.52.1",
     "ignore-walk": "^3.0.3",
     "inquirer": "8.1.2",
     "object-path": "^0.11.4",

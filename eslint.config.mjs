@@ -40,4 +40,10 @@ export default defineConfig([
       sourceType: 'module',
     },
   },
+  {
+    files: ['tests/fixtures/apps/node-compose-esm/**/*.js'],
+    languageOptions: {
+      sourceType: 'module',
+    },
+  },
 ]);

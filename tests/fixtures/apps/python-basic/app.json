@@ -1,0 +1,27 @@
+{
+  "id": "com.test.python-basic",
+  "name": {
+    "en": "Python Basic"
+  },
+  "description": {
+    "en": "A minimal Python fixture app."
+  },
+  "version": "1.0.0",
+  "compatibility": ">=13.2.1",
+  "sdk": 3,
+  "runtime": "python",
+  "pythonVersion": "3.14",
+  "platforms": ["local"],
+  "author": {
+    "name": "Homey CLI Tests",
+    "email": "cli-tests@example.com"
+  },
+  "category": ["tools"],
+  "brandColor": "#663399",
+  "permissions": [],
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png"
+  },
+  "support": "https://example.com/support"
+}
