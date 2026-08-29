@@ -1,7 +1,7 @@
 import { logJsonError, printStructuredOutput } from '../../../lib/CliOutput.mjs';
 import { applyJqOutputOption, applyJsonOutputOption } from '../../../lib/api/ApiCommandOptions.mjs';
 import Log from '../../../lib/Log.js';
-import CliState from '../../../services/CliState.js';
+import { CliState } from '../../../services/CliState.mjs';
 
 export const desc = 'Show the currently selected Homey';
 

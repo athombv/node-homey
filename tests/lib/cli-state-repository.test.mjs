@@ -1,8 +1,8 @@
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
 
-import { CliStateRepository, DEFAULT_DISCOVERY_STRATEGIES } from '../../lib/CliStateRepository.js';
-import { OperatingSystemCredentialStore } from '../../lib/OperatingSystemCredentialStore.js';
+import { CliStateRepository, DEFAULT_DISCOVERY_STRATEGIES } from '../../lib/CliStateRepository.mjs';
+import { OperatingSystemCredentialStore } from '../../lib/OperatingSystemCredentialStore.mjs';
 import Settings from '../../services/Settings.js';
 
 function createFixture(t, initialSettings = {}) {

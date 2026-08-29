@@ -3,7 +3,7 @@ import {
   logManagementError,
   printAuthenticationProfile,
 } from '../../../lib/ContextCommandSupport.mjs';
-import AuthenticationProfiles from '../../../services/AuthenticationProfiles.js';
+import { AuthenticationProfiles } from '../../../services/AuthenticationProfiles.mjs';
 
 export const command = 'migrate <profile>';
 export const desc = 'Explicitly migrate persistent OAuth credential storage';

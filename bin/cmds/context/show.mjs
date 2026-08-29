@@ -4,7 +4,7 @@ import {
   logManagementError,
 } from '../../../lib/ContextCommandSupport.mjs';
 import Log from '../../../lib/Log.js';
-import CliState from '../../../services/CliState.js';
+import { CliState } from '../../../services/CliState.mjs';
 
 export const desc = 'Show the effective context selection';
 

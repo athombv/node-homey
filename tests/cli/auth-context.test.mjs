@@ -52,7 +52,7 @@ describe('CLI authentication profiles', () => {
       process.execPath,
       [
         '-e',
-        "require('./services/CliState').migrateAuthenticationProfile('default', 'settings', { accountId: 'account-1', email: 'developer@example.com', displayName: 'Homey Developer' }).catch((err) => { console.error(err); process.exitCode = 1; });",
+        "require('./services/CliState.mjs').CliState.migrateAuthenticationProfile('default', 'settings', { accountId: 'account-1', email: 'developer@example.com', displayName: 'Homey Developer' }).catch((err) => { console.error(err); process.exitCode = 1; });",
       ],
       {
         cwd: process.cwd(),

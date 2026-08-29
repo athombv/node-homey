@@ -4,7 +4,7 @@ import {
   printContext,
 } from '../../../lib/ContextCommandSupport.mjs';
 import { refreshContextTargetMetadata } from '../../../lib/ContextOperations.mjs';
-import CliState from '../../../services/CliState.js';
+import { CliState } from '../../../services/CliState.mjs';
 
 async function readStandardInput() {
   let value = '';

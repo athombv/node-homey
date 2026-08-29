@@ -3,9 +3,9 @@ import { afterEach, describe, it, mock } from 'node:test';
 
 import { APIErrorHomeyOffline, HomeyAPI, HomeyAPIV3Local } from 'homey-api';
 
-import AuthenticationProfiles from '../../services/AuthenticationProfiles.js';
+import { AuthenticationProfiles } from '../../services/AuthenticationProfiles.mjs';
 import AthomApi from '../../services/AthomApi.js';
-import CliState from '../../services/CliState.js';
+import { CliState } from '../../services/CliState.mjs';
 import { createHomeyApiClient, diagnoseHomeyStrategies } from '../../lib/api/ApiCommandRuntime.mjs';
 
 afterEach(() => {

@@ -3,7 +3,7 @@ import {
   logManagementError,
   printContext,
 } from '../../../lib/ContextCommandSupport.mjs';
-import CliState from '../../../services/CliState.js';
+import { CliState } from '../../../services/CliState.mjs';
 
 export const command = 'use <name>';
 export const desc = 'Set the current Homey context';

@@ -2,7 +2,7 @@ import assert from 'node:assert';
 import { describe, it } from 'node:test';
 
 import { handler as migrateHandler } from '../../bin/cmds/auth/migrate.mjs';
-import AuthenticationProfiles from '../../services/AuthenticationProfiles.js';
+import { AuthenticationProfiles } from '../../services/AuthenticationProfiles.mjs';
 
 describe('CLI auth migrate handler', () => {
   it('warns but succeeds when migrated credentials cannot resolve identity', async (t) => {

@@ -2,7 +2,7 @@ import open from 'open';
 
 import Log from '../../../../lib/Log.js';
 import AthomApi from '../../../../services/AthomApi.js';
-import CliState from '../../../../services/CliState.js';
+import { CliState } from '../../../../services/CliState.mjs';
 
 function getRequestedHomeyId(argv) {
   if (typeof argv.homeyId === 'string' && argv.homeyId.length > 0) {

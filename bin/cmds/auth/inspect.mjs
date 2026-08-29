@@ -3,7 +3,7 @@ import {
   logManagementError,
   printAuthenticationProfile,
 } from '../../../lib/ContextCommandSupport.mjs';
-import CliState from '../../../services/CliState.js';
+import { CliState } from '../../../services/CliState.mjs';
 
 export const command = 'inspect <profile>';
 export const desc = 'Inspect a redacted authentication profile';

@@ -3,7 +3,7 @@ import {
   logManagementError,
   printAuthenticationProfiles,
 } from '../../../lib/ContextCommandSupport.mjs';
-import CliState from '../../../services/CliState.js';
+import { CliState } from '../../../services/CliState.mjs';
 
 export const command = 'ls';
 export const aliases = ['list'];

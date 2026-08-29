@@ -3,7 +3,7 @@ import { describe, it } from 'node:test';
 
 import { Entry } from '@napi-rs/keyring';
 
-import { OperatingSystemCredentialStore } from '../../lib/OperatingSystemCredentialStore.js';
+import { OperatingSystemCredentialStore } from '../../lib/OperatingSystemCredentialStore.mjs';
 
 describe('OperatingSystemCredentialStore', () => {
   it('returns parsed credentials or null when no password exists', async (t) => {

@@ -2,9 +2,9 @@ import assert from 'node:assert';
 import { afterEach, describe, it, mock } from 'node:test';
 
 import AthomApi from '../../lib/AthomApi.js';
-import { AuthenticationProfileRegistry } from '../../lib/AuthenticationProfileRegistry.js';
+import { AuthenticationProfileRegistry } from '../../lib/AuthenticationProfileRegistry.mjs';
 import LegacyAthomApi from '../../services/AthomApi.js';
-import CliState from '../../services/CliState.js';
+import { CliState } from '../../services/CliState.mjs';
 
 afterEach(() => {
   mock.restoreAll();

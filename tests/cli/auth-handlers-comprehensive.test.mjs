@@ -3,8 +3,8 @@ import { describe, it } from 'node:test';
 
 import inquirer from 'inquirer';
 
-import AuthenticationProfiles from '../../services/AuthenticationProfiles.js';
-import CliState from '../../services/CliState.js';
+import { AuthenticationProfiles } from '../../services/AuthenticationProfiles.mjs';
+import { CliState } from '../../services/CliState.mjs';
 import * as authCommand from '../../bin/cmds/auth.mjs';
 import * as inspectCommand from '../../bin/cmds/auth/inspect.mjs';
 import * as loginCommand from '../../bin/cmds/auth/login.mjs';

@@ -4,8 +4,8 @@ import {
   logManagementError,
 } from '../../../lib/ContextCommandSupport.mjs';
 import Log from '../../../lib/Log.js';
-import AuthenticationProfiles from '../../../services/AuthenticationProfiles.js';
-import CliState from '../../../services/CliState.js';
+import { AuthenticationProfiles } from '../../../services/AuthenticationProfiles.mjs';
+import { CliState } from '../../../services/CliState.mjs';
 
 function toProfileOutput(profile, profileName) {
   return {

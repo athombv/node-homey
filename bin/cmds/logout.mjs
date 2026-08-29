@@ -1,7 +1,7 @@
 import Log from '../../lib/Log.js';
 import AthomApi from '../../services/AthomApi.js';
-import AuthenticationProfiles from '../../services/AuthenticationProfiles.js';
-import CliState from '../../services/CliState.js';
+import { AuthenticationProfiles } from '../../services/AuthenticationProfiles.mjs';
+import { CliState } from '../../services/CliState.mjs';
 
 export const desc = 'Log out the current user';
 export const builder = (yargs) => {

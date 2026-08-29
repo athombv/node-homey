@@ -4,7 +4,7 @@ import {
   logManagementError,
 } from '../../../lib/ContextCommandSupport.mjs';
 import Log from '../../../lib/Log.js';
-import AuthenticationProfiles from '../../../services/AuthenticationProfiles.js';
+import { AuthenticationProfiles } from '../../../services/AuthenticationProfiles.mjs';
 
 export const command = 'logout <profile>';
 export const desc = 'Log out an authentication profile without deleting it';

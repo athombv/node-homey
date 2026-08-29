@@ -5,7 +5,7 @@ import {
   logManagementError,
   printContext,
 } from '../../../lib/ContextCommandSupport.mjs';
-import CliState from '../../../services/CliState.js';
+import { CliState } from '../../../services/CliState.mjs';
 import { diagnoseContext } from './diagnose.mjs';
 
 function buildRoute(argv) {

@@ -1,8 +1,8 @@
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
 
-import AuthenticationProfiles from '../../services/AuthenticationProfiles.js';
-import CliState from '../../services/CliState.js';
+import { AuthenticationProfiles } from '../../services/AuthenticationProfiles.mjs';
+import { CliState } from '../../services/CliState.mjs';
 import { refreshContextTargetMetadata } from '../../lib/ContextOperations.mjs';
 
 describe('ContextOperations', () => {

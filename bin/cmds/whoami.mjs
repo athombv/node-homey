@@ -2,7 +2,7 @@ import colors from 'colors';
 import { logJsonError, printStructuredOutput } from '../../lib/CliOutput.mjs';
 import { applyJqOutputOption, applyJsonOutputOption } from '../../lib/api/ApiCommandOptions.mjs';
 import Log from '../../lib/Log.js';
-import AuthenticationProfiles from '../../services/AuthenticationProfiles.js';
+import { AuthenticationProfiles } from '../../services/AuthenticationProfiles.mjs';
 
 export const desc = 'Show the current logged in user';
 

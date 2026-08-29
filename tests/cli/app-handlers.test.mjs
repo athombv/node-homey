@@ -2,8 +2,8 @@ import assert from 'node:assert';
 import { describe, it } from 'node:test';
 
 import AppFactory from '../../lib/AppFactory.js';
-import AuthenticationProfiles from '../../services/AuthenticationProfiles.js';
-import CliState from '../../services/CliState.js';
+import { AuthenticationProfiles } from '../../services/AuthenticationProfiles.mjs';
+import { CliState } from '../../services/CliState.mjs';
 import Log from '../../lib/Log.js';
 import AthomApi from '../../services/AthomApi.js';
 import { handler as buildHandler } from '../../bin/cmds/app/build.mjs';
