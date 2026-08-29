@@ -3,7 +3,7 @@ import colors from 'colors';
 import { printStructuredOutput, logJsonError } from '../../lib/CliOutput.mjs';
 import { applyJqOutputOption, applyJsonOutputOption } from '../../lib/api/ApiCommandOptions.mjs';
 import Log from '../../lib/Log.js';
-import AthomApi from '../../services/AthomApi.js';
+import AuthenticationProfiles from '../../services/AuthenticationProfiles.js';
 
 export const desc = 'List all Homeys';
 
@@ -13,7 +13,7 @@ function sortHomeys(homeys) {
   });
 }
 
-function toHomeyOutput(homey) {
+function toHomeyOutput(homey, profile = null) {
   return {
     id: homey.id ?? null,
     name: homey.name ?? null,
@@ -27,6 +27,7 @@ function toHomeyOutput(homey) {
     region: homey.region ?? null,
     usbAddress: homey.usb ?? null,
     state: homey.state ?? null,
+    ...(profile ? { authenticationProfile: profile } : {}),
   };
 }
 
@@ -70,6 +71,15 @@ function printHomeysTable(homeys) {
 
 export const builder = (yargs) => {
   return applyJqOutputOption(applyJsonOutputOption(yargs))
+    .option('auth-profile', {
+      type: 'string',
+      description: 'Use a specific Athom authentication profile',
+    })
+    .option('all-profiles', {
+      type: 'boolean',
+      default: false,
+      description: 'List Homeys from every usable authentication profile',
+    })
     .example('$0 list --json', 'Output Homeys as JSON')
     .example("$0 list --jq '.[].name'", 'Print all Homey names using jq')
     .help();
@@ -77,7 +87,40 @@ export const builder = (yargs) => {
 
 export const handler = async (argv = {}) => {
   try {
-    const homeys = sortHomeys(await AthomApi.getHomeys()).map(toHomeyOutput);
+    if (argv.auth === 'homey') {
+      throw new Error(
+        'The list command is account-scoped and cannot use direct Homey authentication.',
+      );
+    }
+
+    let homeys;
+
+    if (argv.allProfiles) {
+      const profiles = await AuthenticationProfiles.listUsableClients();
+      const homeyGroups = await Promise.all(
+        profiles.map(async ({ name, client }) => {
+          const profileHomeys = await client.getHomeys();
+
+          return profileHomeys.map((homey) => {
+            return toHomeyOutput(homey, name);
+          });
+        }),
+      );
+
+      homeys = sortHomeys(homeyGroups.flat());
+    } else {
+      const profileName = await AuthenticationProfiles.resolveProfileName({
+        explicitProfile: argv.authProfile,
+        contextName: argv.context,
+      });
+      const accountClient = await AuthenticationProfiles.getClient(profileName, {
+        allowInteractiveLogin: process.stdin.isTTY,
+      });
+
+      homeys = sortHomeys(await accountClient.getHomeys()).map((homey) => {
+        return toHomeyOutput(homey);
+      });
+    }
 
     printStructuredOutput({
       value: homeys,

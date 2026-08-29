@@ -2,6 +2,7 @@ import open from 'open';
 
 import Log from '../../../../lib/Log.js';
 import AthomApi from '../../../../services/AthomApi.js';
+import CliState from '../../../../services/CliState.js';
 
 function getRequestedHomeyId(argv) {
   if (typeof argv.homeyId === 'string' && argv.homeyId.length > 0) {
@@ -16,6 +17,19 @@ async function resolveHomeyId(argv, homeyService = AthomApi) {
 
   if (requestedHomeyId) {
     return requestedHomeyId;
+  }
+
+  const usesContextSelector = argv.context !== undefined || Boolean(process.env.HOMEY_CONTEXT);
+
+  if (usesContextSelector && homeyService === AthomApi) {
+    const selection = await CliState.resolveContextSelection(argv.context);
+    const contextHomeyId = selection?.context.target.homeyId;
+
+    if (!contextHomeyId) {
+      throw new Error('The selected context does not have a Homey ID for the web app URL.');
+    }
+
+    return contextHomeyId;
   }
 
   const activeHomey = await homeyService.getSelectedHomey();

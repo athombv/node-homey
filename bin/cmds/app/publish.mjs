@@ -1,5 +1,19 @@
 import Log from '../../../lib/Log.js';
 import AppFactory from '../../../lib/AppFactory.js';
+import { resolveEffectiveContext } from '../../../lib/EffectiveContextResolver.mjs';
+
+async function resolveAccountClient(argv) {
+  const usesContextResolution =
+    argv.context !== undefined || argv.auth !== undefined || Boolean(process.env.HOMEY_CONTEXT);
+
+  if (!usesContextResolution) {
+    return null;
+  }
+
+  const resolution = await resolveEffectiveContext(argv, { scope: 'account' });
+
+  return resolution.accountClient;
+}
 
 export const desc = 'Publish a Homey App to the Homey Apps Store';
 export const builder = (yargs) => {
@@ -17,10 +31,12 @@ export const builder = (yargs) => {
 };
 export const handler = async (yargs) => {
   try {
+    const accountClient = await resolveAccountClient(yargs);
     const app = AppFactory.getAppInstance(yargs.path);
     await app.publish({
       dockerSocketPath: yargs.dockerSocketPath,
       findLinks: yargs.findLinks,
+      ...(accountClient ? { athomApi: accountClient } : {}),
     });
     process.exit(0);
   } catch (err) {

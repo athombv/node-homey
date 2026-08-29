@@ -1,6 +1,24 @@
 import Log from '../../../lib/Log.js';
 import AppFactory from '../../../lib/AppFactory.js';
 import AthomApi from '../../../services/AthomApi.js';
+import {
+  createHomeyApiClient,
+  disposeHomeyApiClient,
+} from '../../../lib/api/ApiCommandRuntime.mjs';
+
+async function resolveHomey(argv) {
+  const usesContextResolution =
+    argv.context !== undefined || argv.auth !== undefined || Boolean(process.env.HOMEY_CONTEXT);
+
+  if (!usesContextResolution) {
+    return await AthomApi.getActiveHomey();
+  }
+
+  return await createHomeyApiClient({
+    context: argv.context,
+    auth: argv.auth,
+  });
+}
 
 export const desc = 'Install a Homey App';
 export const builder = (yargs) => {
@@ -17,21 +35,29 @@ export const builder = (yargs) => {
     });
 };
 export const handler = async (yargs) => {
+  let homey = null;
+  let exitCode = 0;
+
   try {
-    const homey = await AthomApi.getActiveHomey();
+    homey = await resolveHomey(yargs);
     const app = AppFactory.getAppInstance(yargs.path);
     await app.install({
       homey,
       clean: yargs.clean,
       skipBuild: yargs.skipBuild,
     });
-    process.exit(0);
   } catch (err) {
     if (err instanceof Error && err.stack) {
       Log.error(err.stack);
     } else {
       Log.error(err);
     }
-    process.exit(1);
+    exitCode = 1;
+  } finally {
+    if (homey?.__homeyCliEffectiveContext) {
+      await disposeHomeyApiClient(homey);
+    }
   }
+
+  process.exit(exitCode);
 };

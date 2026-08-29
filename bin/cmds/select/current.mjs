@@ -1,7 +1,7 @@
 import { logJsonError, printStructuredOutput } from '../../../lib/CliOutput.mjs';
 import { applyJqOutputOption, applyJsonOutputOption } from '../../../lib/api/ApiCommandOptions.mjs';
 import Log from '../../../lib/Log.js';
-import AthomApi from '../../../services/AthomApi.js';
+import CliState from '../../../services/CliState.js';
 
 export const desc = 'Show the currently selected Homey';
 
@@ -24,7 +24,7 @@ export const builder = (yargs) => {
 
 export const handler = async (argv = {}) => {
   try {
-    const activeHomey = (await AthomApi.getSelectedHomey()) ?? null;
+    const activeHomey = (await CliState.getSelectedTarget()) ?? null;
 
     printStructuredOutput({
       value: activeHomey,

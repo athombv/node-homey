@@ -77,6 +77,53 @@ Then restart your shell, or run:
 source ~/.zshrc
 ```
 
+## Contexts and authentication profiles
+
+Contexts are named Homey targets. They keep the target, connection route, and references to account
+or direct Homey credentials together without storing build or output preferences.
+
+```bash
+# Create an account-backed context. Creation does not activate it unless --use is supplied.
+homey context create lab --homey-id <HOMEY_ID> --auth-profile work --use
+
+# Create a direct-only context without putting its token in shell history.
+export HOMEY_TOKEN_LAB='<HOMEY_TOKEN>'
+homey context create direct-lab \
+  --address http://192.168.1.100 \
+  --token-env HOMEY_TOKEN_LAB
+
+homey context ls
+homey context inspect lab --json
+homey context diagnose lab
+```
+
+Commands select a context in this order: `--context`, `HOMEY_CONTEXT`, the persisted current
+context, then the legacy `homey select` target. `--auth auto|homey|account` controls whether a
+Homey-scoped command uses direct Homey authentication or account authentication. Direct Homey
+authentication wins in `auto` mode when it is usable.
+
+Discovery contexts use the `homey-api` strategies `mdns`, `cloud`, `local`, `localSecure`, and
+`remoteForwarded`. The default allow-list is `localSecure`, `local`, `remoteForwarded`, and `cloud`.
+USB is never automatic and must be selected explicitly with `--usb`.
+
+Authentication profiles support OAuth credentials and environment-backed PATs:
+
+```bash
+homey auth login work
+
+export HOMEY_PAT_CI='<PERSONAL_ACCESS_TOKEN>'
+homey auth login ci --pat-env HOMEY_PAT_CI
+
+homey auth ls
+homey auth inspect work
+```
+
+Existing logins remain in `settings.json` until explicitly migrated. New persistent credentials use
+the settings backend by default. Opt in to the operating-system credential store for credentials
+created afterward with `homey auth storage keychain`, or select a backend per login or stored direct
+token with `--store settings|keychain`. Use `homey auth migrate <profile> --to <backend>` for an
+explicit migration; changing the default never migrates existing credentials.
+
 ## Homey API CLI
 
 Use `homey api` for direct Homey API access.

@@ -266,6 +266,8 @@ export const handler = async (argv) => {
       token: argv.token,
       address: argv.address,
       homeyId: argv.homeyId,
+      context: argv.context,
+      auth: argv.auth,
     });
 
     try {

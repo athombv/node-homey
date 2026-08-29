@@ -1,5 +1,20 @@
 import Log from '../../../lib/Log.js';
 import AppFactory from '../../../lib/AppFactory.js';
+import { createHomeyApiClient } from '../../../lib/api/ApiCommandRuntime.mjs';
+
+async function resolveHomey(argv) {
+  const usesContextResolution =
+    argv.context !== undefined || argv.auth !== undefined || Boolean(process.env.HOMEY_CONTEXT);
+
+  if (!usesContextResolution) {
+    return null;
+  }
+
+  return await createHomeyApiClient({
+    context: argv.context,
+    auth: argv.auth,
+  });
+}
 
 export const desc = 'Run a Homey App in development mode';
 export const builder = (yargs) => {
@@ -48,8 +63,10 @@ export const builder = (yargs) => {
 };
 export const handler = async (yargs) => {
   try {
+    const homey = await resolveHomey(yargs);
     const app = AppFactory.getAppInstance(yargs.path);
     await app.run({
+      ...(homey ? { homey } : {}),
       clean: yargs.clean,
       remote: yargs.remote,
       skipBuild: yargs.skipBuild,

@@ -218,6 +218,16 @@ await yargs(normalizedArgs)
   .version('version', 'Show version number', pkg.version)
   .alias('version', 'v')
   .global(['version', 'v'], false)
+  .option('context', {
+    type: 'string',
+    description: 'Use a named Homey context for this command',
+  })
+  .option('auth', {
+    choices: ['auto', 'homey', 'account'],
+    default: 'auto',
+    description: 'Select direct Homey or account authentication',
+  })
+  .global(['context', 'auth'])
   .commandDir('./cmds', {
     extensions: ['.mjs'],
   })

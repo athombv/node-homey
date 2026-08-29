@@ -69,6 +69,8 @@ export const handler = async (argv = {}) => {
   try {
     const report = await diagnoseHomeyStrategies({
       homeyId: argv.homeyId,
+      context: argv.context,
+      auth: argv.auth,
     });
 
     printStructuredOutput({
