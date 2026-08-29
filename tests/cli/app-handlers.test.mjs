@@ -2,6 +2,7 @@ import assert from 'node:assert';
 import { describe, it } from 'node:test';
 
 import AppFactory from '../../lib/AppFactory.js';
+import CliState from '../../services/CliState.js';
 import Log from '../../lib/Log.js';
 import AthomApi from '../../services/AthomApi.js';
 import { handler as buildHandler } from '../../bin/cmds/app/build.mjs';
@@ -18,6 +19,50 @@ function captureExit(t) {
   });
 
   return calls;
+}
+
+function mockLegacyContextResolution(t) {
+  t.mock.method(CliState, 'resolveContextSelection', async () => {
+    return {
+      name: 'default',
+      source: 'current',
+      context: {
+        target: { homeyId: 'legacy-homey' },
+        authenticationProfile: 'default',
+        route: {
+          type: 'discovery',
+          strategies: ['localSecure', 'local', 'remoteForwarded', 'cloud'],
+        },
+      },
+      health: { status: 'ready', reasons: [] },
+      state: {
+        authenticationProfiles: {
+          profiles: {
+            default: {
+              credentialSource: {
+                type: 'oauth',
+                credentialId: 'legacy-homey-api',
+                store: 'settings',
+                legacy: true,
+              },
+            },
+          },
+        },
+      },
+    };
+  });
+  t.mock.method(CliState, 'resolveDirectToken', async () => {
+    return null;
+  });
+  t.mock.method(AthomApi, 'getHomey', async () => {
+    return {
+      id: 'legacy-homey',
+      platform: 'local',
+      authenticate: async () => {
+        return {};
+      },
+    };
+  });
 }
 
 describe('CLI app handler characterization', () => {
@@ -82,6 +127,7 @@ describe('CLI app handler characterization', () => {
   it('forwards every run option without forcing an exit on success', async (t) => {
     const calls = [];
     const exits = captureExit(t);
+    mockLegacyContextResolution(t);
 
     t.mock.method(AppFactory, 'getAppInstance', () => {
       return {
@@ -93,6 +139,7 @@ describe('CLI app handler characterization', () => {
 
     await runHandler({
       path: '/fixture/app',
+      auth: 'auto',
       clean: true,
       remote: true,
       skipBuild: true,
@@ -120,6 +167,7 @@ describe('CLI app handler characterization', () => {
     const homey = { id: 'homey-1' };
     const calls = [];
     const exits = captureExit(t);
+    mockLegacyContextResolution(t);
 
     t.mock.method(AthomApi, 'getActiveHomey', async () => {
       return homey;
@@ -132,7 +180,7 @@ describe('CLI app handler characterization', () => {
       };
     });
 
-    await installHandler({ path: '/fixture/app', clean: true, skipBuild: true });
+    await installHandler({ path: '/fixture/app', auth: 'auto', clean: true, skipBuild: true });
 
     assert.deepStrictEqual(calls, [{ homey, clean: true, skipBuild: true }]);
     assert.deepStrictEqual(exits, [0]);
@@ -141,6 +189,7 @@ describe('CLI app handler characterization', () => {
   it('forwards publish options and exits successfully', async (t) => {
     const calls = [];
     const exits = captureExit(t);
+    mockLegacyContextResolution(t);
 
     t.mock.method(AppFactory, 'getAppInstance', () => {
       return {
@@ -152,6 +201,7 @@ describe('CLI app handler characterization', () => {
 
     await publishHandler({
       path: '/fixture/app',
+      auth: 'auto',
       dockerSocketPath: '/tmp/docker.sock',
       findLinks: '/wheels',
     });

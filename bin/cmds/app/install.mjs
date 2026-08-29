@@ -5,10 +5,10 @@ import {
   createHomeyApiClient,
   disposeHomeyApiClient,
 } from '../../../lib/api/ApiCommandRuntime.mjs';
+import { shouldUseContextResolution } from '../../../lib/EffectiveContextResolver.mjs';
 
 async function resolveHomey(argv) {
-  const usesContextResolution =
-    argv.context !== undefined || argv.auth !== undefined || Boolean(process.env.HOMEY_CONTEXT);
+  const usesContextResolution = await shouldUseContextResolution(argv);
 
   if (!usesContextResolution) {
     return await AthomApi.getActiveHomey();

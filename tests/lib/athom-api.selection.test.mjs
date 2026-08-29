@@ -2,6 +2,7 @@ import assert from 'node:assert';
 import { afterEach, describe, it, mock } from 'node:test';
 
 import { APIErrorHomeyOffline, HomeyAPI } from 'homey-api';
+import StorageAdapter from 'homey-api/lib/AthomCloudAPI/StorageAdapter.js';
 
 import AthomApi from '../../lib/AthomApi.js';
 import Settings from '../../services/Settings.js';
@@ -11,6 +12,41 @@ afterEach(() => {
 });
 
 describe('AthomApi selected Homey persistence', () => {
+  it('does not apply the legacy HOMEY_PAT to a client with profile-specific storage', () => {
+    class ProfileStorage extends StorageAdapter {
+      async get() {
+        return {
+          token: {
+            access_token: 'profile-oauth-token',
+          },
+        };
+      }
+
+      async set() {}
+    }
+
+    const previousPat = process.env.HOMEY_PAT;
+    process.env.HOMEY_PAT = 'legacy-global-pat';
+
+    try {
+      const athomApi = new AthomApi({
+        storage: new ProfileStorage(),
+        migrateLegacyAuthentication: false,
+        useLegacyPersonalAccessToken: false,
+      });
+
+      athomApi._createApi();
+
+      assert.strictEqual(athomApi._api.__token, null);
+    } finally {
+      if (typeof previousPat === 'undefined') {
+        delete process.env.HOMEY_PAT;
+      } else {
+        process.env.HOMEY_PAT = previousPat;
+      }
+    }
+  });
+
   it('persists platform alongside id and name', async () => {
     const athomApi = new AthomApi();
     const settingsSet = mock.method(Settings, 'set', async (key, value) => {

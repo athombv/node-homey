@@ -127,20 +127,26 @@ export const builder = (yargs) => {
 
 export const handler = async (argv) => {
   try {
-    let context = await CliState.updateContext(argv.name, (existing) => {
-      return applyContextPatch(existing, argv);
-    });
+    let directToken = null;
+    let store = null;
 
     if (argv.tokenStdin) {
-      const token = await readStandardInput();
-      const store = argv.store ?? (await CliState.getDefaultCredentialStore());
+      directToken = await readStandardInput();
 
-      if (!token) {
+      if (!directToken) {
         throw new Error('No Homey token was provided on standard input.');
       }
 
-      context = await CliState.replaceContextDirectToken(argv.name, token, store);
+      store = argv.store ?? (await CliState.getDefaultCredentialStore());
     }
+
+    let context = await CliState.updateContext(
+      argv.name,
+      (existing) => {
+        return applyContextPatch(existing, argv);
+      },
+      directToken ? { directToken, store } : {},
+    );
 
     if (argv.refresh) {
       context = await refreshContextTargetMetadata(argv.name);

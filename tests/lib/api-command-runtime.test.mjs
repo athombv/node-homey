@@ -3,7 +3,9 @@ import { afterEach, describe, it, mock } from 'node:test';
 
 import { APIErrorHomeyOffline, HomeyAPI, HomeyAPIV3Local } from 'homey-api';
 
+import AuthenticationProfiles from '../../services/AuthenticationProfiles.js';
 import AthomApi from '../../services/AthomApi.js';
+import CliState from '../../services/CliState.js';
 import { createHomeyApiClient, diagnoseHomeyStrategies } from '../../lib/api/ApiCommandRuntime.mjs';
 
 afterEach(() => {
@@ -139,6 +141,133 @@ describe('ApiCommandRuntime createHomeyApiClient', () => {
         }),
       /does not expose a usable local address for token mode/,
     );
+  });
+
+  it('does not inherit a context Homey id for an explicit token and address', async () => {
+    mock.method(CliState, 'resolveContextSelection', async () => {
+      return {
+        name: 'lab',
+        source: 'current',
+        context: {
+          target: { homeyId: 'context-homey' },
+          authenticationProfile: 'work',
+          route: { type: 'discovery', strategies: ['cloud'] },
+        },
+        health: { status: 'ready', reasons: [] },
+        state: {
+          authenticationProfiles: {
+            profiles: {
+              work: {
+                credentialSource: { type: 'patEnvironment', variable: 'WORK_PAT' },
+              },
+            },
+          },
+        },
+      };
+    });
+    mock.method(CliState, 'resolveDirectToken', async () => {
+      return null;
+    });
+
+    const api = await createHomeyApiClient({
+      context: 'lab',
+      auth: 'auto',
+      token: 'explicit-token',
+      address: 'http://127.0.0.1:1234',
+    });
+
+    assert.strictEqual(api.id, 'token-homey');
+    assert.strictEqual(await api.baseUrl, 'http://127.0.0.1:1234');
+  });
+
+  it('rejects a USB-only direct context when no USB connection is available', async () => {
+    mock.method(CliState, 'resolveContextSelection', async () => {
+      return {
+        name: 'usb-lab',
+        source: 'current',
+        context: {
+          target: { homeyId: 'homey-1' },
+          authenticationProfile: 'work',
+          homeyAuthentication: { source: 'environment', variable: 'HOMEY_TOKEN_LAB' },
+          route: { type: 'usb' },
+        },
+        health: { status: 'ready', reasons: [] },
+        state: {
+          authenticationProfiles: {
+            profiles: {
+              work: {
+                credentialSource: { type: 'patEnvironment', variable: 'WORK_PAT' },
+              },
+            },
+          },
+        },
+      };
+    });
+    mock.method(CliState, 'resolveDirectToken', async () => {
+      return 'direct-token';
+    });
+    mock.method(AuthenticationProfiles, 'getClient', async () => {
+      return {
+        getHomey: async () => {
+          return {
+            id: 'homey-1',
+            name: 'No USB Homey',
+            localUrl: 'http://192.168.1.20',
+            usb: null,
+          };
+        },
+      };
+    });
+
+    await assert.rejects(
+      () => createHomeyApiClient({ context: 'usb-lab', auth: 'auto' }),
+      /No USB connection was found for No USB Homey/,
+    );
+  });
+
+  it('passes a direct context discovery allow-list to homey-api', async () => {
+    mock.method(CliState, 'resolveContextSelection', async () => {
+      return {
+        name: 'cloud-lab',
+        source: 'current',
+        context: {
+          target: { homeyId: 'homey-1' },
+          authenticationProfile: 'work',
+          homeyAuthentication: { source: 'environment', variable: 'HOMEY_TOKEN_LAB' },
+          route: { type: 'discovery', strategies: ['cloud'] },
+        },
+        health: { status: 'ready', reasons: [] },
+        state: {
+          authenticationProfiles: {
+            profiles: {
+              work: {
+                credentialSource: { type: 'patEnvironment', variable: 'WORK_PAT' },
+              },
+            },
+          },
+        },
+      };
+    });
+    mock.method(CliState, 'resolveDirectToken', async () => {
+      return 'direct-token';
+    });
+    mock.method(AuthenticationProfiles, 'getClient', async () => {
+      return {
+        getHomey: async () => {
+          return {
+            id: 'homey-1',
+            name: 'Cloud-routed Homey',
+            remoteUrl: 'https://cloud.example',
+            usb: '10.0.0.1',
+          };
+        },
+      };
+    });
+
+    const api = await createHomeyApiClient({ context: 'cloud-lab', auth: 'auto' });
+
+    assert.deepStrictEqual(api.__strategies, ['cloud']);
+    assert.strictEqual(api.__baseUrlPromise, null);
   });
 });
 

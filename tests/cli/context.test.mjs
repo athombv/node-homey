@@ -209,6 +209,38 @@ describe('CLI contexts', () => {
     assert.match(JSON.parse(result.stderr).error, /Context does not exist: missing/);
   });
 
+  it('does not persist other patches when token input validation fails', (t) => {
+    const homeyHome = createIsolatedHomeyHome();
+    t.after(() => removeHomeyHome(homeyHome));
+
+    const createResult = runHomey(
+      [
+        'context',
+        'create',
+        'lab',
+        '--description',
+        'before',
+        '--homey-id',
+        'homey-1',
+        '--auth-profile',
+        'work',
+      ],
+      homeyHome,
+    );
+    assertSuccess(createResult, 'homey context create lab');
+
+    const updateResult = runHomey(
+      ['context', 'update', 'lab', '--description', 'after', '--token-stdin'],
+      homeyHome,
+      { input: '' },
+    );
+    assertFailure(updateResult, 'homey context update lab --token-stdin');
+    assert.match(updateResult.stderr, /No Homey token was provided/);
+
+    const context = JSON.parse(runHomey(['context', 'inspect', 'lab', '--json'], homeyHome).stdout);
+    assert.strictEqual(context.description, 'before');
+  });
+
   it('uses a direct environment-backed context for API commands', async (t) => {
     const homeyHome = createIsolatedHomeyHome();
     t.after(() => removeHomeyHome(homeyHome));

@@ -95,7 +95,13 @@ describe('CLI api raw', () => {
   });
 
   it('executes a raw request in token mode and supports include/verbose output', async (t) => {
-    const homeyHome = createIsolatedHomeyHome();
+    const homeyHome = createIsolatedHomeyHome({
+      activeHomey: {
+        id: 'legacy-homey',
+        name: 'Legacy Homey',
+        platform: 'local',
+      },
+    });
     t.after(() => removeHomeyHome(homeyHome));
 
     const serverScript = `

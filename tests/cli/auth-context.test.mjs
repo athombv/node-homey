@@ -37,6 +37,34 @@ function createContextSettings() {
 }
 
 describe('CLI authentication profiles', () => {
+  it('removes legacy file credentials when migrating the default profile', (t) => {
+    const homeyHome = createIsolatedHomeyHome({
+      homeyApi: {
+        token: {
+          access_token: 'legacy-access-token',
+        },
+      },
+    });
+    t.after(() => removeHomeyHome(homeyHome));
+
+    const migrateResult = runHomey(
+      ['auth', 'migrate', 'default', '--to', 'settings', '--json'],
+      homeyHome,
+    );
+    assertSuccess(migrateResult, 'homey auth migrate default --to settings');
+
+    const settings = JSON.parse(fs.readFileSync(`${homeyHome}/settings.json`, 'utf8'));
+    assert.strictEqual(settings.homeyApi, null);
+    assert.strictEqual(Object.values(settings.credentials.entries).length, 1);
+
+    const removeResult = runHomey(['auth', 'remove', 'default', '--json'], homeyHome);
+    assertSuccess(removeResult, 'homey auth remove default');
+
+    const inspectResult = runHomey(['auth', 'inspect', 'default', '--json'], homeyHome);
+    assert.notStrictEqual(inspectResult.status, 0);
+    assert.match(inspectResult.stderr, /Authentication profile does not exist/);
+  });
+
   it('renames profile references atomically and redacts environment values', (t) => {
     const homeyHome = createIsolatedHomeyHome(createContextSettings());
     t.after(() => removeHomeyHome(homeyHome));

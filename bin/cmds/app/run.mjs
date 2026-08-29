@@ -1,10 +1,10 @@
 import Log from '../../../lib/Log.js';
 import AppFactory from '../../../lib/AppFactory.js';
+import { shouldUseContextResolution } from '../../../lib/EffectiveContextResolver.mjs';
 import { createHomeyApiClient } from '../../../lib/api/ApiCommandRuntime.mjs';
 
 async function resolveHomey(argv) {
-  const usesContextResolution =
-    argv.context !== undefined || argv.auth !== undefined || Boolean(process.env.HOMEY_CONTEXT);
+  const usesContextResolution = await shouldUseContextResolution(argv);
 
   if (!usesContextResolution) {
     return null;

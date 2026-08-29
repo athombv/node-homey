@@ -1,10 +1,12 @@
 import Log from '../../../lib/Log.js';
 import AppFactory from '../../../lib/AppFactory.js';
-import { resolveEffectiveContext } from '../../../lib/EffectiveContextResolver.mjs';
+import {
+  resolveEffectiveContext,
+  shouldUseContextResolution,
+} from '../../../lib/EffectiveContextResolver.mjs';
 
 async function resolveAccountClient(argv) {
-  const usesContextResolution =
-    argv.context !== undefined || argv.auth !== undefined || Boolean(process.env.HOMEY_CONTEXT);
+  const usesContextResolution = await shouldUseContextResolution(argv);
 
   if (!usesContextResolution) {
     return null;
