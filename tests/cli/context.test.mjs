@@ -277,6 +277,7 @@ describe('CLI contexts', () => {
         `http://127.0.0.1:${port}`,
         '--token-env',
         'HOMEY_TOKEN_LAB',
+        '--check',
         '--use',
       ],
       homeyHome,
@@ -290,6 +291,24 @@ describe('CLI contexts', () => {
     });
     assertSuccess(diagnoseResult, 'homey context diagnose direct --json');
     assert.strictEqual(JSON.parse(diagnoseResult.stdout).authentication, 'homey');
+
+    const humanDiagnoseResult = runHomey(['context', 'diagnose', 'direct'], homeyHome, {
+      env,
+      timeout: 2000,
+    });
+    assertSuccess(humanDiagnoseResult, 'homey context diagnose direct');
+    assert.match(humanDiagnoseResult.stdout, /Context direct connected/);
+
+    const missingDiagnoseResult = runHomey(
+      ['context', 'diagnose', 'missing', '--json'],
+      homeyHome,
+      {
+        env,
+        timeout: 2000,
+      },
+    );
+    assertFailure(missingDiagnoseResult, 'homey context diagnose missing');
+    assert.match(JSON.parse(missingDiagnoseResult.stderr).error, /does not exist/);
 
     const apiResult = runHomey(['api', 'system', 'get-info', '--json'], homeyHome, {
       env,

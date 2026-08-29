@@ -32,6 +32,13 @@ Run the same suite with production coverage and the repository coverage threshol
 npm run test:coverage
 ```
 
+Run the context and authentication feature suite with its stricter coverage gate (100% lines and
+functions, at least 95% branches):
+
+```bash
+npm run test:coverage:context
+```
+
 The app lifecycle tests copy the example apps in `tests/fixtures/apps` to temporary directories
 before building or modifying them.
 
