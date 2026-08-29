@@ -2,6 +2,7 @@ import assert from 'node:assert';
 import { describe, it } from 'node:test';
 
 import AppFactory from '../../lib/AppFactory.js';
+import AuthenticationProfiles from '../../services/AuthenticationProfiles.js';
 import CliState from '../../services/CliState.js';
 import Log from '../../lib/Log.js';
 import AthomApi from '../../services/AthomApi.js';
@@ -63,6 +64,55 @@ function mockLegacyContextResolution(t) {
       },
     };
   });
+}
+
+function mockNamedContextResolution(t) {
+  const homeyApi = { id: 'context-homey-api' };
+  const accountClient = {
+    getHomey: async (homeyId) => {
+      assert.strictEqual(homeyId, 'context-homey');
+
+      return {
+        id: 'context-homey',
+        platform: 'local',
+        authenticate: async () => {
+          return homeyApi;
+        },
+      };
+    },
+  };
+  const resolveContextSelection = t.mock.method(CliState, 'resolveContextSelection', async () => {
+    return {
+      name: 'lab',
+      source: 'current',
+      context: {
+        target: { homeyId: 'context-homey' },
+        authenticationProfile: 'work',
+        route: { type: 'discovery', strategies: ['cloud'] },
+      },
+      health: { status: 'ready', reasons: [] },
+      state: {
+        authenticationProfiles: {
+          profiles: {
+            work: {
+              credentialSource: { type: 'patEnvironment', variable: 'WORK_PAT' },
+            },
+          },
+        },
+      },
+    };
+  });
+
+  t.mock.method(CliState, 'resolveDirectToken', async () => {
+    return null;
+  });
+  t.mock.method(AuthenticationProfiles, 'getClient', async (profileName) => {
+    assert.strictEqual(profileName, 'work');
+
+    return accountClient;
+  });
+
+  return { accountClient, homeyApi, resolveContextSelection };
 }
 
 describe('CLI app handler characterization', () => {
@@ -207,6 +257,66 @@ describe('CLI app handler characterization', () => {
     });
 
     assert.deepStrictEqual(calls, [{ dockerSocketPath: '/tmp/docker.sock', findLinks: '/wheels' }]);
+    assert.deepStrictEqual(exits, [0]);
+  });
+
+  it('runs an app against the persisted named context', async (t) => {
+    const { homeyApi, resolveContextSelection } = mockNamedContextResolution(t);
+    const exits = captureExit(t);
+    let receivedOptions = null;
+
+    t.mock.method(AppFactory, 'getAppInstance', () => {
+      return {
+        async run(options) {
+          receivedOptions = options;
+        },
+      };
+    });
+
+    await runHandler({ path: '/fixture/app', auth: 'auto' });
+
+    assert.strictEqual(receivedOptions.homey, homeyApi);
+    assert.strictEqual(resolveContextSelection.mock.callCount(), 1);
+    assert.deepStrictEqual(exits, []);
+  });
+
+  it('installs an app against the persisted named context', async (t) => {
+    const { homeyApi, resolveContextSelection } = mockNamedContextResolution(t);
+    const exits = captureExit(t);
+    let receivedOptions = null;
+
+    t.mock.method(AppFactory, 'getAppInstance', () => {
+      return {
+        async install(options) {
+          receivedOptions = options;
+        },
+      };
+    });
+
+    await installHandler({ path: '/fixture/app', auth: 'auto' });
+
+    assert.strictEqual(receivedOptions.homey, homeyApi);
+    assert.strictEqual(resolveContextSelection.mock.callCount(), 1);
+    assert.deepStrictEqual(exits, [0]);
+  });
+
+  it('publishes an app with the persisted named context account', async (t) => {
+    const { accountClient, resolveContextSelection } = mockNamedContextResolution(t);
+    const exits = captureExit(t);
+    let receivedOptions = null;
+
+    t.mock.method(AppFactory, 'getAppInstance', () => {
+      return {
+        async publish(options) {
+          receivedOptions = options;
+        },
+      };
+    });
+
+    await publishHandler({ path: '/fixture/app', auth: 'auto' });
+
+    assert.strictEqual(receivedOptions.athomApi, accountClient);
+    assert.strictEqual(resolveContextSelection.mock.callCount(), 1);
     assert.deepStrictEqual(exits, [0]);
   });
 

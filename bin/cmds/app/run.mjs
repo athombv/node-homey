@@ -1,19 +1,22 @@
 import Log from '../../../lib/Log.js';
 import AppFactory from '../../../lib/AppFactory.js';
-import { shouldUseContextResolution } from '../../../lib/EffectiveContextResolver.mjs';
+import { resolveCommandContext } from '../../../lib/EffectiveContextResolver.mjs';
 import { createHomeyApiClient } from '../../../lib/api/ApiCommandRuntime.mjs';
 
 async function resolveHomey(argv) {
-  const usesContextResolution = await shouldUseContextResolution(argv);
+  const commandContext = await resolveCommandContext(argv, { scope: 'homey' });
 
-  if (!usesContextResolution) {
+  if (!commandContext.usesContextResolution) {
     return null;
   }
 
-  return await createHomeyApiClient({
-    context: argv.context,
-    auth: argv.auth,
-  });
+  return await createHomeyApiClient(
+    {
+      context: argv.context,
+      auth: argv.auth,
+    },
+    { commandContext },
+  );
 }
 
 export const desc = 'Run a Homey App in development mode';

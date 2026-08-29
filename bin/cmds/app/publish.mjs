@@ -1,18 +1,13 @@
 import Log from '../../../lib/Log.js';
 import AppFactory from '../../../lib/AppFactory.js';
-import {
-  resolveEffectiveContext,
-  shouldUseContextResolution,
-} from '../../../lib/EffectiveContextResolver.mjs';
+import { resolveCommandContext } from '../../../lib/EffectiveContextResolver.mjs';
 
 async function resolveAccountClient(argv) {
-  const usesContextResolution = await shouldUseContextResolution(argv);
+  const resolution = await resolveCommandContext(argv, { scope: 'account' });
 
-  if (!usesContextResolution) {
+  if (!resolution.usesContextResolution) {
     return null;
   }
-
-  const resolution = await resolveEffectiveContext(argv, { scope: 'account' });
 
   return resolution.accountClient;
 }

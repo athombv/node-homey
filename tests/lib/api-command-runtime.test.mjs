@@ -13,6 +13,51 @@ afterEach(() => {
 });
 
 describe('ApiCommandRuntime createHomeyApiClient', () => {
+  it('resolves a named current context only once', async () => {
+    const authenticatedApi = {};
+    const resolveContextSelection = mock.method(CliState, 'resolveContextSelection', async () => {
+      return {
+        name: 'lab',
+        source: 'current',
+        context: {
+          target: { homeyId: 'context-homey' },
+          authenticationProfile: 'work',
+          route: { type: 'discovery', strategies: ['cloud'] },
+        },
+        health: { status: 'ready', reasons: [] },
+        state: {
+          authenticationProfiles: {
+            profiles: {
+              work: {
+                credentialSource: { type: 'patEnvironment', variable: 'WORK_PAT' },
+              },
+            },
+          },
+        },
+      };
+    });
+    mock.method(CliState, 'resolveDirectToken', async () => {
+      return null;
+    });
+    mock.method(AuthenticationProfiles, 'getClient', async () => {
+      return {
+        getHomey: async () => {
+          return {
+            id: 'context-homey',
+            authenticate: async () => {
+              return authenticatedApi;
+            },
+          };
+        },
+      };
+    });
+
+    const result = await createHomeyApiClient({ auth: 'auto' });
+
+    assert.strictEqual(result, authenticatedApi);
+    assert.strictEqual(resolveContextSelection.mock.callCount(), 1);
+  });
+
   it('authenticates the requested Homey id instead of the selected Homey', async () => {
     const authenticatedApi = {};
     const authenticateCalls = [];
@@ -149,7 +194,11 @@ describe('ApiCommandRuntime createHomeyApiClient', () => {
         name: 'lab',
         source: 'current',
         context: {
-          target: { homeyId: 'context-homey' },
+          target: {
+            homeyId: 'context-homey',
+            name: 'Context Homey',
+            platform: 'local',
+          },
           authenticationProfile: 'work',
           route: { type: 'discovery', strategies: ['cloud'] },
         },
@@ -178,6 +227,11 @@ describe('ApiCommandRuntime createHomeyApiClient', () => {
 
     assert.strictEqual(api.id, 'token-homey');
     assert.strictEqual(await api.baseUrl, 'http://127.0.0.1:1234');
+    assert.deepStrictEqual(api.__homeyCliEffectiveContext.target, {
+      homeyId: null,
+      name: null,
+      platform: null,
+    });
   });
 
   it('rejects a USB-only direct context when no USB connection is available', async () => {

@@ -3,7 +3,7 @@ import {
   logManagementError,
   printAuthenticationProfile,
 } from '../../../lib/ContextCommandSupport.mjs';
-import CliState from '../../../services/CliState.js';
+import AuthenticationProfiles from '../../../services/AuthenticationProfiles.js';
 
 export const command = 'migrate <profile>';
 export const desc = 'Explicitly migrate persistent OAuth credential storage';
@@ -20,7 +20,16 @@ export const builder = (yargs) => {
 
 export const handler = async (argv) => {
   try {
-    const profile = await CliState.migrateAuthenticationProfile(argv.profile, argv.to);
+    const { profile, identityError } = await AuthenticationProfiles.migrateAuthenticationProfile(
+      argv.profile,
+      argv.to,
+    );
+
+    if (identityError) {
+      console.error(
+        `Warning: credentials were migrated, but account identity could not be verified: ${identityError.message ?? String(identityError)}`,
+      );
+    }
 
     printAuthenticationProfile(profile, argv);
     process.exit(0);

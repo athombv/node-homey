@@ -124,6 +124,9 @@ created afterward with `homey auth storage keychain`, or select a backend per lo
 token with `--store settings|keychain`. Use `homey auth migrate <profile> --to <backend>` for an
 explicit migration; changing the default never migrates existing credentials.
 
+Migration makes a non-interactive best-effort attempt to verify account identity. If Athom Cloud is
+unavailable, the credential move still succeeds and reports that identity metadata remains unknown.
+
 ## Homey API CLI
 
 Use `homey api` for direct Homey API access.

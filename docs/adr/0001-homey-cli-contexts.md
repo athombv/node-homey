@@ -63,7 +63,9 @@ Homey through different accounts or connection policies.
 
 Each authentication profile has a user-chosen, user-global unique name. After authentication, the
 profile stores the canonical Athom account ID as verified identity metadata. Email address and
-display name are descriptive metadata and may change without changing profile identity.
+display name are descriptive metadata and may change without changing profile identity. A legacy
+profile may initially lack identity metadata because the old settings contain credentials but no
+account record.
 
 Authentication profiles support two credential-source kinds:
 
@@ -218,7 +220,14 @@ When no explicit, environment, persisted, or legacy context resolves for a targe
 
 An explicit `--homey-id`, `--address`, or `--token` overlays the corresponding field from the
 resolved context. Existing option-combination validation still applies after the overlay. Explicit
-flags do not cause the CLI to ignore the context's remaining authentication or connection data.
+flags do not otherwise cause the CLI to ignore the context's remaining authentication or connection
+data.
+
+An explicit `--token` and `--address` pair is a complete direct target override. It discards an
+inherited Homey ID plus its cached name and platform metadata before validation. An explicit
+`--token` and `--homey-id` pair similarly discards an inherited configured address. These pairwise
+rules prevent an explicit target from becoming invalid only because the selected context supplied
+the mutually exclusive target field.
 
 ### Effective context lifetime
 
@@ -333,6 +342,11 @@ Legacy authentication and selection are exposed lazily through compatibility ada
 - help, completion, and unrelated local commands perform no migration writes;
 - versioned state is materialized only when authentication/context state is mutated;
 - legacy compatibility commands keep their existing keys synchronized where necessary.
+
+An explicit authentication migration tries to resolve canonical account identity with the existing
+credentials before moving them. The lookup is non-interactive. If Athom Cloud is unavailable or the
+lookup otherwise fails, migration continues, preserves null identity metadata, and writes a warning
+to stderr. A later successful login may populate the missing identity.
 
 ### Legacy account-scoped commands
 

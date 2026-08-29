@@ -1,4 +1,5 @@
 import assert from 'node:assert';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import { describe, it } from 'node:test';
 
@@ -47,15 +48,31 @@ describe('CLI authentication profiles', () => {
     });
     t.after(() => removeHomeyHome(homeyHome));
 
-    const migrateResult = runHomey(
-      ['auth', 'migrate', 'default', '--to', 'settings', '--json'],
-      homeyHome,
+    const migrateResult = spawnSync(
+      process.execPath,
+      [
+        '-e',
+        "require('./services/CliState').migrateAuthenticationProfile('default', 'settings', { accountId: 'account-1', email: 'developer@example.com', displayName: 'Homey Developer' }).catch((err) => { console.error(err); process.exitCode = 1; });",
+      ],
+      {
+        cwd: process.cwd(),
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          HOMEY_HOME: homeyHome,
+        },
+      },
     );
-    assertSuccess(migrateResult, 'homey auth migrate default --to settings');
+    assertSuccess(migrateResult, 'CliState.migrateAuthenticationProfile');
 
     const settings = JSON.parse(fs.readFileSync(`${homeyHome}/settings.json`, 'utf8'));
     assert.strictEqual(settings.homeyApi, null);
     assert.strictEqual(Object.values(settings.credentials.entries).length, 1);
+    assert.strictEqual(settings.authenticationProfiles.profiles.default.accountId, 'account-1');
+    assert.strictEqual(
+      settings.authenticationProfiles.profiles.default.email,
+      'developer@example.com',
+    );
 
     const removeResult = runHomey(['auth', 'remove', 'default', '--json'], homeyHome);
     assertSuccess(removeResult, 'homey auth remove default');
