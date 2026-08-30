@@ -8,10 +8,18 @@ import Settings from '../../services/Settings.js';
 function createFixture(t, initialSettings = {}) {
   let settings = structuredClone(initialSettings);
   const keychain = new Map();
+  let nextGetFailure = null;
   let nextUpdateFailure = null;
+  let nextKeychainRemovalFailure = null;
   let beforeNextUpdate = null;
 
   t.mock.method(Settings, 'get', async (key) => {
+    if (nextGetFailure) {
+      const error = nextGetFailure;
+      nextGetFailure = null;
+      throw error;
+    }
+
     return structuredClone(settings[key]);
   });
   t.mock.method(Settings, 'update', async (updater) => {
@@ -36,6 +44,12 @@ function createFixture(t, initialSettings = {}) {
     keychain.set(credentialId, structuredClone(credential));
   });
   t.mock.method(OperatingSystemCredentialStore, 'remove', async (credentialId) => {
+    if (nextKeychainRemovalFailure) {
+      const error = nextKeychainRemovalFailure;
+      nextKeychainRemovalFailure = null;
+      throw error;
+    }
+
     keychain.delete(credentialId);
   });
 
@@ -47,6 +61,12 @@ function createFixture(t, initialSettings = {}) {
     keychain,
     failNextUpdate(error) {
       nextUpdateFailure = error;
+    },
+    failNextGet(error) {
+      nextGetFailure = error;
+    },
+    failNextKeychainRemoval(error) {
+      nextKeychainRemovalFailure = error;
     },
     beforeUpdate(callback) {
       beforeNextUpdate = callback;
@@ -826,6 +846,71 @@ describe('CliStateRepository authentication profiles', () => {
     assert.strictEqual(fixture.keychain.has(discardedKeychain.credentialId), false);
   });
 
+  it('keeps a committed OAuth credential when previous keychain cleanup fails', async (t) => {
+    const cleanupError = new Error('keychain cleanup failed');
+    const fixture = createFixture(t, {
+      authenticationProfiles: {
+        schemaVersion: 1,
+        profiles: {
+          work: {
+            accountId: 'account-1',
+            credentialSource: {
+              type: 'oauth',
+              credentialId: 'old-keychain-id',
+              store: 'keychain',
+            },
+          },
+        },
+      },
+    });
+    fixture.keychain.set('old-keychain-id', {
+      kind: 'oauth',
+      value: { token: { access_token: 'old-token' } },
+    });
+    const source = await fixture.repository.prepareOAuthAuthenticationProfile('work', 'settings');
+    fixture.failNextKeychainRemoval(cleanupError);
+
+    const completed = await fixture.repository.completeOAuthAuthenticationProfile('work', source, {
+      accountId: 'account-1',
+    });
+
+    assert.strictEqual(completed.cleanupError, cleanupError);
+    assert.deepStrictEqual(completed.profile.credentialSource, source);
+    assert.deepStrictEqual(
+      fixture.settings.authenticationProfiles.profiles.work.credentialSource,
+      source,
+    );
+    assert.ok(fixture.settings.credentials.entries[source.credentialId]);
+    assert.strictEqual(fixture.keychain.has('old-keychain-id'), true);
+  });
+
+  it('marks a post-commit OAuth profile read failure as committed', async (t) => {
+    const readError = new Error('settings read failed');
+    const fixture = createFixture(t);
+    const source = await fixture.repository.prepareOAuthAuthenticationProfile('work', 'settings');
+    fixture.beforeUpdate(() => {
+      fixture.failNextGet(readError);
+    });
+
+    await assert.rejects(
+      () =>
+        fixture.repository.completeOAuthAuthenticationProfile('work', source, {
+          accountId: 'account-1',
+        }),
+      (error) => {
+        assert.strictEqual(error.authenticationProfileCommitted, true);
+        assert.strictEqual(error.cause, readError);
+        return true;
+      },
+    );
+
+    assert.deepStrictEqual(
+      fixture.settings.authenticationProfiles.profiles.work.credentialSource,
+      source,
+    );
+    assert.ok(fixture.settings.credentials.entries[source.credentialId]);
+  });
+
   it('rejects missing profile lifecycle operations and duplicate renames', async (t) => {
     const fixture = createFixture(t);
     await fixture.repository.saveAuthenticationProfile('one', {
@@ -1058,11 +1143,20 @@ describe('CliStateRepository context resolution', () => {
     await fixture.repository.useContext('current');
     process.env.HOMEY_CONTEXT = 'environment';
 
+    await assert.rejects(
+      () => fixture.repository.resolveContextSelection(''),
+      /Invalid context name/,
+    );
     assert.strictEqual(
       (await fixture.repository.resolveContextSelection('explicit')).source,
       'argument',
     );
     assert.strictEqual((await fixture.repository.resolveContextSelection()).name, 'environment');
+    process.env.HOMEY_CONTEXT = '';
+    await assert.rejects(
+      () => fixture.repository.resolveContextSelection(),
+      /Invalid context name/,
+    );
     delete process.env.HOMEY_CONTEXT;
     assert.strictEqual((await fixture.repository.resolveContextSelection()).source, 'current');
     await fixture.repository.clearCurrentContext();

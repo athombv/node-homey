@@ -333,6 +333,36 @@ describe('AuthenticationProfileRegistry login and logout', () => {
     );
   });
 
+  it('rejects login responses without a canonical account ID', async (t) => {
+    const originalPat = process.env.WORK_PAT;
+    t.after(() => {
+      if (originalPat === undefined) delete process.env.WORK_PAT;
+      else process.env.WORK_PAT = originalPat;
+    });
+    process.env.WORK_PAT = 'secret';
+    const source = { type: 'oauth', credentialId: 'credential-1', store: 'settings' };
+    mock.method(AthomApi.prototype, 'getProfile', async () => ({
+      email: 'developer@example.com',
+    }));
+    const createProfile = mock.method(CliState, 'createPatAuthenticationProfile', async () => {});
+    mock.method(CliState, 'prepareOAuthAuthenticationProfile', async () => source);
+    mock.method(AthomApi.prototype, 'login', async () => {});
+    const completeProfile = mock.method(
+      CliState,
+      'completeOAuthAuthenticationProfile',
+      async () => {},
+    );
+    const discardCredential = mock.method(CliState, 'discardOAuthCredential', async () => {});
+    const registry = new AuthenticationProfileRegistry();
+
+    await assert.rejects(() => registry.loginWithPat('work', 'WORK_PAT'), /canonical account ID/);
+    await assert.rejects(() => registry.loginWithOAuth('work'), /canonical account ID/);
+
+    assert.strictEqual(createProfile.mock.callCount(), 0);
+    assert.strictEqual(completeProfile.mock.callCount(), 0);
+    assert.strictEqual(discardCredential.mock.callCount(), 1);
+  });
+
   it('completes OAuth login and discards prepared credentials on failure', async () => {
     const source = { type: 'oauth', credentialId: 'credential-1', store: 'settings' };
     mock.method(CliState, 'prepareOAuthAuthenticationProfile', async () => source);
@@ -360,6 +390,38 @@ describe('AuthenticationProfileRegistry login and logout', () => {
     });
     await assert.rejects(() => registry.loginWithOAuth('broken'), failure);
     assert.strictEqual(discard.mock.callCount(), 1);
+
+    const committedFailure = Object.assign(new Error('post-commit read failed'), {
+      authenticationProfileCommitted: true,
+    });
+    getProfile.mock.mockImplementation(async () => ({ id: 'account-1' }));
+    complete.mock.mockImplementation(async () => {
+      throw committedFailure;
+    });
+    await assert.rejects(() => registry.loginWithOAuth('committed'), committedFailure);
+    assert.strictEqual(discard.mock.callCount(), 1);
+  });
+
+  it('warns without failing when an obsolete keychain credential cannot be removed', async (t) => {
+    const source = { type: 'oauth', credentialId: 'credential-1', store: 'settings' };
+    const errors = [];
+    mock.method(CliState, 'prepareOAuthAuthenticationProfile', async () => source);
+    mock.method(AthomApi.prototype, 'login', async () => {});
+    mock.method(AthomApi.prototype, 'getProfile', async () => ({ id: 'account-1' }));
+    mock.method(CliState, 'completeOAuthAuthenticationProfile', async () => ({
+      cleanupError: new Error('keychain unavailable'),
+    }));
+    const discard = mock.method(CliState, 'discardOAuthCredential', async () => {});
+    t.mock.method(console, 'error', (...values) => {
+      errors.push(values.join(' '));
+    });
+    const registry = new AuthenticationProfileRegistry();
+
+    await registry.loginWithOAuth('work');
+
+    assert.strictEqual(discard.mock.callCount(), 0);
+    assert.match(errors[0], /previous keychain credential could not be removed/);
+    assert.match(errors[0], /keychain unavailable/);
   });
 
   it('rejects logout for missing and PAT profiles', async () => {
@@ -380,10 +442,23 @@ describe('AuthenticationProfileRegistry login and logout', () => {
   it('logs out legacy and named OAuth profiles and evicts cached clients', async () => {
     const entries = [
       { profile: { credentialSource: { type: 'oauth', legacy: true } } },
-      { profile: { credentialSource: { type: 'oauth', credentialId: 'id', store: 'settings' } } },
-      { profile: { credentialSource: { type: 'oauth', credentialId: 'id', store: 'settings' } } },
+      {
+        profile: {
+          accountId: 'account-1',
+          credentialSource: { type: 'oauth', credentialId: 'id', store: 'settings' },
+        },
+      },
+      {
+        profile: {
+          accountId: 'account-1',
+          credentialSource: { type: 'oauth', credentialId: 'id', store: 'settings' },
+        },
+      },
     ];
     mock.method(CliState, 'getAuthenticationProfile', async () => entries.shift());
+    const getProfile = mock.method(AthomApi.prototype, 'getProfile', async () => {
+      throw new Error('logout must not verify identity');
+    });
     const logout = mock.method(AthomApi.prototype, 'logout', async () => {});
     const markLoggedOut = mock.method(
       CliState,
@@ -396,6 +471,7 @@ describe('AuthenticationProfileRegistry login and logout', () => {
     await registry.logout('work');
 
     assert.strictEqual(logout.mock.callCount(), 2);
+    assert.strictEqual(getProfile.mock.callCount(), 0);
     assert.strictEqual(markLoggedOut.mock.callCount(), 2);
   });
 });

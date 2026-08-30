@@ -224,6 +224,57 @@ describe('EffectiveContextResolver', () => {
     );
   });
 
+  it('rejects unusable requested capabilities before creating an account client', async (t) => {
+    const selections = [
+      selection({
+        context: {
+          target: { homeyId: 'homey-1' },
+          authenticationProfile: 'work',
+          homeyAuthentication: { source: 'environment', variable: 'HOMEY_TOKEN' },
+          route: { type: 'discovery', strategies: ['cloud'] },
+        },
+        health: {
+          status: 'degraded',
+          capabilities: { account: false, homey: true },
+          reasons: ['Account authentication: stored credentials are missing.'],
+        },
+      }),
+      selection({
+        context: {
+          target: { homeyId: 'homey-1' },
+          authenticationProfile: 'work',
+          homeyAuthentication: { source: 'stored', credentialId: 'broken', store: 'settings' },
+          route: { type: 'discovery', strategies: ['cloud'] },
+        },
+        health: {
+          status: 'degraded',
+          capabilities: { account: true, homey: false },
+          reasons: ['Direct Homey authentication: stored credentials are missing.'],
+        },
+      }),
+    ];
+    const tokens = ['direct-token', 'wrong-kind-token'];
+    t.mock.method(CliState, 'resolveContextSelection', async () => {
+      return selections.shift();
+    });
+    t.mock.method(CliState, 'resolveDirectToken', async () => {
+      return tokens.shift();
+    });
+    const getClient = t.mock.method(AuthenticationProfiles, 'getClient', async () => ({
+      id: 'client',
+    }));
+
+    await assert.rejects(
+      () => resolveEffectiveContext({}, { scope: 'account' }),
+      /no usable account authentication.*stored credentials are missing/,
+    );
+    await assert.rejects(
+      () => resolveEffectiveContext({ auth: 'homey' }),
+      /no usable direct Homey authentication.*stored credentials are missing/,
+    );
+    assert.strictEqual(getClient.mock.callCount(), 0);
+  });
+
   it('rejects missing direct credentials and missing Homey targets', async (t) => {
     mockSelection(
       t,
