@@ -18,10 +18,9 @@ export const handler = async (argv = {}) => {
       contextName: argv.context,
     });
     const profile = await CliState.getAuthenticationProfile(profileName);
-    const source = profile?.profile.credentialSource;
-    const usesLegacyDefault = profileName === 'default' && (!source || source.legacy);
+    const usesUnprojectedLegacyDefault = profileName === 'default' && !profile;
 
-    if (usesLegacyDefault) {
+    if (usesUnprojectedLegacyDefault) {
       await AthomApi.logout();
     } else {
       await AuthenticationProfiles.logout(profileName);

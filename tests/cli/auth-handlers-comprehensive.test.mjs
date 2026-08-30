@@ -5,6 +5,8 @@ import inquirer from 'inquirer';
 
 import { AuthenticationProfiles } from '../../services/AuthenticationProfiles.mjs';
 import { CliState } from '../../services/CliState.mjs';
+import AthomApi from '../../services/AthomApi.js';
+import * as legacyLogoutCommand from '../../bin/cmds/logout.mjs';
 import * as authCommand from '../../bin/cmds/auth.mjs';
 import * as inspectCommand from '../../bin/cmds/auth/inspect.mjs';
 import * as loginCommand from '../../bin/cmds/auth/login.mjs';
@@ -86,6 +88,27 @@ describe('auth command builders', () => {
 });
 
 describe('auth command handlers', () => {
+  it('routes projected legacy logout through the profile registry', async (t) => {
+    const { exits } = captureProcess(t);
+    t.mock.method(AuthenticationProfiles, 'resolveProfileName', async () => 'default');
+    t.mock.method(CliState, 'getAuthenticationProfile', async () =>
+      authenticationProfile({
+        name: 'default',
+        profile: {
+          credentialSource: { type: 'oauth', legacy: true },
+        },
+      }),
+    );
+    const profileLogout = t.mock.method(AuthenticationProfiles, 'logout', async () => {});
+    const singletonLogout = t.mock.method(AthomApi, 'logout', async () => {});
+
+    await legacyLogoutCommand.handler();
+
+    assert.strictEqual(profileLogout.mock.callCount(), 1);
+    assert.strictEqual(singletonLogout.mock.callCount(), 0);
+    assert.deepStrictEqual(exits, [0]);
+  });
+
   it('inspects existing profiles and reports missing profiles', async (t) => {
     const { exits, logs, errors } = captureProcess(t);
     const getProfile = t.mock.method(CliState, 'getAuthenticationProfile', async () =>

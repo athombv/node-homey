@@ -119,9 +119,25 @@ describe('CliStateRepository contexts', () => {
     });
 
     const state = await fixture.repository.read();
+    const profile = await fixture.repository.getAuthenticationProfile('default');
 
     assert.strictEqual(state.contextState.current, null);
     assert.strictEqual(state.authenticationProfiles.profiles.default.authenticated, true);
+    assert.strictEqual(profile.usable, true);
+  });
+
+  it('does not treat an empty legacy login record as authenticated', async (t) => {
+    const fixture = createFixture(t, {
+      activeHomey: { id: 'legacy-homey', name: 'Legacy', platform: 'local' },
+      homeyApi: {},
+    });
+
+    const state = await fixture.repository.read();
+    const profile = await fixture.repository.getAuthenticationProfile('default');
+
+    assert.strictEqual(state.legacy.hasAuthentication, false);
+    assert.strictEqual(state.authenticationProfiles.profiles.default.authenticated, false);
+    assert.strictEqual(profile.usable, false);
   });
 
   it('rejects unsupported schemas and invalid identifiers', async (t) => {
@@ -428,6 +444,7 @@ describe('CliStateRepository contexts', () => {
     await fixture.repository.replaceContextDirectToken('lab', 'new-secret', 'settings');
 
     assert.strictEqual(fixture.keychain.has(oldCredentialId), false);
+    assert.strictEqual(fixture.settings.credentials.entries[oldCredentialId], undefined);
     await assert.rejects(
       () =>
         fixture.repository.updateContext('lab', (context) => context, {
@@ -521,6 +538,10 @@ describe('CliStateRepository contexts', () => {
     assert.strictEqual(
       fixture.keychain.has(keychainEntry.context.homeyAuthentication.credentialId),
       false,
+    );
+    assert.strictEqual(
+      fixture.settings.credentials.entries[keychainEntry.context.homeyAuthentication.credentialId],
+      undefined,
     );
   });
 
@@ -646,7 +667,7 @@ describe('CliStateRepository authentication profiles', () => {
     assert.match(byName.legacyMissing.reason, /legacy default login has no stored credentials/);
   });
 
-  it('derives legacy profile usability from the current legacy credentials', async (t) => {
+  it('keeps an explicitly logged-out legacy profile unusable', async (t) => {
     const fixture = createFixture(t, {
       homeyApi: { token: { access_token: 'legacy-token' } },
       authenticationProfiles: {
@@ -667,8 +688,8 @@ describe('CliStateRepository authentication profiles', () => {
 
     const profile = await fixture.repository.getAuthenticationProfile('default');
 
-    assert.strictEqual(profile.usable, true);
-    assert.strictEqual(profile.reason, null);
+    assert.strictEqual(profile.usable, false);
+    assert.match(profile.reason, /logged out/);
   });
 
   it('creates PAT profiles and protects canonical account identity', async (t) => {
@@ -730,7 +751,10 @@ describe('CliStateRepository authentication profiles', () => {
       credentials: {
         schemaVersion: 1,
         defaultStore: 'settings',
-        entries: { 'settings-id': { kind: 'oauth', value: {} } },
+        entries: {
+          'settings-id': { kind: 'oauth', value: {} },
+          'keychain-id': { kind: 'oauth', store: 'keychain' },
+        },
       },
     });
     fixture.keychain.set('keychain-id', { kind: 'oauth', value: {} });
@@ -756,6 +780,7 @@ describe('CliStateRepository authentication profiles', () => {
 
     assert.strictEqual(fixture.settings.credentials.entries['settings-id'], undefined);
     assert.strictEqual(fixture.keychain.has('keychain-id'), false);
+    assert.strictEqual(fixture.settings.credentials.entries['keychain-id'], undefined);
     assert.strictEqual(fixture.settings.homeyApi, null);
   });
 
@@ -788,6 +813,7 @@ describe('CliStateRepository authentication profiles', () => {
     );
     await fixture.repository.removeAuthenticationProfile('office');
     assert.strictEqual(fixture.keychain.has(source.credentialId), false);
+    assert.strictEqual(fixture.settings.credentials.entries[source.credentialId], undefined);
 
     const discarded = await fixture.repository.prepareOAuthAuthenticationProfile('discarded');
     await fixture.repository.discardOAuthCredential(discarded);
@@ -824,7 +850,10 @@ describe('CliStateRepository authentication profiles', () => {
       credentials: {
         schemaVersion: 1,
         defaultStore: 'settings',
-        entries: { 'settings-old': { kind: 'oauth', value: {} } },
+        entries: {
+          'settings-old': { kind: 'oauth', value: {} },
+          'keychain-old': { kind: 'oauth', store: 'keychain' },
+        },
       },
     });
     fixture.keychain.set('keychain-old', { kind: 'oauth', value: {} });
@@ -836,6 +865,7 @@ describe('CliStateRepository authentication profiles', () => {
 
     assert.strictEqual(fixture.settings.credentials.entries['settings-old'], undefined);
     assert.strictEqual(fixture.keychain.has('keychain-old'), false);
+    assert.strictEqual(fixture.settings.credentials.entries['keychain-old'], undefined);
     assert.strictEqual(fixture.settings.homeyApi, null);
 
     const discardedKeychain = await fixture.repository.prepareOAuthAuthenticationProfile(
@@ -938,6 +968,21 @@ describe('CliStateRepository authentication profiles', () => {
       () => fixture.repository.markAuthenticationProfileLoggedOut('missing'),
       /does not exist/,
     );
+  });
+
+  it('requires migration before renaming the projected legacy profile', async (t) => {
+    const fixture = createFixture(t, {
+      homeyApi: { token: { access_token: 'legacy-token' } },
+    });
+
+    await assert.rejects(
+      () => fixture.repository.renameAuthenticationProfile('default', 'work'),
+      /must be migrated before it can be renamed/,
+    );
+
+    const state = await fixture.repository.read();
+    assert.ok(state.authenticationProfiles.profiles.default);
+    assert.strictEqual(state.authenticationProfiles.profiles.work, undefined);
   });
 
   it('removes settings credentials and clears the legacy default login', async (t) => {
@@ -1057,6 +1102,7 @@ describe('CliStateRepository authentication profiles', () => {
 
     assert.strictEqual(result.profile.credentialSource.store, 'settings');
     assert.strictEqual(fixture.keychain.has('old-id'), false);
+    assert.strictEqual(fixture.settings.credentials.entries['old-id'], undefined);
   });
 
   it('rejects missing migration credentials and identity changes', async (t) => {
@@ -1263,5 +1309,38 @@ describe('CliStateRepository context resolution', () => {
       (await fixture.repository.evaluateContextHealth(context, state)).status,
       'unusable',
     );
+  });
+
+  it('reports discovery strategies that are incompatible with Homey Cloud targets', async (t) => {
+    const fixture = createFixture(t);
+    const state = {
+      authenticationProfiles: {
+        profiles: {
+          work: {
+            credentialSource: { type: 'oauth', credentialId: 'oauth', store: 'settings' },
+            authenticated: true,
+          },
+        },
+      },
+      credentials: {
+        entries: {
+          oauth: { kind: 'oauth', value: { token: { access_token: 'token' } } },
+        },
+      },
+      legacy: { hasAuthentication: false },
+    };
+    const context = accountContext({
+      target: { homeyId: 'cloud-1', platform: 'cloud' },
+      route: { type: 'discovery', strategies: ['local', 'mdns'] },
+    });
+
+    const unusable = await fixture.repository.evaluateContextHealth(context, state);
+    context.route.strategies.push('cloud');
+    const degraded = await fixture.repository.evaluateContextHealth(context, state);
+
+    assert.strictEqual(unusable.status, 'unusable');
+    assert.match(unusable.reasons[0], /require cloud discovery/);
+    assert.strictEqual(degraded.status, 'degraded');
+    assert.match(degraded.reasons[0], /incompatible with Homey Cloud/);
   });
 });

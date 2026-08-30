@@ -14,6 +14,18 @@ function assertFailure(result, command) {
 }
 
 describe('CLI contexts', () => {
+  it('shows help without loading the optional native keyring binding', (t) => {
+    const homeyHome = createIsolatedHomeyHome();
+    t.after(() => removeHomeyHome(homeyHome));
+
+    const result = runHomey(['--help'], homeyHome, {
+      env: { NAPI_RS_NATIVE_LIBRARY_PATH: '/definitely/missing/keyring.node' },
+    });
+
+    assertSuccess(result, 'homey --help');
+    assert.match(result.stdout, /homey <command>/);
+  });
+
   it('exposes legacy selection lazily without rewriting settings', (t) => {
     const homeyHome = createIsolatedHomeyHome({
       activeHomey: {

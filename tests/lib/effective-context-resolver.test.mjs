@@ -166,6 +166,68 @@ describe('EffectiveContextResolver', () => {
     assert.strictEqual(result.accountClient, null);
   });
 
+  it('uses an explicit token instead of stale direct-authentication health', async (t) => {
+    const selected = selection({
+      health: {
+        status: 'degraded',
+        capabilities: { account: true, homey: false },
+        reasons: ['Direct Homey authentication: stored credentials are missing.'],
+      },
+    });
+    mockSelection(t, selected);
+
+    const result = await resolveEffectiveContext({
+      token: 'explicit-token',
+      address: 'http://explicit.local',
+    });
+
+    assert.strictEqual(result.effectiveContext.authentication.mode, 'homey');
+    assert.deepStrictEqual(result.effectiveContext.health, {
+      status: 'ready',
+      capabilities: { account: true, homey: true },
+      reasons: [],
+    });
+  });
+
+  it('preserves an unusable route when an explicit token does not replace it', async (t) => {
+    const selected = selection({
+      health: {
+        status: 'unusable',
+        capabilities: { account: true, homey: false },
+        reasons: [
+          'Direct Homey authentication: stored credentials are missing.',
+          'Connection route: Homey Cloud targets require cloud discovery; local cannot reach this target.',
+        ],
+      },
+    });
+    mockSelection(t, selected);
+    t.mock.method(AuthenticationProfiles, 'getClient', async () => ({ id: 'client' }));
+
+    const result = await resolveEffectiveContext({
+      token: 'explicit-token',
+      homeyId: 'explicit-homey',
+    });
+
+    assert.deepStrictEqual(result.effectiveContext.health, {
+      status: 'unusable',
+      capabilities: { account: true, homey: true },
+      reasons: [
+        'Connection route: Homey Cloud targets require cloud discovery; local cannot reach this target.',
+      ],
+    });
+  });
+
+  it('supports an explicit direct target when no persisted health exists', async (t) => {
+    mockSelection(t, null);
+
+    const result = await resolveEffectiveContext({
+      token: 'explicit-token',
+      address: 'http://explicit.local',
+    });
+
+    assert.strictEqual(result.effectiveContext.health, null);
+  });
+
   it('validates explicit token and address combinations', async (t) => {
     const selections = [
       selection({
