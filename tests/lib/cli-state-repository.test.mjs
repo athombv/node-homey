@@ -1,7 +1,9 @@
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
 
-import { CliStateRepository, DEFAULT_DISCOVERY_STRATEGIES } from '../../lib/CliStateRepository.mjs';
+import { DEFAULT_DISCOVERY_STRATEGIES } from '../../lib/CliStateModel.mjs';
+import { CliStateRepository } from '../../lib/CliStateRepository.mjs';
+import { synchronizeLegacySelection } from '../../lib/LegacyCliStateAdapter.mjs';
 import { OperatingSystemCredentialStore } from '../../lib/OperatingSystemCredentialStore.mjs';
 import Settings from '../../services/Settings.js';
 
@@ -22,12 +24,22 @@ function createFixture(t, initialSettings = {}) {
 
     return structuredClone(settings[key]);
   });
+  t.mock.method(Settings, 'read', async () => {
+    if (nextGetFailure) {
+      const error = nextGetFailure;
+      nextGetFailure = null;
+      throw error;
+    }
+
+    return structuredClone(settings);
+  });
   t.mock.method(Settings, 'update', async (updater) => {
     const nextSettings = structuredClone(settings);
     if (beforeNextUpdate) {
       const callback = beforeNextUpdate;
       beforeNextUpdate = null;
       await callback(nextSettings);
+      settings = structuredClone(nextSettings);
     }
     if (nextUpdateFailure) {
       const error = nextUpdateFailure;
@@ -93,6 +105,24 @@ function directContext(overrides = {}) {
 }
 
 describe('CliStateRepository contexts', () => {
+  it('synchronizes legacy selections through the shared compatibility adapter', () => {
+    const settings = {};
+
+    synchronizeLegacySelection(settings, {
+      id: 'legacy-homey',
+      name: 'Legacy Homey',
+      platform: 'local',
+    });
+
+    assert.strictEqual(settings.contextState.current, 'default');
+    assert.strictEqual(settings.contextState.contexts.default.target.homeyId, 'legacy-homey');
+    assert.strictEqual(settings.authenticationProfiles.profiles.default.authenticated, false);
+
+    synchronizeLegacySelection(settings, null);
+
+    assert.strictEqual(settings.contextState.current, null);
+  });
+
   it('projects legacy settings without persisting them', async (t) => {
     const fixture = createFixture(t, {
       activeHomey: { id: 'legacy-homey', name: 'Legacy', platform: 'cloud' },
@@ -357,6 +387,9 @@ describe('CliStateRepository contexts', () => {
     t.mock.restoreAll();
     const keychain = new Map();
     t.mock.method(Settings, 'get', async () => undefined);
+    t.mock.method(Settings, 'read', async () => {
+      return {};
+    });
     t.mock.method(Settings, 'update', async () => {
       throw new Error('write failed');
     });
@@ -377,6 +410,35 @@ describe('CliStateRepository contexts', () => {
     );
     assert.strictEqual(keychain.size, 0);
     assert.ok(originalUpdate);
+  });
+
+  it('preserves the primary write failure when staged keychain cleanup also fails', async (t) => {
+    const warnings = [];
+    t.mock.method(console, 'error', (message) => {
+      warnings.push(message);
+    });
+    const fixture = createFixture(t);
+    const writeError = new Error('write failed');
+    fixture.failNextUpdate(writeError);
+    fixture.failNextKeychainRemoval(new Error('keychain unavailable'));
+
+    await assert.rejects(
+      () => {
+        return fixture.repository.createContext('lab', directContext(), {
+          directToken: 'secret',
+          store: 'keychain',
+        });
+      },
+      (error) => {
+        assert.strictEqual(error, writeError);
+
+        return true;
+      },
+    );
+
+    assert.strictEqual(fixture.keychain.size, 1);
+    assert.match(warnings[0], /Context lab creation failed/);
+    assert.match(warnings[0], /keychain unavailable/);
   });
 
   it('detects a concurrent duplicate and removes its staged keychain token', async (t) => {
@@ -543,6 +605,27 @@ describe('CliStateRepository contexts', () => {
       fixture.settings.credentials.entries[keychainEntry.context.homeyAuthentication.credentialId],
       undefined,
     );
+  });
+
+  it('keeps a committed context removal successful when keychain cleanup fails', async (t) => {
+    const warnings = [];
+    t.mock.method(console, 'error', (message) => {
+      warnings.push(message);
+    });
+    const fixture = createFixture(t);
+    await fixture.repository.createContext('keychain', directContext(), {
+      directToken: 'keychain-secret',
+      store: 'keychain',
+    });
+    fixture.failNextKeychainRemoval(new Error('keychain unavailable'));
+
+    const removed = await fixture.repository.removeContext('keychain');
+
+    assert.ok(removed);
+    assert.strictEqual(await fixture.repository.getContext('keychain'), null);
+    assert.strictEqual(warnings.length, 1);
+    assert.match(warnings[0], /Context keychain removal was committed/);
+    assert.match(warnings[0], /keychain unavailable/);
   });
 
   it('lists contexts and manages the default credential store', async (t) => {
@@ -784,8 +867,109 @@ describe('CliStateRepository authentication profiles', () => {
     assert.strictEqual(fixture.settings.homeyApi, null);
   });
 
+  it('keeps a committed PAT login successful when old keychain cleanup fails', async (t) => {
+    const warnings = [];
+    t.mock.method(console, 'error', (message) => {
+      warnings.push(message);
+    });
+    const fixture = createFixture(t, {
+      authenticationProfiles: {
+        schemaVersion: 1,
+        profiles: {
+          work: {
+            credentialSource: {
+              type: 'oauth',
+              credentialId: 'old-keychain-id',
+              store: 'keychain',
+            },
+          },
+        },
+      },
+      credentials: {
+        schemaVersion: 1,
+        defaultStore: 'settings',
+        entries: {
+          'old-keychain-id': { kind: 'oauth', store: 'keychain' },
+        },
+      },
+    });
+    fixture.keychain.set('old-keychain-id', { kind: 'oauth', value: {} });
+    fixture.failNextKeychainRemoval(new Error('keychain unavailable'));
+
+    const profile = await fixture.repository.createPatAuthenticationProfile(
+      'work',
+      'WORK_PAT',
+      {},
+      { replace: true },
+    );
+
+    assert.strictEqual(profile.profile.credentialSource.variable, 'WORK_PAT');
+    assert.strictEqual(fixture.keychain.has('old-keychain-id'), true);
+    assert.strictEqual(fixture.settings.credentials.entries['old-keychain-id'], undefined);
+    assert.match(warnings[0], /Authentication profile work PAT login was committed/);
+  });
+
+  it('replaces the credential source observed inside an atomic PAT update', async (t) => {
+    const fixture = createFixture(t, {
+      authenticationProfiles: {
+        schemaVersion: 1,
+        profiles: {
+          work: {
+            credentialSource: {
+              type: 'oauth',
+              credentialId: 'old-id',
+              store: 'settings',
+            },
+          },
+        },
+      },
+      credentials: {
+        schemaVersion: 1,
+        defaultStore: 'settings',
+        entries: {
+          'old-id': { kind: 'oauth', value: {} },
+        },
+      },
+    });
+    fixture.beforeUpdate((settings) => {
+      settings.authenticationProfiles.profiles.work.credentialSource = {
+        type: 'oauth',
+        credentialId: 'concurrent-id',
+        store: 'keychain',
+      };
+      delete settings.credentials.entries['old-id'];
+      settings.credentials.entries['concurrent-id'] = {
+        kind: 'oauth',
+        store: 'keychain',
+      };
+      fixture.keychain.set('concurrent-id', { kind: 'oauth', value: {} });
+    });
+
+    const profile = await fixture.repository.createPatAuthenticationProfile(
+      'work',
+      'WORK_PAT',
+      {},
+      { replace: true },
+    );
+
+    assert.strictEqual(profile.profile.credentialSource.variable, 'WORK_PAT');
+    assert.strictEqual(fixture.settings.credentials.entries['concurrent-id'], undefined);
+    assert.strictEqual(fixture.keychain.has('concurrent-id'), false);
+  });
+
   it('prepares, completes, discards, renames, logs out, and removes OAuth profiles', async (t) => {
     const fixture = createFixture(t);
+    await assert.rejects(() => {
+      return fixture.repository.prepareOAuthAuthenticationProfile('invalid', 'vault');
+    }, /Unknown credential store/);
+    await assert.rejects(() => {
+      return fixture.repository.completeOAuthAuthenticationProfile(
+        'Not Valid',
+        { type: 'oauth', credentialId: 'unused', store: 'settings' },
+        {},
+      );
+    }, /Invalid authentication profile name/);
+
     const source = await fixture.repository.prepareOAuthAuthenticationProfile('work', 'keychain');
     assert.deepStrictEqual(fixture.keychain.get(source.credentialId), { kind: 'oauth', value: {} });
 
@@ -819,6 +1003,25 @@ describe('CliStateRepository authentication profiles', () => {
     await fixture.repository.discardOAuthCredential(discarded);
     assert.strictEqual(fixture.settings.credentials.entries[discarded.credentialId], undefined);
     await fixture.repository.discardOAuthCredential({ type: 'patEnvironment' });
+  });
+
+  it('keeps a committed OAuth discard successful when keychain cleanup fails', async (t) => {
+    const warnings = [];
+    t.mock.method(console, 'error', (message) => {
+      warnings.push(message);
+    });
+    const fixture = createFixture(t);
+    const source = await fixture.repository.prepareOAuthAuthenticationProfile(
+      'discarded',
+      'keychain',
+    );
+    fixture.failNextKeychainRemoval(new Error('keychain unavailable'));
+
+    await fixture.repository.discardOAuthCredential(source);
+
+    assert.strictEqual(fixture.settings.credentials.entries[source.credentialId], undefined);
+    assert.strictEqual(fixture.keychain.has(source.credentialId), true);
+    assert.match(warnings[0], /Prepared OAuth credential discard was committed/);
   });
 
   it('cleans staged keychain OAuth credentials when preparation fails', async (t) => {
@@ -912,6 +1115,50 @@ describe('CliStateRepository authentication profiles', () => {
     );
     assert.ok(fixture.settings.credentials.entries[source.credentialId]);
     assert.strictEqual(fixture.keychain.has('old-keychain-id'), true);
+  });
+
+  it('revalidates account identity inside an atomic OAuth completion', async (t) => {
+    const fixture = createFixture(t, {
+      authenticationProfiles: {
+        schemaVersion: 1,
+        profiles: {
+          work: {
+            accountId: 'account-1',
+            credentialSource: {
+              type: 'oauth',
+              credentialId: 'old-id',
+              store: 'settings',
+            },
+          },
+        },
+      },
+      credentials: {
+        schemaVersion: 1,
+        defaultStore: 'settings',
+        entries: {
+          'old-id': { kind: 'oauth', value: {} },
+        },
+      },
+    });
+    const source = await fixture.repository.prepareOAuthAuthenticationProfile('work', 'settings');
+    fixture.beforeUpdate((settings) => {
+      settings.authenticationProfiles.profiles.work.accountId = 'account-2';
+    });
+
+    await assert.rejects(() => {
+      return fixture.repository.completeOAuthAuthenticationProfile('work', source, {
+        accountId: 'account-1',
+      });
+    }, /different Athom account/);
+
+    assert.strictEqual(
+      fixture.settings.authenticationProfiles.profiles.work.accountId,
+      'account-2',
+    );
+    assert.strictEqual(
+      fixture.settings.authenticationProfiles.profiles.work.credentialSource.credentialId,
+      'old-id',
+    );
   });
 
   it('marks a post-commit OAuth profile read failure as committed', async (t) => {
@@ -1166,6 +1413,104 @@ describe('CliStateRepository authentication profiles', () => {
       () => fixture.repository.migrateAuthenticationProfile('work', 'keychain'),
       /Authentication profile does not exist/,
     );
+    assert.strictEqual(fixture.keychain.size, 0);
+  });
+
+  it('rejects a migration when the credential source changes concurrently', async (t) => {
+    const fixture = createFixture(t, {
+      authenticationProfiles: {
+        schemaVersion: 1,
+        profiles: {
+          work: {
+            accountId: 'account-1',
+            credentialSource: { type: 'oauth', credentialId: 'old-id', store: 'settings' },
+          },
+        },
+      },
+      credentials: {
+        schemaVersion: 1,
+        defaultStore: 'settings',
+        entries: {
+          'old-id': { kind: 'oauth', value: { token: { access_token: 'old-token' } } },
+        },
+      },
+    });
+    fixture.beforeUpdate((settings) => {
+      settings.authenticationProfiles.profiles.work.credentialSource = {
+        type: 'oauth',
+        credentialId: 'new-id',
+        store: 'settings',
+      };
+      settings.credentials.entries['new-id'] = {
+        kind: 'oauth',
+        value: { token: { access_token: 'new-token' } },
+      };
+    });
+
+    await assert.rejects(() => {
+      return fixture.repository.migrateAuthenticationProfile('work', 'keychain');
+    }, /changed while its credentials were being migrated/);
+
+    assert.deepStrictEqual(fixture.settings.authenticationProfiles.profiles.work.credentialSource, {
+      type: 'oauth',
+      credentialId: 'new-id',
+      store: 'settings',
+    });
+    assert.strictEqual(
+      fixture.settings.credentials.entries['new-id'].value.token.access_token,
+      'new-token',
+    );
+    assert.strictEqual(fixture.keychain.size, 0);
+  });
+
+  it('rejects a migration when settings credentials change under the same source', async (t) => {
+    const fixture = createFixture(t, {
+      authenticationProfiles: {
+        schemaVersion: 1,
+        profiles: {
+          work: {
+            accountId: 'account-1',
+            credentialSource: { type: 'oauth', credentialId: 'old-id', store: 'settings' },
+          },
+        },
+      },
+      credentials: {
+        schemaVersion: 1,
+        defaultStore: 'settings',
+        entries: {
+          'old-id': { kind: 'oauth', value: { token: { access_token: 'old-token' } } },
+        },
+      },
+    });
+    fixture.beforeUpdate((settings) => {
+      settings.credentials.entries['old-id'].value.token.access_token = 'new-token';
+    });
+
+    await assert.rejects(() => {
+      return fixture.repository.migrateAuthenticationProfile('work', 'keychain');
+    }, /changed while its credentials were being migrated/);
+
+    assert.strictEqual(
+      fixture.settings.credentials.entries['old-id'].value.token.access_token,
+      'new-token',
+    );
+    assert.strictEqual(fixture.keychain.size, 0);
+  });
+
+  it('rejects a migration when legacy credentials change concurrently', async (t) => {
+    const fixture = createFixture(t, {
+      activeHomey: { id: 'legacy-homey', name: 'Legacy', platform: 'local' },
+      homeyApi: { token: { access_token: 'old-token' } },
+    });
+    fixture.beforeUpdate((settings) => {
+      settings.homeyApi.token.access_token = 'new-token';
+    });
+
+    await assert.rejects(() => {
+      return fixture.repository.migrateAuthenticationProfile('default', 'keychain');
+    }, /changed while its credentials were being migrated/);
+
+    assert.strictEqual(fixture.settings.homeyApi.token.access_token, 'new-token');
     assert.strictEqual(fixture.keychain.size, 0);
   });
 });

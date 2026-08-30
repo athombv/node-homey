@@ -37,10 +37,13 @@ export async function diagnoseContext(name, argv = {}) {
       path: '/api/manager/system/',
       $timeout: 10000,
     });
+    const contextHealth = effectiveContext.health;
 
     return {
       name,
-      status: 'ready',
+      status: contextHealth.status,
+      connectionStatus: 'ready',
+      reasons: contextHealth.reasons,
       durationMs: Date.now() - startedAt,
       target: {
         homeyId: api.id ?? effectiveContext?.target.homeyId ?? null,
@@ -70,6 +73,9 @@ export const handler = async (argv) => {
       argv,
       printHuman: () => {
         Log.success(`Context ${argv.name} connected in ${report.durationMs}ms.`);
+        if (report.status !== 'ready') {
+          Log(`Context health: ${report.status} (${report.reasons.join(' ')})`);
+        }
         Log(`Authentication: ${report.authentication}`);
         Log(`Base URL: ${report.baseUrl ?? '-'}`);
       },

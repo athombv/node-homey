@@ -302,7 +302,50 @@ describe('CLI contexts', () => {
       timeout: 2000,
     });
     assertSuccess(diagnoseResult, 'homey context diagnose direct --json');
-    assert.strictEqual(JSON.parse(diagnoseResult.stdout).authentication, 'homey');
+    const diagnosis = JSON.parse(diagnoseResult.stdout);
+    assert.strictEqual(diagnosis.authentication, 'homey');
+    assert.strictEqual(diagnosis.status, 'ready');
+    assert.strictEqual(diagnosis.connectionStatus, 'ready');
+
+    const createDegradedResult = runHomey(
+      [
+        'context',
+        'create',
+        'degraded',
+        '--homey-id',
+        'homey-1',
+        '--auth-profile',
+        'missing',
+        '--address',
+        `http://127.0.0.1:${port}`,
+        '--token-env',
+        'HOMEY_TOKEN_LAB',
+      ],
+      homeyHome,
+      { env },
+    );
+    assertSuccess(createDegradedResult, 'homey context create degraded');
+
+    const degradedDiagnoseResult = runHomey(
+      ['context', 'diagnose', 'degraded', '--json'],
+      homeyHome,
+      {
+        env,
+        timeout: 2000,
+      },
+    );
+    assertSuccess(degradedDiagnoseResult, 'homey context diagnose degraded --json');
+    const degradedDiagnosis = JSON.parse(degradedDiagnoseResult.stdout);
+    assert.strictEqual(degradedDiagnosis.connectionStatus, 'ready');
+    assert.strictEqual(degradedDiagnosis.status, 'degraded');
+    assert.match(degradedDiagnosis.reasons.join(' '), /Authentication profile does not exist/);
+
+    const degradedHumanDiagnoseResult = runHomey(['context', 'diagnose', 'degraded'], homeyHome, {
+      env,
+      timeout: 2000,
+    });
+    assertSuccess(degradedHumanDiagnoseResult, 'homey context diagnose degraded');
+    assert.match(degradedHumanDiagnoseResult.stdout, /Context health: degraded/);
 
     const humanDiagnoseResult = runHomey(['context', 'diagnose', 'direct'], homeyHome, {
       env,
