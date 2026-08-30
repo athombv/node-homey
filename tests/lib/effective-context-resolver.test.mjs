@@ -143,7 +143,7 @@ describe('EffectiveContextResolver', () => {
 
     assert.strictEqual(result.effectiveContext.target.homeyId, 'explicit-homey');
     assert.strictEqual(result.effectiveContext.target.name, 'Context Homey');
-    assert.deepStrictEqual(result.effectiveContext.route, selected.context.route);
+    assert.strictEqual(result.effectiveContext.route, null);
   });
 
   it('treats explicit token and address as a pairwise identity replacement', async (t) => {

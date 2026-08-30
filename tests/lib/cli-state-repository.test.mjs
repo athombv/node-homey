@@ -280,6 +280,41 @@ describe('CliStateRepository contexts', () => {
     });
   });
 
+  it('reports a missing direct keychain credential as unusable', async (t) => {
+    const fixture = createFixture(t, {
+      contextState: {
+        schemaVersion: 1,
+        current: 'direct',
+        contexts: {
+          direct: {
+            target: {},
+            homeyAuthentication: {
+              source: 'stored',
+              credentialId: 'missing-keychain-token',
+              store: 'keychain',
+            },
+            route: { type: 'address', address: 'http://127.0.0.1:1234' },
+          },
+        },
+      },
+      credentials: {
+        schemaVersion: 1,
+        defaultStore: 'settings',
+        entries: {
+          'missing-keychain-token': {
+            kind: 'homeyToken',
+            store: 'keychain',
+          },
+        },
+      },
+    });
+
+    const context = await fixture.repository.getContext('direct');
+
+    assert.strictEqual(context.health.status, 'unusable');
+    assert.match(context.health.reasons[0], /Keychain Homey credentials are missing/);
+  });
+
   it('cleans a newly written keychain token when context creation fails atomically', async (t) => {
     const fixture = createFixture(t);
     const originalUpdate = Settings.update;
@@ -583,11 +618,37 @@ describe('CliStateRepository authentication profiles', () => {
     assert.match(byName.loggedout.reason, /logged out/);
     assert.match(byName.missing.reason, /MISSING_PAT is not set/);
     assert.match(byName.unsupported.reason, /Unknown authentication source/);
-    assert.strictEqual(byName.keychain.usable, true);
+    assert.strictEqual(byName.keychain.usable, false);
+    assert.match(byName.keychain.reason, /keychain account credentials are missing/i);
     assert.strictEqual(byName.stored.usable, true);
     assert.match(byName.sourceless.reason, /no credential source/);
     assert.match(byName.unknownCredential.reason, /Stored account credentials are missing/);
     assert.match(byName.legacyMissing.reason, /legacy default login has no stored credentials/);
+  });
+
+  it('derives legacy profile usability from the current legacy credentials', async (t) => {
+    const fixture = createFixture(t, {
+      homeyApi: { token: { access_token: 'legacy-token' } },
+      authenticationProfiles: {
+        schemaVersion: 1,
+        profiles: {
+          default: {
+            credentialSource: {
+              type: 'oauth',
+              credentialId: 'legacy-homey-api',
+              store: 'settings',
+              legacy: true,
+            },
+            authenticated: false,
+          },
+        },
+      },
+    });
+
+    const profile = await fixture.repository.getAuthenticationProfile('default');
+
+    assert.strictEqual(profile.usable, true);
+    assert.strictEqual(profile.reason, null);
   });
 
   it('creates PAT profiles and protects canonical account identity', async (t) => {
@@ -1091,16 +1152,22 @@ describe('CliStateRepository context resolution', () => {
       route: { type: 'discovery', strategies: ['cloud'] },
     };
 
-    assert.strictEqual(fixture.repository.evaluateContextHealth(context, state).status, 'degraded');
     assert.strictEqual(
-      fixture.repository.evaluateContextHealth(context, state, 'account').status,
+      (await fixture.repository.evaluateContextHealth(context, state)).status,
       'degraded',
     );
     assert.strictEqual(
-      fixture.repository.evaluateContextHealth(context, state, 'homey').status,
+      (await fixture.repository.evaluateContextHealth(context, state, 'account')).status,
+      'degraded',
+    );
+    assert.strictEqual(
+      (await fixture.repository.evaluateContextHealth(context, state, 'homey')).status,
       'degraded',
     );
     state.credentials.entries = {};
-    assert.strictEqual(fixture.repository.evaluateContextHealth(context, state).status, 'unusable');
+    assert.strictEqual(
+      (await fixture.repository.evaluateContextHealth(context, state)).status,
+      'unusable',
+    );
   });
 });

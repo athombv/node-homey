@@ -232,6 +232,77 @@ describe('ApiCommandRuntime createHomeyApiClient', () => {
       name: null,
       platform: null,
     });
+    assert.strictEqual(api.__properties.apiVersion, 3);
+  });
+
+  it('forces account-backed endpoint routes before Homey login', async (t) => {
+    const inheritedAuthenticate = t.mock.fn(async () => {
+      throw new Error('The inherited discovery route must not be used.');
+    });
+    const observedBaseUrls = [];
+    const routes = [{ type: 'address', address: 'http://10.0.0.2' }, { type: 'usb' }];
+
+    mock.method(CliState, 'resolveContextSelection', async () => {
+      return {
+        name: 'endpoint-lab',
+        source: 'current',
+        context: {
+          target: { homeyId: 'homey-1' },
+          authenticationProfile: 'work',
+          route: routes.shift(),
+        },
+        health: { status: 'ready', reasons: [] },
+        state: {
+          authenticationProfiles: {
+            profiles: {
+              work: {
+                credentialSource: { type: 'patEnvironment', variable: 'WORK_PAT' },
+              },
+            },
+          },
+        },
+      };
+    });
+    mock.method(CliState, 'resolveDirectToken', async () => {
+      return null;
+    });
+    mock.method(AuthenticationProfiles, 'getClient', async () => {
+      return {
+        getHomey: async () => {
+          const properties = {
+            id: 'homey-1',
+            apiVersion: 3,
+            platform: 'local',
+            softwareVersion: '12.0.0',
+          };
+
+          return {
+            ...properties,
+            __api: {},
+            __properties: properties,
+            authenticate: inheritedAuthenticate,
+            usb: '10.0.0.1',
+          };
+        },
+      };
+    });
+    mock.method(HomeyAPIV3Local.prototype, 'login', async function () {
+      observedBaseUrls.push(await this.baseUrl);
+    });
+
+    const addressApi = await createHomeyApiClient({
+      context: 'endpoint-lab',
+      auth: 'account',
+    });
+    const usbApi = await createHomeyApiClient({
+      context: 'endpoint-lab',
+      auth: 'account',
+    });
+
+    assert.ok(addressApi instanceof HomeyAPIV3Local);
+    assert.ok(usbApi instanceof HomeyAPIV3Local);
+    assert.deepStrictEqual(observedBaseUrls, ['http://10.0.0.2', 'http://10.0.0.1:80']);
+    assert.strictEqual(inheritedAuthenticate.mock.callCount(), 0);
   });
 
   it('rejects a USB-only direct context when no USB connection is available', async () => {
@@ -326,6 +397,67 @@ describe('ApiCommandRuntime createHomeyApiClient', () => {
 });
 
 describe('ApiCommandRuntime diagnoseHomeyStrategies', () => {
+  it('uses direct authentication when diagnosing with --auth homey', async (t) => {
+    const accountAuthenticate = t.mock.fn(async () => {
+      throw new Error('Account authentication must not be used.');
+    });
+    const observedTokens = [];
+
+    mock.method(CliState, 'resolveContextSelection', async () => {
+      return {
+        name: 'direct-lab',
+        source: 'current',
+        context: {
+          target: { homeyId: 'homey-1' },
+          authenticationProfile: 'work',
+          homeyAuthentication: { source: 'environment', variable: 'HOMEY_TOKEN_LAB' },
+          route: { type: 'discovery', strategies: ['cloud'] },
+        },
+        health: { status: 'ready', reasons: [] },
+        state: {
+          authenticationProfiles: {
+            profiles: {
+              work: {
+                credentialSource: { type: 'patEnvironment', variable: 'WORK_PAT' },
+              },
+            },
+          },
+        },
+      };
+    });
+    mock.method(CliState, 'resolveDirectToken', async () => {
+      return 'direct-token';
+    });
+    mock.method(AuthenticationProfiles, 'getClient', async () => {
+      return {
+        getHomey: async () => {
+          return {
+            id: 'homey-1',
+            name: 'Direct Homey',
+            platform: HomeyAPI.PLATFORMS.LOCAL,
+            remoteUrl: 'https://cloud.example',
+            authenticate: accountAuthenticate,
+          };
+        },
+      };
+    });
+    mock.method(HomeyAPIV3Local.prototype, 'call', async function () {
+      observedTokens.push(this.__token);
+      this.__baseUrlPromise = Promise.resolve('https://cloud.example');
+
+      return {};
+    });
+
+    const report = await diagnoseHomeyStrategies({
+      context: 'direct-lab',
+      auth: 'homey',
+    });
+
+    assert.deepStrictEqual(observedTokens, ['direct-token']);
+    assert.strictEqual(accountAuthenticate.mock.callCount(), 0);
+    assert.deepStrictEqual(report.availableStrategyIds, ['cloud']);
+  });
+
   it('tests each local strategy and reports successful routes', async () => {
     const authenticateCalls = [];
     const cleanupCalls = [];
