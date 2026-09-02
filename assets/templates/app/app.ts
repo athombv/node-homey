@@ -1,5 +1,3 @@
-'use strict';
-
 import Homey from 'homey';
 
 export default class MyApp extends Homey.App {
