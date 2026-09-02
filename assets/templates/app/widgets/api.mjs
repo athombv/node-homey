@@ -23,4 +23,4 @@ export default {
   async deleteSomething({ homey, params }) {
     return homey.app.deleteSomething(params.id);
   },
-}
+};
