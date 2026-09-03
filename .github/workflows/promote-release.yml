@@ -1,4 +1,4 @@
-name: Promote Published Release
+name: Release - Promote to Production
 
 on:
   workflow_dispatch:
