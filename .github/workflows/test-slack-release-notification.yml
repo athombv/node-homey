@@ -1,0 +1,133 @@
+name: TEMP - Test Slack Release Notification
+
+on:
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - '.github/workflows/test-slack-release-notification.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  post-preview:
+    name: Post v4.4.3 release preview
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare preview payload
+        id: preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRODUCTION_CHANNEL_ID: C02J1FQAJ
+          RAW_SLACK_CHANNEL_ID: ${{ vars.SLACK_DEVELOPMENT_SLACK_TEST_CHANNEL_ID }}
+          RELEASE_TAG: v4.4.3
+          SLACK_TOKEN: ${{ secrets.SLACK_HOMEY_GITHUB_APP }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$SLACK_TOKEN" ]; then
+            echo "::error::SLACK_HOMEY_GITHUB_APP is not available to this repository."
+            exit 1
+          fi
+
+          SLACK_CHANNEL_ID="$(printf '%s' "$RAW_SLACK_CHANNEL_ID" | xargs)"
+          if [ -z "$SLACK_CHANNEL_ID" ]; then
+            echo "::error::SLACK_DEVELOPMENT_SLACK_TEST_CHANNEL_ID is not available to this repository."
+            exit 1
+          fi
+
+          if [ "$SLACK_CHANNEL_ID" = "$PRODUCTION_CHANNEL_ID" ]; then
+            echo "::error::The Slack test channel must differ from the production notification channel."
+            exit 1
+          fi
+
+          RELEASE_JSON_PATH="$RUNNER_TEMP/github-release.json"
+          SLACK_PAYLOAD_PATH="$RUNNER_TEMP/slack-release-preview.json"
+          gh release view "$RELEASE_TAG" --json body,name,url > "$RELEASE_JSON_PATH"
+
+          export RELEASE_JSON_PATH SLACK_CHANNEL_ID SLACK_PAYLOAD_PATH
+          node <<'NODE'
+          const fs = require('node:fs');
+
+          const release = JSON.parse(fs.readFileSync(process.env.RELEASE_JSON_PATH, 'utf8'));
+          const packageName = 'homey';
+          const packageVersion = process.env.RELEASE_TAG.slice(1);
+          const npmUrl = `https://www.npmjs.com/package/${packageName}/v/${packageVersion}`;
+          const releaseName = release.name || process.env.RELEASE_TAG;
+          const notes = release.body?.trim() || 'No release notes were provided.';
+          const chunks = [];
+          let remainder = notes;
+
+          while (remainder && chunks.length < 12) {
+            let splitAt = Math.min(2800, remainder.length);
+            if (splitAt < remainder.length) {
+              const newline = remainder.lastIndexOf('\n', splitAt);
+              if (newline > 1400) splitAt = newline;
+            }
+
+            chunks.push(remainder.slice(0, splitAt).trim());
+            remainder = remainder.slice(splitAt).trim();
+          }
+
+          if (remainder) {
+            chunks.push(`_The changelog was shortened for Slack. <${release.url}|View the complete release notes>._`);
+          }
+
+          const changelogBlocks = chunks.map((chunk) => {
+            return {
+              type: 'section',
+              text: { type: 'mrkdwn', text: chunk },
+            };
+          });
+          const payload = {
+            channel: process.env.SLACK_CHANNEL_ID,
+            text: `Test preview: ${packageName}@${packageVersion} release notification. ${release.url}`,
+            blocks: [
+              {
+                type: 'context',
+                elements: [
+                  {
+                    type: 'mrkdwn',
+                    text: ':test_tube: *Test preview — no package was published*',
+                  },
+                ],
+              },
+              {
+                type: 'section',
+                text: {
+                  type: 'mrkdwn',
+                  text: `:rocket: *<${release.url}|${releaseName}> published to npm*`,
+                },
+              },
+              { type: 'divider' },
+              ...changelogBlocks,
+              {
+                type: 'actions',
+                elements: [
+                  {
+                    type: 'button',
+                    text: { type: 'plain_text', text: 'GitHub Release' },
+                    url: release.url,
+                  },
+                  {
+                    type: 'button',
+                    text: { type: 'plain_text', text: 'View on npm' },
+                    url: npmUrl,
+                  },
+                ],
+              },
+            ],
+          };
+
+          fs.writeFileSync(process.env.SLACK_PAYLOAD_PATH, JSON.stringify(payload));
+          NODE
+
+          echo "payload_path=$SLACK_PAYLOAD_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Post preview to Slack test channel
+        uses: slackapi/slack-github-action@v4.0.0
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_HOMEY_GITHUB_APP }}
+          payload-file-path: ${{ steps.preview.outputs.payload_path }}
