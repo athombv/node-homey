@@ -9,6 +9,30 @@ import Settings from '../../services/Settings.js';
 import { createFakeDocker } from '../app/fakes.mjs';
 
 describe('DockerHelper characterization', () => {
+  it('normalizes Docker port specifications into exposed ports and host bindings', () => {
+    const configuration = DockerHelper.createPortConfiguration([6113, '5683/udp']);
+
+    assert.deepStrictEqual(configuration, {
+      exposedPorts: {
+        '6113/tcp': {},
+        '5683/udp': {},
+      },
+      portBindings: {
+        '6113/tcp': [{ HostPort: '6113' }],
+        '5683/udp': [{ HostPort: '5683' }],
+      },
+      publishedPorts: ['6113/tcp', '5683/udp'],
+    });
+  });
+
+  it('rejects malformed and out-of-range Docker port specifications', () => {
+    for (const portSpec of ['5683/sctp', 'tcp/5683', 0, 65536]) {
+      assert.throws(() => {
+        DockerHelper.createPortConfiguration([portSpec]);
+      }, /Invalid Docker port/);
+    }
+  });
+
   it('constructs and pings Docker through a custom socket', async (t) => {
     const ping = t.mock.method(Docker.prototype, 'ping', async () => {});
 
