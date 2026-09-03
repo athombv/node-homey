@@ -50,12 +50,70 @@ jobs:
           node <<'NODE'
           const fs = require('node:fs');
 
+          function escapeSlackText(text) {
+            return text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+          }
+
+          function convertInlineMarkdown(text) {
+            const links = [];
+            let formatted = text.replace(/\[([^\]]+)]\((https?:\/\/[^)\s]+)\)/g, (_match, label, url) => {
+              const placeholder = `SLACK-LINK-TOKEN-${links.length}`;
+              links.push({ label, placeholder, url });
+
+              return placeholder;
+            });
+
+            formatted = escapeSlackText(formatted)
+              .replace(/\*\*([^*\n]+)\*\*/g, '*$1*')
+              .replace(/__([^_\n]+)__/g, '*$1*')
+              .replace(/~~([^~\n]+)~~/g, '~$1~')
+              .replace(/https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/pull\/(\d+)/g, (url, number) => {
+                return `<${url}|#${number}>`;
+              })
+              .replace(
+                /https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/compare\/([^\s]+?)\.\.\.([^\s]+)/g,
+                (url, from, to) => {
+                  return `<${url}|${from}…${to}>`;
+                },
+              );
+
+            for (const link of links) {
+              const slackLink = `<${escapeSlackText(link.url)}|${escapeSlackText(link.label)}>`;
+              formatted = formatted.replace(link.placeholder, slackLink);
+            }
+
+            return formatted;
+          }
+
+          function convertGitHubMarkdownToSlack(markdown) {
+            const formattedLines = [];
+
+            for (const line of markdown.split('\n')) {
+              const heading = line.match(/^#{1,6}\s+(.+)$/);
+              if (heading) {
+                formattedLines.push(`*${convertInlineMarkdown(heading[1])}*`);
+                continue;
+              }
+
+              const bullet = line.match(/^(\s*)[-*+]\s+(.+)$/);
+              if (bullet) {
+                formattedLines.push(`${bullet[1]}• ${convertInlineMarkdown(bullet[2])}`);
+                continue;
+              }
+
+              formattedLines.push(convertInlineMarkdown(line));
+            }
+
+            return formattedLines.join('\n');
+          }
+
           const release = JSON.parse(fs.readFileSync(process.env.RELEASE_JSON_PATH, 'utf8'));
           const packageName = 'homey';
           const packageVersion = process.env.RELEASE_TAG.slice(1);
           const npmUrl = `https://www.npmjs.com/package/${packageName}/v/${packageVersion}`;
           const releaseName = release.name || process.env.RELEASE_TAG;
-          const notes = release.body?.trim() || 'No release notes were provided.';
+          const githubNotes = release.body?.trim() || 'No release notes were provided.';
+          const notes = convertGitHubMarkdownToSlack(githubNotes);
           const chunks = [];
           let remainder = notes;
 
