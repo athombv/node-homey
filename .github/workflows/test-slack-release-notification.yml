@@ -44,7 +44,7 @@ jobs:
 
           RELEASE_JSON_PATH="$RUNNER_TEMP/github-release.json"
           SLACK_PAYLOAD_PATH="$RUNNER_TEMP/slack-release-preview.json"
-          gh release view "$RELEASE_TAG" --json body,name,url > "$RELEASE_JSON_PATH"
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json body,name,url > "$RELEASE_JSON_PATH"
 
           export RELEASE_JSON_PATH SLACK_CHANNEL_ID SLACK_PAYLOAD_PATH
           node <<'NODE'
