@@ -165,15 +165,11 @@ jobs:
 
           RELEASE_JSON_PATH="$RUNNER_TEMP/github-release.json"
           SLACK_PAYLOAD_PATH="$RUNNER_TEMP/slack-release-notification.json"
-          gh release view "$RELEASE_TAG" --json author,body,name,url > "$RELEASE_JSON_PATH"
+          gh release view "$RELEASE_TAG" --json author,body,url > "$RELEASE_JSON_PATH"
 
           export RELEASE_JSON_PATH SLACK_CHANNEL_ID SLACK_PAYLOAD_PATH
           node <<'NODE'
           const fs = require('node:fs');
-
-          function escapeSlackText(text) {
-            return text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
-          }
 
           function truncateMarkdown(markdown, releaseUrl) {
             const maxMarkdownLength = 11_500;
@@ -195,12 +191,10 @@ jobs:
           const packageVersion = process.env.PACKAGE_VERSION;
           const packageName = process.env.PACKAGE_NAME;
           const npmUrl = `https://www.npmjs.com/package/${packageName}/v/${packageVersion}`;
-          const releaseName = release.name || `v${packageVersion}`;
           const releaseAuthor = release.author?.login || process.env.GITHUB_ACTOR;
           const releaseAuthorUrl = `https://github.com/${releaseAuthor}`;
           const repository = process.env.REPOSITORY;
           const repositoryUrl = process.env.REPOSITORY_URL;
-          const slackReleaseName = escapeSlackText(releaseName);
           const githubNotes = release.body?.trim() || 'No release notes were provided.';
           const slackNotes = githubNotes.replace(/^\*\*Full Changelog\*\*:/m, '**Full diff**:');
           const notes = truncateMarkdown(slackNotes, release.url);
@@ -210,10 +204,11 @@ jobs:
             text: `${repository}: ${packageName}@${packageVersion} was published to npm. ${release.url}`,
             blocks: [
               {
-                type: 'section',
+                type: 'header',
                 text: {
-                  type: 'mrkdwn',
-                  text: `:rocket: *<${release.url}|${slackReleaseName}> published to npm*`,
+                  type: 'plain_text',
+                  text: `🚀 Homey CLI v${packageVersion} released`,
+                  emoji: true,
                 },
               },
               {
