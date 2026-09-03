@@ -16,7 +16,9 @@ branches are rejected.
 5. Publishing the release and merging into `master` jointly cause a `master` to `production` pull
    request to be opened. Either action may happen first.
 6. Review and merge the production pull request. The production workflow verifies the published
-   release again before publishing the matching version to npm with the `latest` dist-tag.
+   release again before publishing the matching version to npm with the `latest` dist-tag. After a
+   successful stable publish, it posts the GitHub Release changelog to the development notifications
+   Slack channel.
 
 Only one stable draft may exist. Publish it and complete both promotion pull requests before
 starting another stable version. The workflow verifies that the current version on `develop` has a

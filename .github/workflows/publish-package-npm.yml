@@ -28,15 +28,13 @@ jobs:
           node-version-file: '.nvmrc'
           registry-url: 'https://npm.pkg.github.com'
 
-      # Sets package.json name & version to environment.
+      # Sets package.json name and version as step outputs.
       - name: Get Package Info
         id: package
         run: |
           NAME="$(node -p "require('./package.json').name")"
-          echo "package_name=$NAME" >> "$GITHUB_ENV"
-
           VERSION="$(node -p "require('./package.json').version")"
-          echo "package_version=$VERSION" >> "$GITHUB_ENV"
+
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
@@ -138,27 +136,139 @@ jobs:
           fi
 
           echo "publish=false" >> "$GITHUB_OUTPUT"
-          echo "publish_status=Already published" >> "$GITHUB_ENV"
+
+      - name: Prepare Slack release notification
+        if: github.event_name == 'push' && github.ref == 'refs/heads/production' && steps.stable_package.outputs.publish == 'true'
+        id: slack_release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_NAME: ${{ steps.package.outputs.name }}
+          PACKAGE_VERSION: ${{ steps.package.outputs.version }}
+          SLACK_CHANNEL_ID: ${{ vars.SLACK_DEVELOPMENT_NOTIFICATIONS_CHANNEL_ID }}
+          RELEASE_TAG: v${{ steps.package.outputs.version }}
+          REPOSITORY: ${{ github.repository }}
+          REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
+          SLACK_TOKEN: ${{ secrets.SLACK_HOMEY_GITHUB_APP }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$SLACK_TOKEN" ]; then
+            echo "::error::SLACK_HOMEY_GITHUB_APP is not available to this repository."
+            exit 1
+          fi
+
+          SLACK_CHANNEL_ID="$(printf '%s' "$SLACK_CHANNEL_ID" | xargs)"
+          if [ -z "$SLACK_CHANNEL_ID" ]; then
+            echo "::error::SLACK_DEVELOPMENT_NOTIFICATIONS_CHANNEL_ID is not available to this repository."
+            exit 1
+          fi
+
+          RELEASE_JSON_PATH="$RUNNER_TEMP/github-release.json"
+          SLACK_PAYLOAD_PATH="$RUNNER_TEMP/slack-release-notification.json"
+          gh release view "$RELEASE_TAG" --json author,body,url > "$RELEASE_JSON_PATH"
+
+          export RELEASE_JSON_PATH SLACK_CHANNEL_ID SLACK_PAYLOAD_PATH
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+
+          function truncateMarkdown(markdown, releaseUrl) {
+            const maxMarkdownLength = 11_500;
+            if (markdown.length <= maxMarkdownLength) {
+              return markdown;
+            }
+
+            const suffix = `\n\n_[Changelog truncated. View the complete release notes](${releaseUrl})._`;
+            const maxContentLength = maxMarkdownLength - suffix.length;
+            let splitAt = markdown.lastIndexOf('\n', maxContentLength);
+            if (splitAt < maxContentLength / 2) {
+              splitAt = maxContentLength;
+            }
+
+            return `${markdown.slice(0, splitAt).trimEnd()}${suffix}`;
+          }
+
+          const release = JSON.parse(readFileSync(process.env.RELEASE_JSON_PATH, 'utf8'));
+          const packageVersion = process.env.PACKAGE_VERSION;
+          const packageName = process.env.PACKAGE_NAME;
+          const npmUrl = `https://www.npmjs.com/package/${packageName}/v/${packageVersion}`;
+          const releaseAuthor = release.author?.login || process.env.GITHUB_ACTOR;
+          const releaseAuthorUrl = `https://github.com/${releaseAuthor}`;
+          const repository = process.env.REPOSITORY;
+          const repositoryUrl = process.env.REPOSITORY_URL;
+          const githubNotes = release.body?.trim() || 'No release notes were provided.';
+          const slackNotes = githubNotes.replace(/^\*\*Full Changelog\*\*:/m, '**Full diff**:');
+          const notes = truncateMarkdown(slackNotes, release.url);
+
+          const payload = {
+            channel: process.env.SLACK_CHANNEL_ID,
+            text: `${repository}: ${packageName}@${packageVersion} was published to npm. ${release.url}`,
+            blocks: [
+              {
+                type: 'header',
+                text: {
+                  type: 'plain_text',
+                  text: `🚀 Homey CLI v${packageVersion} released`,
+                  emoji: true,
+                },
+              },
+              {
+                type: 'context',
+                elements: [
+                  {
+                    type: 'mrkdwn',
+                    text: `<${repositoryUrl}|${repository}>  •  <${npmUrl}|${packageName}@${packageVersion}>  •  Published by <${releaseAuthorUrl}|@${releaseAuthor}>`,
+                  },
+                ],
+              },
+              { type: 'divider' },
+              {
+                type: 'markdown',
+                text: notes,
+              },
+              { type: 'divider' },
+              {
+                type: 'section',
+                text: {
+                  type: 'mrkdwn',
+                  text: `*Install*\n\`\`\`npm install --global ${packageName}@${packageVersion}\`\`\``,
+                },
+              },
+              {
+                type: 'actions',
+                elements: [
+                  {
+                    type: 'button',
+                    text: { type: 'plain_text', text: 'GitHub Release' },
+                    url: release.url,
+                  },
+                  {
+                    type: 'button',
+                    text: { type: 'plain_text', text: 'View on npm' },
+                    url: npmUrl,
+                  },
+                ],
+              },
+            ],
+          };
+
+          writeFileSync(process.env.SLACK_PAYLOAD_PATH, JSON.stringify(payload));
+          NODE
+
+          echo "payload_path=$SLACK_PAYLOAD_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Publish stable package
         if: github.event_name == 'push' && github.ref == 'refs/heads/production' && steps.stable_package.outputs.publish == 'true'
-        run: |
-          npm publish --registry https://registry.npmjs.org
-          echo "publish_status=Published" >> "$GITHUB_ENV"
+        run: npm publish --registry https://registry.npmjs.org
+
+      - name: Notify Slack of stable release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/production' && steps.stable_package.outputs.publish == 'true'
+        uses: slackapi/slack-github-action@v4.0.0
+        with:
+          errors: true
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_HOMEY_GITHUB_APP }}
+          payload-file-path: ${{ steps.slack_release.outputs.payload_path }}
 
       - name: Publish (beta)
         if: github.event_name == 'push' && github.ref == 'refs/heads/testing'
-        run: |
-          npm publish --tag beta --registry https://registry.npmjs.org
-          echo "publish_status=Published beta" >> "$GITHUB_ENV"
-
-      - name: Slack notify
-        if: always() && github.event_name != 'workflow_dispatch'
-        uses: innocarpe/actions-slack@v1
-        with:
-          status: ${{ job.status }}
-          success_text: '${{ github.repository }} - ${{ env.publish_status }} ${{ env.package_name }}@${{ env.package_version }} to npm 🚀'
-          failure_text: '${{github.repository}} - Failed to publish ${{ env.package_name }}@${{ env.package_version }} to npm'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: npm publish --tag beta --registry https://registry.npmjs.org
