@@ -100,6 +100,7 @@ describe('CLI app handler characterization', () => {
       network: 'host',
       dockerSocketPath: '/tmp/docker.sock',
       findLinks: '/wheels',
+      dockerExposedPorts: ['6113/tcp', '5683/udp'],
     });
 
     assert.deepStrictEqual(calls, [
@@ -111,6 +112,7 @@ describe('CLI app handler characterization', () => {
         network: 'host',
         dockerSocketPath: '/tmp/docker.sock',
         findLinks: '/wheels',
+        dockerExposedPorts: ['6113/tcp', '5683/udp'],
       },
     ]);
     assert.deepStrictEqual(exits, []);

@@ -68,6 +68,7 @@ describe('runner container characterization', () => {
       '/tmp/homey-userdata',
       linkedModulePath,
       docker,
+      DockerHelper.createPortConfiguration([6113, '5683/udp']),
     );
 
     assert.strictEqual(calls.run.length, 1);
@@ -79,7 +80,14 @@ describe('runner container characterization', () => {
     assert.ok(run.options.Env.includes('DEVMODE=1'));
     assert.strictEqual(run.options.Labels['com.athom.app-runtime'], 'nodejs');
     assert.strictEqual(run.options.HostConfig.NetworkMode, 'fixture-network');
+    assert.deepStrictEqual(run.options.ExposedPorts, {
+      '6113/tcp': {},
+      '5683/udp': {},
+      '9229/tcp': {},
+    });
     assert.deepStrictEqual(run.options.HostConfig.PortBindings['9229/tcp'], [{ HostPort: '9229' }]);
+    assert.deepStrictEqual(run.options.HostConfig.PortBindings['6113/tcp'], [{ HostPort: '6113' }]);
+    assert.deepStrictEqual(run.options.HostConfig.PortBindings['5683/udp'], [{ HostPort: '5683' }]);
     assert.ok(run.options.HostConfig.Binds.includes(`${app._homeyBuildPath}:/app:ro,z`));
     assert.ok(run.options.HostConfig.Binds.includes('/tmp/homey-fixture:/tmp:rw,z'));
     assert.ok(run.options.HostConfig.Binds.includes('/tmp/homey-userdata:/userdata:rw,z'));
@@ -118,6 +126,7 @@ describe('runner container characterization', () => {
       '/tmp/python-userdata',
       '',
       docker,
+      DockerHelper.createPortConfiguration([6113, '5683/udp']),
     );
 
     const run = calls.run[0];
@@ -125,6 +134,14 @@ describe('runner container characterization', () => {
     assert.deepStrictEqual(run.command, ['bash', 'entrypoint.sh']);
     assert.strictEqual(run.options.Labels['com.athom.app-runtime'], 'python');
     assert.strictEqual(run.options.HostConfig.NetworkMode, 'bridge');
+    assert.deepStrictEqual(run.options.ExposedPorts, {
+      '6113/tcp': {},
+      '5683/udp': {},
+    });
+    assert.deepStrictEqual(run.options.HostConfig.PortBindings, {
+      '6113/tcp': [{ HostPort: '6113' }],
+      '5683/udp': [{ HostPort: '5683' }],
+    });
     assert.ok(run.options.HostConfig.Binds.includes(`${app._homeyBuildPath}:/app`));
     assert.ok(run.options.HostConfig.Binds.includes('/tmp/python-userdata:/userdata:rw,z'));
 

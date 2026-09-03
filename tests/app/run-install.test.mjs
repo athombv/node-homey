@@ -32,6 +32,7 @@ describe('app run characterization', () => {
       network: 'host',
       skipBuild: true,
       dockerSocketPath: '/tmp/docker.sock',
+      dockerExposedPorts: ['6113/tcp', '5683/udp'],
     });
 
     assert.strictEqual(result, 'docker-result');
@@ -43,6 +44,7 @@ describe('app run characterization', () => {
         linkModules: '/tmp/module',
         network: 'host',
         dockerSocketPath: '/tmp/docker.sock',
+        dockerExposedPorts: ['6113/tcp', '5683/udp'],
       },
     ]);
   });
@@ -210,6 +212,35 @@ describe('app install characterization', () => {
 });
 
 describe('Python app run characterization', () => {
+  it('routes published ports to the Python Docker runner', async (t) => {
+    const appPath = await copyFixtureApp(t, 'python-basic');
+    const app = new AppPython(appPath);
+    const { homey } = createFakeHomey();
+    const runCalls = [];
+
+    t.mock.method(AthomApi, 'getActiveHomey', async () => {
+      return homey;
+    });
+    t.mock.method(app, 'runDocker', async (options) => {
+      runCalls.push(options);
+    });
+
+    await app.run({ dockerExposedPorts: ['5683/udp'] });
+
+    assert.deepStrictEqual(runCalls, [
+      {
+        homey,
+        clean: false,
+        skipBuild: false,
+        linkModules: '',
+        network: undefined,
+        dockerSocketPath: undefined,
+        findLinks: undefined,
+        dockerExposedPorts: ['5683/udp'],
+      },
+    ]);
+  });
+
   it('rejects legacy Homey API clients', async (t) => {
     const appPath = await copyFixtureApp(t, 'python-basic');
     const app = new AppPython(appPath);
