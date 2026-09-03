@@ -1,0 +1,52 @@
+name: Verify Slack Release Notifications
+
+on:
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - '.github/workflows/verify-slack-release-notifications.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify Slack configuration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate inherited configuration
+        env:
+          EXPECTED_CHANNEL_ID: C02J1FQAJ
+          SLACK_CHANNEL_ID: ${{ vars.SLACK_DEVELOPMENT_NOTIFICATIONS_CHANNEL_ID }}
+          SLACK_TOKEN: ${{ secrets.SLACK_HOMEY_GITHUB_APP }}
+        run: |
+          if [ -z "$SLACK_TOKEN" ]; then
+            echo "SLACK_HOMEY_GITHUB_APP is not available to this repository."
+            exit 1
+          fi
+
+          if [ "$SLACK_CHANNEL_ID" != "$EXPECTED_CHANNEL_ID" ]; then
+            echo "SLACK_DEVELOPMENT_NOTIFICATIONS_CHANNEL_ID is missing or unexpected."
+            exit 1
+          fi
+
+      - name: Post temporary verification message
+        id: post
+        uses: slackapi/slack-github-action@v4.0.0
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_HOMEY_GITHUB_APP }}
+          payload: |
+            channel: ${{ vars.SLACK_DEVELOPMENT_NOTIFICATIONS_CHANNEL_ID }}
+            text: "node-homey GitHub Actions Slack configuration verification (this message will be deleted automatically)."
+
+      - name: Delete temporary verification message
+        if: always() && steps.post.outputs.ts != ''
+        uses: slackapi/slack-github-action@v4.0.0
+        with:
+          method: chat.delete
+          token: ${{ secrets.SLACK_HOMEY_GITHUB_APP }}
+          payload: |
+            channel: ${{ vars.SLACK_DEVELOPMENT_NOTIFICATIONS_CHANNEL_ID }}
+            ts: ${{ steps.post.outputs.ts }}
