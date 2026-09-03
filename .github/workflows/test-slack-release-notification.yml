@@ -128,6 +128,7 @@ jobs:
       - name: Post preview to Slack test channel
         uses: slackapi/slack-github-action@v4.0.0
         with:
+          errors: true
           method: chat.postMessage
           token: ${{ secrets.SLACK_HOMEY_GITHUB_APP }}
           payload-file-path: ${{ steps.preview.outputs.payload_path }}
