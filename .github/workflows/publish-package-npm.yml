@@ -165,7 +165,7 @@ jobs:
 
           RELEASE_JSON_PATH="$RUNNER_TEMP/github-release.json"
           SLACK_PAYLOAD_PATH="$RUNNER_TEMP/slack-release-notification.json"
-          gh release view "$RELEASE_TAG" --json body,name,url > "$RELEASE_JSON_PATH"
+          gh release view "$RELEASE_TAG" --json author,body,name,url > "$RELEASE_JSON_PATH"
 
           export RELEASE_JSON_PATH SLACK_CHANNEL_ID SLACK_PAYLOAD_PATH
           node <<'NODE'
@@ -175,57 +175,20 @@ jobs:
             return text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
           }
 
-          function convertInlineMarkdown(text) {
-            const links = [];
-            let formatted = text.replace(/\[([^\]]+)]\((https?:\/\/[^)\s]+)\)/g, (_match, label, url) => {
-              const placeholder = `SLACK-LINK-TOKEN-${links.length}`;
-              links.push({ label, placeholder, url });
-
-              return placeholder;
-            });
-
-            formatted = escapeSlackText(formatted)
-              .replace(/\*\*([^*\n]+)\*\*/g, '*$1*')
-              .replace(/__([^_\n]+)__/g, '*$1*')
-              .replace(/~~([^~\n]+)~~/g, '~$1~')
-              .replace(/https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/pull\/(\d+)/g, (url, number) => {
-                return `<${url}|#${number}>`;
-              })
-              .replace(
-                /https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/compare\/([^\s]+?)\.\.\.([^\s]+)/g,
-                (url, from, to) => {
-                  return `<${url}|${from}…${to}>`;
-                },
-              );
-
-            for (const link of links) {
-              const slackLink = `<${escapeSlackText(link.url)}|${escapeSlackText(link.label)}>`;
-              formatted = formatted.replace(link.placeholder, slackLink);
+          function truncateMarkdown(markdown, releaseUrl) {
+            const maxMarkdownLength = 11_500;
+            if (markdown.length <= maxMarkdownLength) {
+              return markdown;
             }
 
-            return formatted;
-          }
-
-          function convertGitHubMarkdownToSlack(markdown) {
-            const formattedLines = [];
-
-            for (const line of markdown.split('\n')) {
-              const heading = line.match(/^#{1,6}\s+(.+)$/);
-              if (heading) {
-                formattedLines.push(`*${convertInlineMarkdown(heading[1])}*`);
-                continue;
-              }
-
-              const bullet = line.match(/^(\s*)[-*+]\s+(.+)$/);
-              if (bullet) {
-                formattedLines.push(`${bullet[1]}• ${convertInlineMarkdown(bullet[2])}`);
-                continue;
-              }
-
-              formattedLines.push(convertInlineMarkdown(line));
+            const suffix = `\n\n_[Changelog truncated. View the complete release notes](${releaseUrl})._`;
+            const maxContentLength = maxMarkdownLength - suffix.length;
+            let splitAt = markdown.lastIndexOf('\n', maxContentLength);
+            if (splitAt < maxContentLength / 2) {
+              splitAt = maxContentLength;
             }
 
-            return formattedLines.join('\n');
+            return `${markdown.slice(0, splitAt).trimEnd()}${suffix}`;
           }
 
           const release = JSON.parse(fs.readFileSync(process.env.RELEASE_JSON_PATH, 'utf8'));
@@ -233,28 +196,13 @@ jobs:
           const packageName = process.env.PACKAGE_NAME;
           const npmUrl = `https://www.npmjs.com/package/${packageName}/v/${packageVersion}`;
           const releaseName = release.name || `v${packageVersion}`;
+          const releaseAuthor = release.author?.login || process.env.GITHUB_ACTOR;
+          const releaseAuthorUrl = `https://github.com/${releaseAuthor}`;
           const repository = process.env.REPOSITORY;
           const repositoryUrl = process.env.REPOSITORY_URL;
           const slackReleaseName = escapeSlackText(releaseName);
           const githubNotes = release.body?.trim() || 'No release notes were provided.';
-          const notes = convertGitHubMarkdownToSlack(githubNotes);
-          const chunks = [];
-          let remainder = notes;
-
-          while (remainder && chunks.length < 12) {
-            let splitAt = Math.min(2800, remainder.length);
-            if (splitAt < remainder.length) {
-              const newline = remainder.lastIndexOf('\n', splitAt);
-              if (newline > 1400) splitAt = newline;
-            }
-
-            chunks.push(remainder.slice(0, splitAt).trim());
-            remainder = remainder.slice(splitAt).trim();
-          }
-
-          if (remainder) {
-            chunks.push(`_The changelog was shortened for Slack. <${release.url}|View the complete release notes>._`);
-          }
+          const notes = truncateMarkdown(githubNotes, release.url);
 
           const payload = {
             channel: process.env.SLACK_CHANNEL_ID,
@@ -272,17 +220,23 @@ jobs:
                 elements: [
                   {
                     type: 'mrkdwn',
-                    text: `*Repository:* <${repositoryUrl}|${repository}>  •  *Package:* <${npmUrl}|${packageName}@${packageVersion}>`,
+                    text: `<${repositoryUrl}|${repository}>  •  <${npmUrl}|${packageName}@${packageVersion}>  •  npm latest  •  Published by <${releaseAuthorUrl}|@${releaseAuthor}>`,
                   },
                 ],
               },
               { type: 'divider' },
-              ...chunks.map((chunk) => {
-                return {
-                  type: 'section',
-                  text: { type: 'mrkdwn', text: chunk },
-                };
-              }),
+              {
+                type: 'markdown',
+                text: notes,
+              },
+              { type: 'divider' },
+              {
+                type: 'section',
+                text: {
+                  type: 'mrkdwn',
+                  text: `*Install*\n\`\`\`npm install --global ${packageName}@${packageVersion}\`\`\``,
+                },
+              },
               {
                 type: 'actions',
                 elements: [

@@ -1,0 +1,64 @@
+name: TEMP - Test Native Markdown Release Notification
+
+on:
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - '.github/workflows/publish-package-npm.yml'
+      - '.github/workflows/test-slack-markdown-release-notification.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  post-preview:
+    name: Post native Markdown preview
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout git repository
+        uses: actions/checkout@v4
+
+      - name: Prepare production payload for test channel
+        id: preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_NAME: homey
+          PACKAGE_VERSION: 4.4.3
+          RAW_SLACK_CHANNEL_ID: ${{ vars.SLACK_DEVELOPMENT_SLACK_TEST_CHANNEL_ID }}
+          RELEASE_TAG: v4.4.3
+          REPOSITORY: ${{ github.repository }}
+          REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
+          SLACK_TOKEN: ${{ secrets.SLACK_HOMEY_GITHUB_APP }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$SLACK_TOKEN" ]; then
+            echo "::error::SLACK_HOMEY_GITHUB_APP is not available to this repository."
+            exit 1
+          fi
+
+          SLACK_CHANNEL_ID="$(printf '%s' "$RAW_SLACK_CHANNEL_ID" | xargs)"
+          if [ -z "$SLACK_CHANNEL_ID" ]; then
+            echo "::error::SLACK_DEVELOPMENT_SLACK_TEST_CHANNEL_ID is not available to this repository."
+            exit 1
+          fi
+
+          RELEASE_JSON_PATH="$RUNNER_TEMP/github-release.json"
+          SLACK_PAYLOAD_PATH="$RUNNER_TEMP/slack-release-notification.json"
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json author,body,name,url > "$RELEASE_JSON_PATH"
+
+          export RELEASE_JSON_PATH SLACK_CHANNEL_ID SLACK_PAYLOAD_PATH
+          sed -n "/node <<'NODE'/,/^          NODE$/p" .github/workflows/publish-package-npm.yml \
+            | sed '1d;$d;s/^          //' \
+            | node
+
+          echo "payload_path=$SLACK_PAYLOAD_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Post preview to Slack test channel
+        uses: slackapi/slack-github-action@v4.0.0
+        with:
+          errors: true
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_HOMEY_GITHUB_APP }}
+          payload-file-path: ${{ steps.preview.outputs.payload_path }}
