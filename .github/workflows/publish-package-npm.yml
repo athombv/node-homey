@@ -221,7 +221,7 @@ jobs:
                 elements: [
                   {
                     type: 'mrkdwn',
-                    text: `<${repositoryUrl}|${repository}>  •  <${npmUrl}|${packageName}@${packageVersion}>  •  npm latest  •  Published by <${releaseAuthorUrl}|@${releaseAuthor}>`,
+                    text: `<${repositoryUrl}|${repository}>  •  <${npmUrl}|${packageName}@${packageVersion}>  •  Published by <${releaseAuthorUrl}|@${releaseAuthor}>`,
                   },
                 ],
               },
