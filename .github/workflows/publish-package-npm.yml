@@ -202,7 +202,8 @@ jobs:
           const repositoryUrl = process.env.REPOSITORY_URL;
           const slackReleaseName = escapeSlackText(releaseName);
           const githubNotes = release.body?.trim() || 'No release notes were provided.';
-          const notes = truncateMarkdown(githubNotes, release.url);
+          const slackNotes = githubNotes.replace(/^\*\*Full Changelog\*\*:/m, '**Full diff**:');
+          const notes = truncateMarkdown(slackNotes, release.url);
 
           const payload = {
             channel: process.env.SLACK_CHANNEL_ID,
