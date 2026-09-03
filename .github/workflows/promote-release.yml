@@ -37,6 +37,20 @@ jobs:
         run: |
           set -euo pipefail
 
+          skip_promotion() {
+            local reason="$1"
+
+            echo "Promotion skipped: $reason"
+            echo "::notice title=Production promotion skipped::$reason"
+            {
+              echo "## Production promotion skipped"
+              echo
+              echo "$reason"
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          }
+
           git fetch origin \
             "+refs/heads/master:refs/remotes/origin/master" \
             "+refs/heads/production:refs/remotes/origin/production" \
@@ -50,9 +64,7 @@ jobs:
           RELEASE_JSON="$(gh release view "$RELEASE_TAG" --json isDraft,isPrerelease,publishedAt,url 2>/dev/null || true)"
 
           if [ -z "$RELEASE_JSON" ]; then
-            echo "No GitHub Release exists for $RELEASE_TAG yet." >> "$GITHUB_STEP_SUMMARY"
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            exit 0
+            skip_promotion "No GitHub Release exists for $RELEASE_TAG yet. Create and publish a stable release before promoting master."
           fi
 
           IS_DRAFT="$(jq -r '.isDraft' <<< "$RELEASE_JSON")"
@@ -60,42 +72,41 @@ jobs:
           PUBLISHED_AT="$(jq -r '.publishedAt // empty' <<< "$RELEASE_JSON")"
           RELEASE_URL="$(jq -r '.url' <<< "$RELEASE_JSON")"
 
-          if [ "$IS_DRAFT" = "true" ] || [ "$IS_PRERELEASE" = "true" ] || [ -z "$PUBLISHED_AT" ]; then
-            echo "GitHub Release $RELEASE_TAG is not a published stable release." >> "$GITHUB_STEP_SUMMARY"
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            exit 0
+          if [ "$IS_DRAFT" = "true" ]; then
+            skip_promotion "GitHub Release $RELEASE_TAG is still a draft. Publish it as a stable release before promoting master."
+          fi
+
+          if [ "$IS_PRERELEASE" = "true" ]; then
+            skip_promotion "GitHub Release $RELEASE_TAG is a prerelease. Only stable releases can be promoted to production."
+          fi
+
+          if [ -z "$PUBLISHED_AT" ]; then
+            skip_promotion "GitHub Release $RELEASE_TAG has not been published yet. Publish it as a stable release before promoting master."
           fi
 
           if ! git rev-parse --verify "$RELEASE_TAG^{commit}" >/dev/null 2>&1; then
-            echo "Tag $RELEASE_TAG does not exist." >> "$GITHUB_STEP_SUMMARY"
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            exit 0
+            skip_promotion "Git tag $RELEASE_TAG does not exist. Create the tag before promoting master."
           fi
 
           if ! git diff --quiet "$RELEASE_TAG^{tree}" "origin/master^{tree}"; then
-            echo "Master contents do not match the tagged $RELEASE_TAG contents yet." >> "$GITHUB_STEP_SUMMARY"
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            exit 0
+            skip_promotion "Master does not match the contents of tag $RELEASE_TAG. Merge the tagged release contents into master before promoting it."
           fi
 
           PRODUCTION_VERSION="$(git show origin/production:package.json | node -e "let json = ''; process.stdin.on('data', chunk => { json += chunk; }); process.stdin.on('end', () => { process.stdout.write(JSON.parse(json).version); });")"
 
           if [ "$PRODUCTION_VERSION" = "$VERSION" ]; then
-            echo "$RELEASE_TAG is already the production version." >> "$GITHUB_STEP_SUMMARY"
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            exit 0
+            skip_promotion "$RELEASE_TAG is already the production version. No promotion pull request is needed."
           fi
 
-          OPEN_PRS="$(gh pr list --state open --base production --head master --json number --jq 'length')"
+          OPEN_PR_URL="$(gh pr list --state open --base production --head master --json url --jq '.[0].url // empty')"
 
-          if [ "$OPEN_PRS" -ne 0 ]; then
-            echo "A master to production pull request is already open." >> "$GITHUB_STEP_SUMMARY"
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            exit 0
+          if [ -n "$OPEN_PR_URL" ]; then
+            skip_promotion "A master to production pull request is already open: $OPEN_PR_URL"
           fi
 
           echo "release_url=$RELEASE_URL" >> "$GITHUB_OUTPUT"
           echo "ready=true" >> "$GITHUB_OUTPUT"
+          echo "Promotion ready: $RELEASE_TAG can be promoted from master to production."
 
       - name: Open production promotion pull request
         if: steps.readiness.outputs.ready == 'true'
