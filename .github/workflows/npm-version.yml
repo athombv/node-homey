@@ -1,15 +1,5 @@
 name: Update Package Version
 
-# Version: 1.0.0
-# Modified: No
-# Requirements:
-# - A valid package.json
-# - The `Homey Github Actions Bot` should have `Admin` level access to the repository,
-#   to bypass push restrictions.
-#
-# Required secrets:
-# - HOMEY_GITHUB_ACTIONS_BOT_PERSONAL_ACCESS_TOKEN
-
 on:
   workflow_dispatch:
     inputs:
@@ -23,26 +13,208 @@ on:
           - minor
           - patch
 
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: npm-version-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  publish:
-    name: Publish
+  version:
+    name: Version ${{ inputs.newversion }} on ${{ github.ref_name }}
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.HOMEY_GITHUB_ACTIONS_BOT_PERSONAL_ACCESS_TOKEN }}
+
     steps:
-      - name: Checkout git repository
-        uses: actions/checkout@v3
+      - name: Checkout selected branch
+        uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           token: ${{ secrets.HOMEY_GITHUB_ACTIONS_BOT_PERSONAL_ACCESS_TOKEN }}
 
-      - name: Set up node environment
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
+          cache: npm
           registry-url: 'https://npm.pkg.github.com'
 
-      - name: Version
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --audit=false
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.HOMEY_GITHUB_ACTIONS_BOT_PERSONAL_ACCESS_TOKEN }}
+
+      - name: Determine target version
+        id: version
+        env:
+          BUMP_TYPE: ${{ inputs.newversion }}
         run: |
+          set -euo pipefail
+
+          if [ "$GITHUB_REF_TYPE" != "branch" ]; then
+            echo "::error::Select a branch when dispatching this workflow."
+            exit 1
+          fi
+
+          if [ "$GITHUB_REF_NAME" = "master" ] || [ "$GITHUB_REF_NAME" = "production" ]; then
+            echo "::error::Version bumps cannot run directly on the master or production promotion branches."
+            exit 1
+          fi
+
+          CURRENT_VERSION="$(node -p "require('./package.json').version")"
+          NEXT_VERSION="$(node -e "const semver = require('semver'); const next = semver.inc(process.argv[1], process.argv[2]); if (next === null) process.exit(1); process.stdout.write(next);" "$CURRENT_VERSION" "$BUMP_TYPE")"
+
+          {
+            echo "current=$CURRENT_VERSION"
+            echo "next=$NEXT_VERSION"
+            echo "tag=v$NEXT_VERSION"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Validate target version
+        env:
+          NEXT_VERSION: ${{ steps.version.outputs.next }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+
+          git fetch origin --force --tags
+
+          if git rev-parse --quiet --verify "refs/tags/$RELEASE_TAG" >/dev/null; then
+            echo "::error::Git tag $RELEASE_TAG already exists."
+            exit 1
+          fi
+
+          PACKAGE_NAME="$(node -p "require('./package.json').name")"
+
+          if npm view "$PACKAGE_NAME@$NEXT_VERSION" version --registry https://registry.npmjs.org >/dev/null 2>&1; then
+            echo "::error::$PACKAGE_NAME@$NEXT_VERSION is already published to npm."
+            exit 1
+          fi
+
+      - name: Validate stable release state
+        if: github.ref_name == 'develop'
+        env:
+          CURRENT_VERSION: ${{ steps.version.outputs.current }}
+          CURRENT_TAG: v${{ steps.version.outputs.current }}
+        run: |
+          set -euo pipefail
+
+          git fetch origin \
+            "+refs/heads/production:refs/remotes/origin/production" \
+            --force \
+            --tags
+
+          CURRENT_RELEASE_JSON="$(gh release view "$CURRENT_TAG" --json isDraft,isPrerelease,publishedAt 2>/dev/null || true)"
+
+          if [ -z "$CURRENT_RELEASE_JSON" ]; then
+            echo "::error::The current develop version $CURRENT_TAG does not have a published GitHub Release."
+            exit 1
+          fi
+
+          CURRENT_RELEASE_IS_DRAFT="$(jq -r '.isDraft' <<< "$CURRENT_RELEASE_JSON")"
+          CURRENT_RELEASE_IS_PRERELEASE="$(jq -r '.isPrerelease' <<< "$CURRENT_RELEASE_JSON")"
+          CURRENT_RELEASE_PUBLISHED_AT="$(jq -r '.publishedAt // empty' <<< "$CURRENT_RELEASE_JSON")"
+
+          if [ "$CURRENT_RELEASE_IS_DRAFT" = "true" ] || [ "$CURRENT_RELEASE_IS_PRERELEASE" = "true" ] || [ -z "$CURRENT_RELEASE_PUBLISHED_AT" ]; then
+            echo "::error::Publish the stable GitHub Release for $CURRENT_TAG before creating another stable version."
+            exit 1
+          fi
+
+          DRAFT_TAGS="$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases" --jq '.[] | select(.draft) | .tag_name')"
+
+          if [ -n "$DRAFT_TAGS" ]; then
+            echo "::error::Publish the existing draft release before creating another stable version."
+            echo "$DRAFT_TAGS"
+            exit 1
+          fi
+
+          OPEN_PROMOTION_PRS="$(gh pr list --state open --base master --head develop --json number --jq 'length')"
+
+          if [ "$OPEN_PROMOTION_PRS" -ne 0 ]; then
+            echo "::error::Merge or close the existing develop to master pull request before creating another stable version."
+            exit 1
+          fi
+
+          OPEN_PRODUCTION_PRS="$(gh pr list --state open --base production --head master --json number --jq 'length')"
+
+          if [ "$OPEN_PRODUCTION_PRS" -ne 0 ]; then
+            echo "::error::Merge or close the existing master to production pull request before creating another stable version."
+            exit 1
+          fi
+
+          PRODUCTION_VERSION="$(git show origin/production:package.json | node -e "let json = ''; process.stdin.on('data', chunk => { json += chunk; }); process.stdin.on('end', () => { process.stdout.write(JSON.parse(json).version); });")"
+
+          if [ "$PRODUCTION_VERSION" != "$CURRENT_VERSION" ]; then
+            echo "::error::Production is on $PRODUCTION_VERSION; release $CURRENT_TAG before creating another stable version."
+            exit 1
+          fi
+
+          if ! git diff --quiet "$CURRENT_TAG^{tree}" "origin/production^{tree}"; then
+            echo "::error::Production contents do not match the released $CURRENT_TAG contents."
+            exit 1
+          fi
+
+          PACKAGE_NAME="$(node -p "require('./package.json').name")"
+          LATEST_NPM_VERSION="$(npm view "$PACKAGE_NAME" dist-tags.latest --registry https://registry.npmjs.org 2>/dev/null || true)"
+
+          if [ "$LATEST_NPM_VERSION" != "$CURRENT_VERSION" ]; then
+            echo "::error::npm latest is $LATEST_NPM_VERSION; publish $PACKAGE_NAME@$CURRENT_VERSION before creating another stable version."
+            exit 1
+          fi
+
+      - name: Run release checks
+        run: |
+          npm run prettier:check
+          npm run lint
+          npm run test:coverage
+          npm publish --dry-run --registry https://registry.npmjs.org
+
+      - name: Create and push version
+        env:
+          BUMP_TYPE: ${{ inputs.newversion }}
+          EXPECTED_VERSION: ${{ steps.version.outputs.next }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+
           git config --local user.email "sysadmin+githubactions@athom.com"
           git config --local user.name "Homey Github Actions Bot"
-          git pull
-          npm version ${{ github.event.inputs.newversion }}
-          git push --follow-tags
+
+          npm version "$BUMP_TYPE" -m "chore(release): v%s"
+
+          ACTUAL_VERSION="$(node -p "require('./package.json').version")"
+
+          if [ "$ACTUAL_VERSION" != "$EXPECTED_VERSION" ]; then
+            echo "::error::Expected version $EXPECTED_VERSION, but npm created $ACTUAL_VERSION."
+            exit 1
+          fi
+
+          git push --atomic origin "HEAD:$GITHUB_REF_NAME" "$RELEASE_TAG"
+
+      - name: Create stable draft release
+        if: github.ref_name == 'develop'
+        id: release
+        env:
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+
+          RELEASE_URL="$(gh release create "$RELEASE_TAG" --draft --generate-notes --title "$RELEASE_TAG" --verify-tag)"
+          echo "url=$RELEASE_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Open master promotion pull request
+        if: github.ref_name == 'develop'
+        env:
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+          RELEASE_URL: ${{ steps.release.outputs.url }}
+        run: |
+          set -euo pipefail
+
+          gh pr create \
+            --base master \
+            --head develop \
+            --title "Release $RELEASE_TAG" \
+            --body "Promotes $RELEASE_TAG from develop to master. Review and publish the draft GitHub Release before promoting master to production: $RELEASE_URL"
