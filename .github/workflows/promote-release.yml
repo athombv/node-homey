@@ -1,0 +1,112 @@
+name: Promote Published Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+  release:
+    types:
+      - published
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: promote-published-release
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    name: Promote master to production
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.HOMEY_GITHUB_ACTIONS_BOT_PERSONAL_ACCESS_TOKEN }}
+
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: master
+          token: ${{ secrets.HOMEY_GITHUB_ACTIONS_BOT_PERSONAL_ACCESS_TOKEN }}
+
+      - name: Check promotion readiness
+        id: readiness
+        run: |
+          set -euo pipefail
+
+          git fetch origin \
+            "+refs/heads/master:refs/remotes/origin/master" \
+            "+refs/heads/production:refs/remotes/origin/production" \
+            --force \
+            --tags
+
+          VERSION="$(node -p "require('./package.json').version")"
+          RELEASE_TAG="v$VERSION"
+          echo "tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+
+          RELEASE_JSON="$(gh release view "$RELEASE_TAG" --json isDraft,isPrerelease,publishedAt,url 2>/dev/null || true)"
+
+          if [ -z "$RELEASE_JSON" ]; then
+            echo "No GitHub Release exists for $RELEASE_TAG yet." >> "$GITHUB_STEP_SUMMARY"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          IS_DRAFT="$(jq -r '.isDraft' <<< "$RELEASE_JSON")"
+          IS_PRERELEASE="$(jq -r '.isPrerelease' <<< "$RELEASE_JSON")"
+          PUBLISHED_AT="$(jq -r '.publishedAt // empty' <<< "$RELEASE_JSON")"
+          RELEASE_URL="$(jq -r '.url' <<< "$RELEASE_JSON")"
+
+          if [ "$IS_DRAFT" = "true" ] || [ "$IS_PRERELEASE" = "true" ] || [ -z "$PUBLISHED_AT" ]; then
+            echo "GitHub Release $RELEASE_TAG is not a published stable release." >> "$GITHUB_STEP_SUMMARY"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if ! git rev-parse --verify "$RELEASE_TAG^{commit}" >/dev/null 2>&1; then
+            echo "Tag $RELEASE_TAG does not exist." >> "$GITHUB_STEP_SUMMARY"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if ! git diff --quiet "$RELEASE_TAG^{tree}" "origin/master^{tree}"; then
+            echo "Master contents do not match the tagged $RELEASE_TAG contents yet." >> "$GITHUB_STEP_SUMMARY"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          PRODUCTION_VERSION="$(git show origin/production:package.json | node -e "let json = ''; process.stdin.on('data', chunk => { json += chunk; }); process.stdin.on('end', () => { process.stdout.write(JSON.parse(json).version); });")"
+
+          if [ "$PRODUCTION_VERSION" = "$VERSION" ]; then
+            echo "$RELEASE_TAG is already the production version." >> "$GITHUB_STEP_SUMMARY"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          OPEN_PRS="$(gh pr list --state open --base production --head master --json number --jq 'length')"
+
+          if [ "$OPEN_PRS" -ne 0 ]; then
+            echo "A master to production pull request is already open." >> "$GITHUB_STEP_SUMMARY"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "release_url=$RELEASE_URL" >> "$GITHUB_OUTPUT"
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
+      - name: Open production promotion pull request
+        if: steps.readiness.outputs.ready == 'true'
+        env:
+          RELEASE_TAG: ${{ steps.readiness.outputs.tag }}
+          RELEASE_URL: ${{ steps.readiness.outputs.release_url }}
+        run: |
+          set -euo pipefail
+
+          gh pr create \
+            --base production \
+            --head master \
+            --title "Release $RELEASE_TAG to production" \
+            --body "Promotes the published $RELEASE_TAG release from master to production. Merging this pull request publishes the package to npm: $RELEASE_URL"
