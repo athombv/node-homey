@@ -144,7 +144,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PACKAGE_NAME: ${{ steps.package.outputs.name }}
           PACKAGE_VERSION: ${{ steps.package.outputs.version }}
-          RAW_SLACK_CHANNEL_ID: ${{ vars.SLACK_DEVELOPMENT_NOTIFICATIONS_CHANNEL_ID }}
+          SLACK_CHANNEL_ID: ${{ vars.SLACK_DEVELOPMENT_NOTIFICATIONS_CHANNEL_ID }}
           RELEASE_TAG: v${{ steps.package.outputs.version }}
           REPOSITORY: ${{ github.repository }}
           REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
@@ -157,7 +157,7 @@ jobs:
             exit 1
           fi
 
-          SLACK_CHANNEL_ID="$(printf '%s' "$RAW_SLACK_CHANNEL_ID" | xargs)"
+          SLACK_CHANNEL_ID="$(printf '%s' "$SLACK_CHANNEL_ID" | xargs)"
           if [ -z "$SLACK_CHANNEL_ID" ]; then
             echo "::error::SLACK_DEVELOPMENT_NOTIFICATIONS_CHANNEL_ID is not available to this repository."
             exit 1
@@ -168,8 +168,8 @@ jobs:
           gh release view "$RELEASE_TAG" --json author,body,url > "$RELEASE_JSON_PATH"
 
           export RELEASE_JSON_PATH SLACK_CHANNEL_ID SLACK_PAYLOAD_PATH
-          node <<'NODE'
-          const fs = require('node:fs');
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
 
           function truncateMarkdown(markdown, releaseUrl) {
             const maxMarkdownLength = 11_500;
@@ -187,7 +187,7 @@ jobs:
             return `${markdown.slice(0, splitAt).trimEnd()}${suffix}`;
           }
 
-          const release = JSON.parse(fs.readFileSync(process.env.RELEASE_JSON_PATH, 'utf8'));
+          const release = JSON.parse(readFileSync(process.env.RELEASE_JSON_PATH, 'utf8'));
           const packageVersion = process.env.PACKAGE_VERSION;
           const packageName = process.env.PACKAGE_NAME;
           const npmUrl = `https://www.npmjs.com/package/${packageName}/v/${packageVersion}`;
@@ -251,7 +251,7 @@ jobs:
             ],
           };
 
-          fs.writeFileSync(process.env.SLACK_PAYLOAD_PATH, JSON.stringify(payload));
+          writeFileSync(process.env.SLACK_PAYLOAD_PATH, JSON.stringify(payload));
           NODE
 
           echo "payload_path=$SLACK_PAYLOAD_PATH" >> "$GITHUB_OUTPUT"
