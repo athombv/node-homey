@@ -28,15 +28,13 @@ jobs:
           node-version-file: '.nvmrc'
           registry-url: 'https://npm.pkg.github.com'
 
-      # Sets package.json name & version to environment.
+      # Sets package.json name and version as step outputs.
       - name: Get Package Info
         id: package
         run: |
           NAME="$(node -p "require('./package.json').name")"
-          echo "package_name=$NAME" >> "$GITHUB_ENV"
-
           VERSION="$(node -p "require('./package.json').version")"
-          echo "package_version=$VERSION" >> "$GITHUB_ENV"
+
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
@@ -138,7 +136,6 @@ jobs:
           fi
 
           echo "publish=false" >> "$GITHUB_OUTPUT"
-          echo "publish_status=Already published" >> "$GITHUB_ENV"
 
       - name: Prepare Slack release notification
         if: github.event_name == 'push' && github.ref == 'refs/heads/production'
@@ -149,6 +146,8 @@ jobs:
           PACKAGE_VERSION: ${{ steps.package.outputs.version }}
           RAW_SLACK_CHANNEL_ID: ${{ vars.SLACK_DEVELOPMENT_NOTIFICATIONS_CHANNEL_ID }}
           RELEASE_TAG: v${{ steps.package.outputs.version }}
+          REPOSITORY: ${{ github.repository }}
+          REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
           SLACK_TOKEN: ${{ secrets.SLACK_HOMEY_GITHUB_APP }}
         run: |
           set -euo pipefail
@@ -234,6 +233,8 @@ jobs:
           const packageName = process.env.PACKAGE_NAME;
           const npmUrl = `https://www.npmjs.com/package/${packageName}/v/${packageVersion}`;
           const releaseName = release.name || `v${packageVersion}`;
+          const repository = process.env.REPOSITORY;
+          const repositoryUrl = process.env.REPOSITORY_URL;
           const githubNotes = release.body?.trim() || 'No release notes were provided.';
           const notes = convertGitHubMarkdownToSlack(githubNotes);
           const chunks = [];
@@ -256,7 +257,7 @@ jobs:
 
           const payload = {
             channel: process.env.SLACK_CHANNEL_ID,
-            text: `${packageName}@${packageVersion} was published to npm. ${release.url}`,
+            text: `${repository}: ${packageName}@${packageVersion} was published to npm. ${release.url}`,
             blocks: [
               {
                 type: 'section',
@@ -264,6 +265,15 @@ jobs:
                   type: 'mrkdwn',
                   text: `:rocket: *<${release.url}|${releaseName}> published to npm*`,
                 },
+              },
+              {
+                type: 'context',
+                elements: [
+                  {
+                    type: 'mrkdwn',
+                    text: `*Repository:* <${repositoryUrl}|${repository}>  •  *Package:* <${npmUrl}|${packageName}@${packageVersion}>`,
+                  },
+                ],
               },
               { type: 'divider' },
               ...chunks.map((chunk) => {
@@ -297,9 +307,7 @@ jobs:
 
       - name: Publish stable package
         if: github.event_name == 'push' && github.ref == 'refs/heads/production' && steps.stable_package.outputs.publish == 'true'
-        run: |
-          npm publish --registry https://registry.npmjs.org
-          echo "publish_status=Published" >> "$GITHUB_ENV"
+        run: npm publish --registry https://registry.npmjs.org
 
       - name: Notify Slack of stable release
         if: github.event_name == 'push' && github.ref == 'refs/heads/production'
@@ -312,17 +320,4 @@ jobs:
 
       - name: Publish (beta)
         if: github.event_name == 'push' && github.ref == 'refs/heads/testing'
-        run: |
-          npm publish --tag beta --registry https://registry.npmjs.org
-          echo "publish_status=Published beta" >> "$GITHUB_ENV"
-
-      - name: Slack publish status
-        if: always() && github.event_name != 'workflow_dispatch'
-        uses: innocarpe/actions-slack@v1
-        with:
-          status: ${{ job.status }}
-          success_text: '${{ github.repository }} - ${{ env.publish_status }} ${{ env.package_name }}@${{ env.package_version }} to npm 🚀'
-          failure_text: '${{ github.repository }} - Release workflow failed for ${{ env.package_name }}@${{ env.package_version }}'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: npm publish --tag beta --registry https://registry.npmjs.org
