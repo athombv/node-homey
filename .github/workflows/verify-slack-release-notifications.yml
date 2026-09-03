@@ -16,9 +16,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Validate inherited configuration
+        id: config
         env:
           EXPECTED_CHANNEL_ID: C02J1FQAJ
-          SLACK_CHANNEL_ID: ${{ vars.SLACK_DEVELOPMENT_NOTIFICATIONS_CHANNEL_ID }}
+          RAW_SLACK_CHANNEL_ID: ${{ vars.SLACK_DEVELOPMENT_NOTIFICATIONS_CHANNEL_ID }}
           SLACK_TOKEN: ${{ secrets.SLACK_HOMEY_GITHUB_APP }}
         run: |
           if [ -z "$SLACK_TOKEN" ]; then
@@ -26,10 +27,13 @@ jobs:
             exit 1
           fi
 
+          SLACK_CHANNEL_ID="$(printf '%s' "$RAW_SLACK_CHANNEL_ID" | xargs)"
           if [ "$SLACK_CHANNEL_ID" != "$EXPECTED_CHANNEL_ID" ]; then
             echo "SLACK_DEVELOPMENT_NOTIFICATIONS_CHANNEL_ID is missing or unexpected."
             exit 1
           fi
+
+          echo "channel_id=$SLACK_CHANNEL_ID" >> "$GITHUB_OUTPUT"
 
       - name: Post temporary verification message
         id: post
@@ -38,7 +42,7 @@ jobs:
           method: chat.postMessage
           token: ${{ secrets.SLACK_HOMEY_GITHUB_APP }}
           payload: |
-            channel: ${{ vars.SLACK_DEVELOPMENT_NOTIFICATIONS_CHANNEL_ID }}
+            channel: ${{ steps.config.outputs.channel_id }}
             text: "node-homey GitHub Actions Slack configuration verification (this message will be deleted automatically)."
 
       - name: Delete temporary verification message
@@ -48,5 +52,5 @@ jobs:
           method: chat.delete
           token: ${{ secrets.SLACK_HOMEY_GITHUB_APP }}
           payload: |
-            channel: ${{ vars.SLACK_DEVELOPMENT_NOTIFICATIONS_CHANNEL_ID }}
+            channel: ${{ steps.config.outputs.channel_id }}
             ts: ${{ steps.post.outputs.ts }}
