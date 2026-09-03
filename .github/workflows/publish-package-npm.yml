@@ -80,8 +80,15 @@ jobs:
             exit 1
           fi
 
-          if ! git merge-base --is-ancestor "$RELEASE_TAG^{commit}" "$GITHUB_SHA"; then
-            echo "::error::Git tag $RELEASE_TAG is not contained in this production revision."
+          TAG_VERSION="$(git show "$RELEASE_TAG:package.json" | node -e "let json = ''; process.stdin.on('data', chunk => { json += chunk; }); process.stdin.on('end', () => { process.stdout.write(JSON.parse(json).version); });")"
+
+          if [ "$TAG_VERSION" != "${RELEASE_TAG#v}" ]; then
+            echo "::error::Git tag $RELEASE_TAG contains package version $TAG_VERSION."
+            exit 1
+          fi
+
+          if ! git diff --quiet "$RELEASE_TAG^{tree}" "$GITHUB_SHA^{tree}"; then
+            echo "::error::Production contents do not match the tagged $RELEASE_TAG release contents."
             exit 1
           fi
 

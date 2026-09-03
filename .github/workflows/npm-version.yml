@@ -59,6 +59,11 @@ jobs:
             exit 1
           fi
 
+          if [ "$GITHUB_REF_NAME" = "master" ] || [ "$GITHUB_REF_NAME" = "production" ]; then
+            echo "::error::Version bumps cannot run directly on the master or production promotion branches."
+            exit 1
+          fi
+
           CURRENT_VERSION="$(node -p "require('./package.json').version")"
           NEXT_VERSION="$(node -e "const semver = require('semver'); const next = semver.inc(process.argv[1], process.argv[2]); if (next === null) process.exit(1); process.stdout.write(next);" "$CURRENT_VERSION" "$BUMP_TYPE")"
 
@@ -92,9 +97,15 @@ jobs:
       - name: Validate stable release state
         if: github.ref_name == 'develop'
         env:
+          CURRENT_VERSION: ${{ steps.version.outputs.current }}
           CURRENT_TAG: v${{ steps.version.outputs.current }}
         run: |
           set -euo pipefail
+
+          git fetch origin \
+            "+refs/heads/production:refs/remotes/origin/production" \
+            --force \
+            --tags
 
           CURRENT_RELEASE_JSON="$(gh release view "$CURRENT_TAG" --json isDraft,isPrerelease,publishedAt 2>/dev/null || true)"
 
@@ -124,6 +135,33 @@ jobs:
 
           if [ "$OPEN_PROMOTION_PRS" -ne 0 ]; then
             echo "::error::Merge or close the existing develop to master pull request before creating another stable version."
+            exit 1
+          fi
+
+          OPEN_PRODUCTION_PRS="$(gh pr list --state open --base production --head master --json number --jq 'length')"
+
+          if [ "$OPEN_PRODUCTION_PRS" -ne 0 ]; then
+            echo "::error::Merge or close the existing master to production pull request before creating another stable version."
+            exit 1
+          fi
+
+          PRODUCTION_VERSION="$(git show origin/production:package.json | node -e "let json = ''; process.stdin.on('data', chunk => { json += chunk; }); process.stdin.on('end', () => { process.stdout.write(JSON.parse(json).version); });")"
+
+          if [ "$PRODUCTION_VERSION" != "$CURRENT_VERSION" ]; then
+            echo "::error::Production is on $PRODUCTION_VERSION; release $CURRENT_TAG before creating another stable version."
+            exit 1
+          fi
+
+          if ! git diff --quiet "$CURRENT_TAG^{tree}" "origin/production^{tree}"; then
+            echo "::error::Production contents do not match the released $CURRENT_TAG contents."
+            exit 1
+          fi
+
+          PACKAGE_NAME="$(node -p "require('./package.json').name")"
+          LATEST_NPM_VERSION="$(npm view "$PACKAGE_NAME" dist-tags.latest --registry https://registry.npmjs.org 2>/dev/null || true)"
+
+          if [ "$LATEST_NPM_VERSION" != "$CURRENT_VERSION" ]; then
+            echo "::error::npm latest is $LATEST_NPM_VERSION; publish $PACKAGE_NAME@$CURRENT_VERSION before creating another stable version."
             exit 1
           fi
 

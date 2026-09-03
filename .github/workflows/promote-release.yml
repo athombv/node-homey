@@ -72,14 +72,16 @@ jobs:
             exit 0
           fi
 
-          if ! git merge-base --is-ancestor "$RELEASE_TAG^{commit}" origin/master; then
-            echo "Tag $RELEASE_TAG is not contained in master yet." >> "$GITHUB_STEP_SUMMARY"
+          if ! git diff --quiet "$RELEASE_TAG^{tree}" "origin/master^{tree}"; then
+            echo "Master contents do not match the tagged $RELEASE_TAG contents yet." >> "$GITHUB_STEP_SUMMARY"
             echo "ready=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          if git merge-base --is-ancestor "$RELEASE_TAG^{commit}" origin/production; then
-            echo "$RELEASE_TAG is already contained in production." >> "$GITHUB_STEP_SUMMARY"
+          PRODUCTION_VERSION="$(git show origin/production:package.json | node -e "let json = ''; process.stdin.on('data', chunk => { json += chunk; }); process.stdin.on('end', () => { process.stdout.write(JSON.parse(json).version); });")"
+
+          if [ "$PRODUCTION_VERSION" = "$VERSION" ]; then
+            echo "$RELEASE_TAG is already the production version." >> "$GITHUB_STEP_SUMMARY"
             echo "ready=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
