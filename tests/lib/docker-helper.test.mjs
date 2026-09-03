@@ -26,6 +26,10 @@ describe('DockerHelper characterization', () => {
   });
 
   it('rejects malformed and out-of-range Docker port specifications', () => {
+    assert.throws(() => {
+      DockerHelper.createPortConfiguration('5683/udp');
+    }, /must be an array/);
+
     for (const portSpec of ['5683/sctp', 'tcp/5683', 0, 65536]) {
       assert.throws(() => {
         DockerHelper.createPortConfiguration([portSpec]);

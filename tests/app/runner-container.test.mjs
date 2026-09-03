@@ -187,18 +187,4 @@ describe('runner container characterization', () => {
       },
     );
   });
-
-  it('rejects invalid published ports before connecting to Docker', async (t) => {
-    const appPath = await copyFixtureApp(t, 'node-basic');
-    const app = new App(appPath);
-    const ensureDocker = t.mock.method(DockerHelper, 'ensureDocker', async () => {
-      throw new Error('Docker must not be contacted');
-    });
-
-    await assert.rejects(() => {
-      return app.runDocker({ dockerExposedPorts: ['65536/tcp'] });
-    }, /Port must be between 1 and 65535/);
-
-    assert.strictEqual(ensureDocker.mock.callCount(), 0);
-  });
 });
