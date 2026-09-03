@@ -138,7 +138,7 @@ jobs:
           echo "publish=false" >> "$GITHUB_OUTPUT"
 
       - name: Prepare Slack release notification
-        if: github.event_name == 'push' && github.ref == 'refs/heads/production'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/production' && steps.stable_package.outputs.publish == 'true'
         id: slack_release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -235,6 +235,7 @@ jobs:
           const releaseName = release.name || `v${packageVersion}`;
           const repository = process.env.REPOSITORY;
           const repositoryUrl = process.env.REPOSITORY_URL;
+          const slackReleaseName = escapeSlackText(releaseName);
           const githubNotes = release.body?.trim() || 'No release notes were provided.';
           const notes = convertGitHubMarkdownToSlack(githubNotes);
           const chunks = [];
@@ -263,7 +264,7 @@ jobs:
                 type: 'section',
                 text: {
                   type: 'mrkdwn',
-                  text: `:rocket: *<${release.url}|${releaseName}> published to npm*`,
+                  text: `:rocket: *<${release.url}|${slackReleaseName}> published to npm*`,
                 },
               },
               {
@@ -310,7 +311,7 @@ jobs:
         run: npm publish --registry https://registry.npmjs.org
 
       - name: Notify Slack of stable release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/production'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/production' && steps.stable_package.outputs.publish == 'true'
         uses: slackapi/slack-github-action@v4.0.0
         with:
           errors: true
