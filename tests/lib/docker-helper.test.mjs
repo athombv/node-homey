@@ -22,6 +22,7 @@ describe('DockerHelper characterization', () => {
         '5683/udp': [{ HostPort: '5683' }],
       },
       publishedPorts: ['6113/tcp', '5683/udp'],
+      publishedTcpPorts: [6113],
     });
   });
 
