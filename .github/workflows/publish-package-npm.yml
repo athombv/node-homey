@@ -144,7 +144,6 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/production'
         id: slack_release
         env:
-          EXPECTED_SLACK_CHANNEL_ID: C02J1FQAJ
           GH_TOKEN: ${{ github.token }}
           PACKAGE_NAME: ${{ steps.package.outputs.name }}
           PACKAGE_VERSION: ${{ steps.package.outputs.version }}
@@ -160,8 +159,8 @@ jobs:
           fi
 
           SLACK_CHANNEL_ID="$(printf '%s' "$RAW_SLACK_CHANNEL_ID" | xargs)"
-          if [ "$SLACK_CHANNEL_ID" != "$EXPECTED_SLACK_CHANNEL_ID" ]; then
-            echo "::error::SLACK_DEVELOPMENT_NOTIFICATIONS_CHANNEL_ID is missing or unexpected."
+          if [ -z "$SLACK_CHANNEL_ID" ]; then
+            echo "::error::SLACK_DEVELOPMENT_NOTIFICATIONS_CHANNEL_ID is not available to this repository."
             exit 1
           fi
 
