@@ -166,10 +166,17 @@ jobs:
           fi
 
       - name: Run release checks
+        env:
+          NEXT_VERSION: ${{ steps.version.outputs.next }}
         run: |
+          set -euo pipefail
+
           npm run prettier:check
           npm run lint
           npm run test:coverage
+
+          trap 'git restore -- package.json package-lock.json' EXIT
+          npm version "$NEXT_VERSION" --no-git-tag-version --ignore-scripts
           npm publish --dry-run --registry https://registry.npmjs.org
 
       - name: Create and push version
