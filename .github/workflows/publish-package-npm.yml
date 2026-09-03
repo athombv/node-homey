@@ -1,21 +1,5 @@
 name: Publish to NPM
 
-# Version: 2.1.0
-# Modified: No
-# Requirements:
-# - Ensure you've run `npm version major|minor|patch` on the `master` branch before merging to `production`.
-#
-# This GitHub Workflow:
-# 1. Installs dependencies with `npm ci`.
-# 2. [Optional] If `npm run build` exists, it runs `npm run build`.
-# 3. Publishes the package to the NPM registry.
-#
-# Secrets:
-# - HOMEY_GITHUB_ACTIONS_BOT_PERSONAL_ACCESS_TOKEN
-# - SLACK_WEBHOOK_URL: required for posting a message in #software
-
-# Note: when publishing a scoped npm package (e.g. @athombv/node-my-package),
-# add "publishConfig": { "access": "public" } to your package.json.
 on:
   workflow_dispatch:
   push:
@@ -24,7 +8,7 @@ on:
       - production
 
 permissions:
-  id-token: write # Required for OIDC
+  id-token: write
   contents: read
 
 jobs:
@@ -34,6 +18,8 @@ jobs:
     steps:
       - name: Checkout git repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # Setup
       - name: Set up node
@@ -44,18 +30,58 @@ jobs:
 
       # Sets package.json name & version to environment.
       - name: Get Package Info
+        id: package
         run: |
           NAME="$(node -p "require('./package.json').name")"
-          echo package_name=${NAME} >> $GITHUB_ENV
+          echo "package_name=$NAME" >> "$GITHUB_ENV"
 
           VERSION="$(node -p "require('./package.json').version")"
-          echo package_version=${VERSION} >> $GITHUB_ENV
+          echo "package_version=$VERSION" >> "$GITHUB_ENV"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      # Ensure `packake.json .files` exists.
-      - name: Verify
+      - name: Verify package configuration
         run: |
-          if ! cat package.json | jq -e .files; then
+          if ! jq --exit-status '.files | type == "array" and length > 0' package.json >/dev/null; then
             echo "Missing 'files' array in package.json."
+            exit 1
+          fi
+
+      - name: Verify published GitHub Release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/production'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: v${{ steps.package.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          RELEASE_JSON="$(gh release view "$RELEASE_TAG" --json isDraft,isPrerelease,publishedAt,tagName 2>/dev/null)" || {
+            echo "::error::A published GitHub Release for $RELEASE_TAG is required before publishing to npm."
+            exit 1
+          }
+
+          IS_DRAFT="$(jq -r '.isDraft' <<< "$RELEASE_JSON")"
+          IS_PRERELEASE="$(jq -r '.isPrerelease' <<< "$RELEASE_JSON")"
+          PUBLISHED_AT="$(jq -r '.publishedAt // empty' <<< "$RELEASE_JSON")"
+          RELEASE_TAG_NAME="$(jq -r '.tagName' <<< "$RELEASE_JSON")"
+
+          if [ "$IS_DRAFT" = "true" ] || [ "$IS_PRERELEASE" = "true" ] || [ -z "$PUBLISHED_AT" ]; then
+            echo "::error::$RELEASE_TAG must be a published stable GitHub Release."
+            exit 1
+          fi
+
+          if [ "$RELEASE_TAG_NAME" != "$RELEASE_TAG" ]; then
+            echo "::error::Expected release tag $RELEASE_TAG, but found $RELEASE_TAG_NAME."
+            exit 1
+          fi
+
+          if ! git rev-parse --verify "$RELEASE_TAG^{commit}" >/dev/null 2>&1; then
+            echo "::error::Git tag $RELEASE_TAG does not exist."
+            exit 1
+          fi
+
+          if ! git merge-base --is-ancestor "$RELEASE_TAG^{commit}" "$GITHUB_SHA"; then
+            echo "::error::Git tag $RELEASE_TAG is not contained in this production revision."
             exit 1
           fi
 
@@ -64,7 +90,6 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.HOMEY_GITHUB_ACTIONS_BOT_PERSONAL_ACCESS_TOKEN }}
 
-      # Run `npm run build` if it exists.
       - name: Build
         run: |
           if jq --exit-status '.scripts | has("build")' package.json; then
@@ -74,7 +99,6 @@ jobs:
             echo "'npm run build' does not exist. Skipping build..."
           fi
 
-      # Configure the publish registry; npm publish will authenticate via OIDC.
       - name: Configure NPM for publish
         run: |
           cat <<EOF > "$NPM_CONFIG_USERCONFIG"
@@ -85,25 +109,48 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         run: npm publish --dry-run --tag beta --registry https://registry.npmjs.org
 
-      # Publish when this action is running on branch production.
-      - name: Publish
-        if: github.ref == 'refs/heads/production'
+      - name: Check stable package status
+        if: github.event_name == 'push' && github.ref == 'refs/heads/production'
+        id: stable_package
+        env:
+          PACKAGE_NAME: ${{ steps.package.outputs.name }}
+          PACKAGE_VERSION: ${{ steps.package.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          PUBLISHED_GIT_HEAD="$(npm view "$PACKAGE_NAME@$PACKAGE_VERSION" gitHead --registry https://registry.npmjs.org 2>/dev/null || true)"
+
+          if [ -z "$PUBLISHED_GIT_HEAD" ]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "$PUBLISHED_GIT_HEAD" != "$GITHUB_SHA" ]; then
+            echo "::error::$PACKAGE_NAME@$PACKAGE_VERSION already exists on npm from commit $PUBLISHED_GIT_HEAD."
+            exit 1
+          fi
+
+          echo "publish=false" >> "$GITHUB_OUTPUT"
+          echo "publish_status=Already published" >> "$GITHUB_ENV"
+
+      - name: Publish stable package
+        if: github.event_name == 'push' && github.ref == 'refs/heads/production' && steps.stable_package.outputs.publish == 'true'
         run: |
           npm publish --registry https://registry.npmjs.org
+          echo "publish_status=Published" >> "$GITHUB_ENV"
 
-      # Publish to beta when this action is running on branch testing.
       - name: Publish (beta)
-        if: github.ref == 'refs/heads/testing'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/testing'
         run: |
           npm publish --tag beta --registry https://registry.npmjs.org
+          echo "publish_status=Published beta" >> "$GITHUB_ENV"
 
-        # Post a Slack notification on success/failure
       - name: Slack notify
         if: always() && github.event_name != 'workflow_dispatch'
         uses: innocarpe/actions-slack@v1
         with:
           status: ${{ job.status }}
-          success_text: '${{github.repository}} - Published ${{ env.package_name }}@${{ env.package_version }} to npm 🚀'
+          success_text: '${{ github.repository }} - ${{ env.publish_status }} ${{ env.package_name }}@${{ env.package_version }} to npm 🚀'
           failure_text: '${{github.repository}} - Failed to publish ${{ env.package_name }}@${{ env.package_version }} to npm'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

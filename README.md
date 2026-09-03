@@ -47,6 +47,10 @@ The smoke test pulls `alpine:3.20` when it is not available locally, runs a one-
 container, and removes the container afterward. It is not part of normal tests or CI. Override the
 image with `HOMEY_TEST_DOCKER_IMAGE` or the socket with `HOMEY_TEST_DOCKER_SOCKET` when needed.
 
+## Releasing
+
+Maintainers can find the stable and testing release procedures in [RELEASING.md](RELEASING.md).
+
 ## Shell completion
 
 ### Bash
