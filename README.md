@@ -85,6 +85,17 @@ source ~/.zshrc
 
 Use `homey api` for direct Homey API access.
 
+Use the global `--discovery-strategies` option to restrict Homey discovery for app and API
+commands. Supported values are `cloud`, `local`, `localSecure`, `remoteForwarded`, and `mdns`.
+Omitting the option keeps the default discovery behavior. Token mode uses its resolved address
+directly and does not use discovery strategies.
+
+```bash
+homey api raw --path /api/manager/system/ --discovery-strategies cloud,local,mdns
+homey app run --discovery-strategies local
+homey api diagnose --discovery-strategies cloud,mdns
+```
+
 ### Raw requests
 
 ```bash
