@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import updateNotifier from 'update-notifier';
 import semver from 'semver';
 import yargs from 'yargs';
+import { HomeyAPI } from 'homey-api';
 import { aliases as rawCommandAliases } from './cmds/api/raw.mjs';
 import {
   getHomeyManagerDefinition,
@@ -16,6 +17,7 @@ import { loadHomeyManagerCommandExtension } from '../lib/api/ApiManagerExtension
 import { getManagerCommandNames } from '../lib/api/ApiManagerCommand.mjs';
 import Log from '../lib/Log.js';
 import AthomMessage from '../services/AthomMessage.js';
+import AthomApi from '../services/AthomApi.js';
 
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 const COMMANDS_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'cmds');
@@ -218,6 +220,25 @@ await yargs(normalizedArgs)
   .version('version', 'Show version number', pkg.version)
   .alias('version', 'v')
   .global(['version', 'v'], false)
+  .option('discovery-strategies', {
+    type: 'string',
+    requiresArg: true,
+    description:
+      'Comma-separated discovery strategies: cloud, local, localSecure, remoteForwarded, mdns',
+    coerce: (value) => {
+      const strategies = value.split(',').map((strategy) => strategy.trim());
+      const supportedStrategies = Object.values(HomeyAPI.DISCOVERY_STRATEGIES);
+      if (strategies.some((strategy) => !supportedStrategies.includes(strategy))) {
+        throw new Error(
+          `Invalid --discovery-strategies. Supported values: ${supportedStrategies.join(', ')}.`,
+        );
+      }
+      return [...new Set(strategies)];
+    },
+  })
+  .middleware((argv) => {
+    AthomApi.discoveryStrategies = argv.discoveryStrategies;
+  })
   .commandDir('./cmds', {
     extensions: ['.mjs'],
   })
