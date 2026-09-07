@@ -88,7 +88,9 @@ Use `homey api` for direct Homey API access.
 ### Account caching and rate limits
 
 The CLI caches your account profile and Homey connection details on disk for five minutes,
-so successive commands can reuse them. Once the cache expires, the next command refreshes it.
+so successive commands can reuse them. The cache is stored separately in `profile-cache.json`
+alongside `settings.json`, so refreshing it does not rewrite account or active Homey settings.
+Once the cache expires, the next command refreshes it.
 If that refresh receives HTTP 429, the CLI continues with the cached data and waits at least
 one minute before attempting another profile refresh. Live Homey API responses are not cached.
 
