@@ -13,9 +13,13 @@ describe('AthomApi local discovery fetch behavior', () => {
     const athomApi = new AthomApi();
     const homeys = [{ id: 'homey-1', name: 'Homey One' }];
 
-    athomApi._user = {
-      getHomeys: async () => homeys,
-    };
+    mock.method(athomApi, 'getProfile', async () => {
+      return {
+        getHomeys: async () => {
+          return homeys;
+        },
+      };
+    });
 
     mock.method(athomApi, '_initApi', async () => {});
     mock.method(os, 'networkInterfaces', () => ({
@@ -41,9 +45,13 @@ describe('AthomApi local discovery fetch behavior', () => {
     const athomApi = new AthomApi();
     const homeys = [{ id: 'homey-1', name: 'Homey One' }];
 
-    athomApi._user = {
-      getHomeys: async () => homeys,
-    };
+    mock.method(athomApi, 'getProfile', async () => {
+      return {
+        getHomeys: async () => {
+          return homeys;
+        },
+      };
+    });
 
     mock.method(athomApi, '_initApi', async () => {});
     mock.method(os, 'networkInterfaces', () => ({
@@ -64,9 +72,13 @@ describe('AthomApi local discovery fetch behavior', () => {
     const athomApi = new AthomApi();
     const homeys = [{ id: 'homey-1', name: 'Homey One' }];
 
-    athomApi._user = {
-      getHomeys: async () => homeys,
-    };
+    mock.method(athomApi, 'getProfile', async () => {
+      return {
+        getHomeys: async () => {
+          return homeys;
+        },
+      };
+    });
 
     mock.method(athomApi, '_initApi', async () => {});
     mock.method(os, 'networkInterfaces', () => ({

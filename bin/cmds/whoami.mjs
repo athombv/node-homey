@@ -26,6 +26,11 @@ function printProfile(profile) {
 
 export const builder = (yargs) => {
   return applyJqOutputOption(applyJsonOutputOption(yargs))
+    .option('refresh', {
+      type: 'boolean',
+      default: false,
+      desc: 'Refresh cached account data unless the Cloud API is rate limited',
+    })
     .example('$0 whoami --json', 'Output the current user as JSON')
     .example("$0 whoami --jq '.email'", 'Print the current user email using jq')
     .help();
@@ -33,12 +38,15 @@ export const builder = (yargs) => {
 
 export const handler = async (argv = {}) => {
   try {
-    const profile = toProfileOutput(await AthomApi.getProfile());
+    const profile = await AthomApi.getProfile({ cache: !argv.refresh });
+    const output = toProfileOutput(profile);
 
     printStructuredOutput({
-      value: profile,
+      value: output,
       argv,
-      printHuman: () => printProfile(profile),
+      printHuman: () => {
+        return printProfile(output);
+      },
     });
 
     process.exit(0);

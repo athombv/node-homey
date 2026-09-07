@@ -70,6 +70,11 @@ function printHomeysTable(homeys) {
 
 export const builder = (yargs) => {
   return applyJqOutputOption(applyJsonOutputOption(yargs))
+    .option('refresh', {
+      type: 'boolean',
+      default: false,
+      desc: 'Refresh cached account data unless the Cloud API is rate limited',
+    })
     .example('$0 list --json', 'Output Homeys as JSON')
     .example("$0 list --jq '.[].name'", 'Print all Homey names using jq')
     .help();
@@ -77,12 +82,15 @@ export const builder = (yargs) => {
 
 export const handler = async (argv = {}) => {
   try {
-    const homeys = sortHomeys(await AthomApi.getHomeys()).map(toHomeyOutput);
+    const homeys = await AthomApi.getHomeys({ cache: !argv.refresh });
+    const output = sortHomeys(homeys).map(toHomeyOutput);
 
     printStructuredOutput({
-      value: homeys,
+      value: output,
       argv,
-      printHuman: () => printHomeysTable(homeys),
+      printHuman: () => {
+        return printHomeysTable(output);
+      },
     });
 
     process.exit(0);
