@@ -1,4 +1,4 @@
-name: Update Package Version
+name: Release - Create Version
 
 on:
   workflow_dispatch:
