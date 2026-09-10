@@ -1,6 +1,7 @@
 import assert from 'node:assert';
 import os from 'node:os';
 import { afterEach, describe, it, mock } from 'node:test';
+import { setImmediate } from 'node:timers/promises';
 
 import AthomApi from '../../lib/AthomApi.js';
 
@@ -58,6 +59,48 @@ describe('AthomApi local discovery fetch behavior', () => {
     const result = await athomApi.getHomeys({ cache: false, local: true });
 
     assert.strictEqual(result[0].usb, undefined);
+  });
+
+  it('probes one address per subnet, all at the same time', async () => {
+    const athomApi = new AthomApi();
+    const homeys = [{ id: 'homey-1', name: 'Homey One' }];
+
+    athomApi._user = {
+      getHomeys: async () => homeys,
+    };
+
+    mock.method(athomApi, '_initApi', async () => {});
+    mock.method(os, 'networkInterfaces', () => ({
+      en0: [{ address: '10.211.55.2' }, { address: 'fe80::1' }],
+      vnic1: [{ address: '10.211.55.3' }],
+      vnic2: [{ address: '10.37.129.2' }],
+      lo: [{ address: '127.0.0.1' }],
+    }));
+
+    // Hold every probe open so a sequential implementation cannot reach the second one.
+    const inflight = [];
+    mock.method(
+      global,
+      'fetch',
+      (url) => new Promise((resolve) => inflight.push({ url, resolve })),
+    );
+
+    const pending = athomApi.getHomeys({ cache: false, local: true });
+    await setImmediate();
+
+    try {
+      assert.deepStrictEqual(inflight.map(({ url }) => url).sort(), [
+        'http://10.211.55.1/api/manager/webserver/ping',
+        'http://10.37.129.1/api/manager/webserver/ping',
+      ]);
+    } finally {
+      for (const { resolve } of inflight) {
+        resolve({ headers: { get: () => null } });
+      }
+    }
+
+    await pending;
+    assert.strictEqual(inflight.length, 2);
   });
 
   it('continues when local ping fetch fails', async () => {
