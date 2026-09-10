@@ -8,9 +8,27 @@ import { createHomeyApiClient, diagnoseHomeyStrategies } from '../../lib/api/Api
 
 afterEach(() => {
   mock.restoreAll();
+  AthomApi.discoveryStrategies = undefined;
 });
 
 describe('ApiCommandRuntime createHomeyApiClient', () => {
+  it('uses explicit discovery strategies without overriding the route with USB', async () => {
+    AthomApi.discoveryStrategies = ['cloud', 'local', 'mdns'];
+    const authenticate = mock.fn(async () => ({}));
+    mock.method(AthomApi, 'getHomey', async () => ({
+      id: 'target-homey',
+      usb: '10.0.0.1',
+      authenticate,
+    }));
+
+    const result = await createHomeyApiClient({ homeyId: 'target-homey' });
+
+    assert.deepStrictEqual(authenticate.mock.calls[0].arguments, [
+      { strategy: ['cloud', 'local', 'mdns'] },
+    ]);
+    assert.strictEqual(result.__baseUrlPromise, undefined);
+  });
+
   it('authenticates the requested Homey id instead of the selected Homey', async () => {
     const authenticatedApi = {};
     const authenticateCalls = [];
@@ -143,6 +161,25 @@ describe('ApiCommandRuntime createHomeyApiClient', () => {
 });
 
 describe('ApiCommandRuntime diagnoseHomeyStrategies', () => {
+  it('diagnoses only the explicitly requested strategies', async () => {
+    AthomApi.discoveryStrategies = ['cloud', 'local'];
+    const authenticate = mock.fn(async () => ({}));
+    mock.method(AthomApi, 'getHomey', async () => ({
+      id: 'target-homey',
+      platform: HomeyAPI.PLATFORMS.LOCAL,
+      authenticate,
+    }));
+
+    const report = await diagnoseHomeyStrategies({ homeyId: 'target-homey' });
+
+    assert.deepStrictEqual(report.preferredStrategyIds, ['cloud', 'local']);
+    assert.deepStrictEqual(report.attemptedStrategyIds, ['cloud', 'local']);
+    assert.deepStrictEqual(
+      authenticate.mock.calls.map((call) => call.arguments),
+      [[{ strategy: ['cloud'] }], [{ strategy: ['local'] }]],
+    );
+  });
+
   it('tests each local strategy and reports successful routes', async () => {
     const authenticateCalls = [];
     const cleanupCalls = [];
