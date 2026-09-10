@@ -85,6 +85,23 @@ source ~/.zshrc
 
 Use `homey api` for direct Homey API access.
 
+### Account caching and rate limits
+
+The CLI caches your account profile and Homey connection details on disk for five minutes,
+so successive commands can reuse them. The cache is stored separately in `profile-cache.json`
+alongside `settings.json`, so refreshing it does not rewrite account or active Homey settings.
+Once the cache expires, the next command refreshes it.
+If that refresh receives HTTP 429, the CLI continues with the cached data and waits at least
+one minute before attempting another profile refresh. Live Homey API responses are not cached.
+
+Use `homey list --refresh` or `homey whoami --refresh` to refresh account data before the cache
+expires. These options still respect the rate-limit cooldown and fall back to cached data on 429.
+Logging in or out clears the profile cache; cached profiles are never reused with a different PAT.
+
+A first login or an expired Homey session can still require Cloud API access. Without cached
+account data, a profile request that receives HTTP 429 still fails. For direct local API access,
+`homey api` also supports `--token <TOKEN> --address <URL>` without an account lookup.
+
 ### Raw requests
 
 ```bash
