@@ -18,6 +18,68 @@ $ homey --help
 
 Or read the [getting started](https://apps.developer.homey.app/the-basics/getting-started) documentation.
 
+## App build scripts
+
+Control whether the CLI runs your Node.js app's build script with `homey.build` in the
+app's `package.json`:
+
+```json
+{
+  "homey": {
+    "build": true
+  },
+  "scripts": {
+    "build": "tsc"
+  }
+}
+```
+
+| `homey.build` | Behavior                                                                                                                             |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `true`        | Run `npm run build` from the app directory. Requires a nonempty `scripts.build`.                                                     |
+| `false`       | Skip the app build script and TypeScript configuration checks.                                                                       |
+| Omitted       | Preserve automatic compilation when `devDependencies.typescript` is present, including the existing TypeScript configuration checks. |
+
+Explicit builds can use TypeScript, a bundler, or another tool. The CLI does not inspect
+`tsconfig.json` when `homey.build` is explicitly set. Other values, including the string
+`"false"`, are rejected.
+
+Homey first generates the Compose manifest, clears `.homeybuild`, and copies source files
+and production dependencies into it. Your build script then adds or overwrites generated
+deployment files in `.homeybuild`. Preserve the staged manifest, assets, and dependencies;
+do not clear the output directory in your script. Existing postprocessing and validation
+still apply. Build script failures stop the build.
+
+For a JavaScript app using TypeScript solely to check JSDoc, use:
+
+```json
+{
+  "homey": {
+    "build": false
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  }
+}
+```
+
+You can install the normal `typescript` development dependency and run `npm run typecheck`
+independently. Editor checking remains available. Unlike `--skip-build`, which skips
+preprocessing, `homey.build: false` still allows Compose generation, source and dependency
+copying, and normal validation.
+
+New JavaScript apps explicitly disable the build script; new TypeScript apps explicitly
+enable it. Driver template language is independent of this setting: outside the existing
+ESM template branch, the CLI checks an existing `main` entry outside `.homeybuild`, then
+root `app.js`/`app.mjs`/`app.cjs` or `app.ts`/`app.mts`/`app.cts` files. Ambiguous or absent
+source files fall back to dependency detection.
+
+Older CLI versions ignore `homey.build`; use a CLI release that supports this setting in
+both local development and CI. Support is currently unreleased. A future breaking release
+may make builds opt-in, but omitted settings retain their existing behavior in this release.
+Disabling compilation does not enable native TypeScript execution: TypeScript source files
+are still excluded from the deployment copy. Python app builds are unchanged.
+
 ## Testing
 
 Run the hermetic test suite without a Homey, account credentials, network access, or Docker:
