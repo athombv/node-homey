@@ -126,6 +126,7 @@ describe('CLI USB mode', () => {
 
   for (const command of [
     ['api', 'system', 'get-info'],
+    ['api', 'system', 'get-info', '--discovery-strategies', 'cloud'],
     ['api', 'system', 'get-info', '--token', 'test', '--homey-id', 'homey-1'],
     ['api', 'raw', '--path', '/api/manager/system/'],
     ['api', 'call', '--path', '/api/manager/system/'],

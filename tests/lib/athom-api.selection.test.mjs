@@ -11,6 +11,23 @@ afterEach(() => {
 });
 
 describe('AthomApi selected Homey persistence', () => {
+  it('uses explicit discovery strategies without overriding the route with USB', async () => {
+    const athomApi = new AthomApi();
+    athomApi.discoveryStrategies = ['cloud', 'mdns'];
+    const authenticate = mock.fn(async () => ({}));
+    mock.method(Settings, 'get', async () => ({ id: 'homey-id' }));
+    mock.method(athomApi, 'getHomey', async () => ({
+      id: 'homey-id',
+      usb: '10.0.0.1',
+      authenticate,
+    }));
+
+    const result = await athomApi.getActiveHomey();
+
+    assert.deepStrictEqual(authenticate.mock.calls[0].arguments, [{ strategy: ['cloud', 'mdns'] }]);
+    assert.strictEqual(result.__baseUrlPromise, undefined);
+  });
+
   it('persists platform alongside id and name', async () => {
     const athomApi = new AthomApi();
     const settingsSet = mock.method(Settings, 'set', async (key, value) => {

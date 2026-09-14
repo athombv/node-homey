@@ -22,6 +22,7 @@ const homeyProperties = {
 
 afterEach(() => {
   mock.restoreAll();
+  AthomApiService.discoveryStrategies = undefined;
 });
 
 function createClient(homeys = [homeyProperties]) {
@@ -152,6 +153,7 @@ describe('USB opt-in discovery and connections', () => {
 
   it('uses USB for login and operations while keeping normal clients separate', async () => {
     const { client } = createClient();
+    client.discoveryStrategies = ['cloud'];
     mockProbe();
     mock.method(Settings, 'get', async () => {
       return { id: 'homey-1' };
@@ -199,6 +201,7 @@ describe('USB opt-in discovery and connections', () => {
 
   it('uses the USB client for API operations and USB-only diagnostics', async () => {
     const { client } = createClient();
+    AthomApiService.discoveryStrategies = ['cloud'];
     mockProbe();
     mockUsbRequests(client._api);
     mock.method(AthomApiService, 'getHomey', async (id, options) => {

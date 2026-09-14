@@ -108,7 +108,8 @@ homey list --no-usb
 
 Explicit `--no-usb` overrides the shell setting. USB mode requires a local Homey using API v3
 and fails if the selected or requested Homey is not found over USB; it does not fall back to LAN
-or Cloud transport. Account lookup and authentication or session renewal can still require
+or Cloud transport. Enabled USB mode takes precedence over `--discovery-strategies`.
+Account lookup and authentication or session renewal can still require
 Athom Cloud. USB discovery probes unique candidate addresses concurrently with a one-second
 timeout and does not persist discovery results in the account cache.
 
