@@ -12,7 +12,7 @@ afterEach(() => {
 describe('AthomApi local discovery fetch behavior', () => {
   it('sets usb address when local ping returns a matching Homey id', async () => {
     const athomApi = new AthomApi();
-    const homeys = [{ id: 'homey-1', name: 'Homey One' }];
+    const homeys = [{ id: 'homey-1', name: 'Homey One', platform: 'local', apiVersion: 3 }];
 
     mock.method(athomApi, 'getProfile', async () => {
       return {
@@ -37,14 +37,14 @@ describe('AthomApi local discovery fetch behavior', () => {
       };
     });
 
-    const result = await athomApi.getHomeys({ cache: false, local: true });
+    const result = await athomApi.getHomeys({ cache: false, usb: true });
 
     assert.strictEqual(result[0].usb, '10.0.0.1');
   });
 
   it('ignores unmatched Homey ids from local ping responses', async () => {
     const athomApi = new AthomApi();
-    const homeys = [{ id: 'homey-1', name: 'Homey One' }];
+    const homeys = [{ id: 'homey-1', name: 'Homey One', platform: 'local', apiVersion: 3 }];
 
     mock.method(athomApi, 'getProfile', async () => {
       return {
@@ -64,14 +64,14 @@ describe('AthomApi local discovery fetch behavior', () => {
       },
     }));
 
-    const result = await athomApi.getHomeys({ cache: false, local: true });
+    const result = await athomApi.getHomeys({ cache: false, usb: true });
 
-    assert.strictEqual(result[0].usb, undefined);
+    assert.deepStrictEqual(result, []);
   });
 
   it('probes one address per subnet, all at the same time', async () => {
     const athomApi = new AthomApi();
-    const homeys = [{ id: 'homey-1', name: 'Homey One' }];
+    const homeys = [{ id: 'homey-1', name: 'Homey One', platform: 'local', apiVersion: 3 }];
 
     mock.method(athomApi, 'getProfile', async () => {
       return {
@@ -97,7 +97,7 @@ describe('AthomApi local discovery fetch behavior', () => {
       (url) => new Promise((resolve) => inflight.push({ url, resolve })),
     );
 
-    const pending = athomApi.getHomeys({ cache: false, local: true });
+    const pending = athomApi.getHomeys({ cache: false, usb: true });
     await setImmediate();
 
     try {
@@ -117,7 +117,7 @@ describe('AthomApi local discovery fetch behavior', () => {
 
   it('continues when local ping fetch fails', async () => {
     const athomApi = new AthomApi();
-    const homeys = [{ id: 'homey-1', name: 'Homey One' }];
+    const homeys = [{ id: 'homey-1', name: 'Homey One', platform: 'local', apiVersion: 3 }];
 
     mock.method(athomApi, 'getProfile', async () => {
       return {
@@ -135,9 +135,8 @@ describe('AthomApi local discovery fetch behavior', () => {
       throw new Error('timeout');
     });
 
-    const result = await athomApi.getHomeys({ cache: false, local: true });
+    const result = await athomApi.getHomeys({ cache: false, usb: true });
 
-    assert.deepStrictEqual(result, homeys);
-    assert.strictEqual(result[0].usb, undefined);
+    assert.deepStrictEqual(result, []);
   });
 });

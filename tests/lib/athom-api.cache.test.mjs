@@ -100,11 +100,11 @@ describe('AthomApi persistent profile cache', () => {
   it('reuses SDK profiles and Homeys from disk without another cloud request', async () => {
     await settings.set('homeyApi', { token: { access_token: 'stored-token' } });
     const first = createClient();
-    await first.client.getHomeys({ local: false });
+    await first.client.getHomeys({ usb: false });
 
     const next = createClient(new Error('Cloud must not be called'));
     const cached = await next.client.getProfile();
-    const homeys = await next.client.getHomeys({ local: false });
+    const homeys = await next.client.getHomeys({ usb: false });
 
     assert.equal(first.request.mock.callCount(), 1);
     assert.equal(next.request.mock.callCount(), 0);
@@ -184,12 +184,12 @@ describe('AthomApi persistent profile cache', () => {
 
   it('refreshes both the SDK user and Homey list when cache is false', async () => {
     const { client, request } = createClient();
-    await client.getHomeys({ local: false });
+    await client.getHomeys({ usb: false });
     request.mock.mockImplementation(async () => {
       return { ...structuredClone(profile), homeys: [] };
     });
 
-    assert.deepEqual(await client.getHomeys({ cache: false, local: false }), []);
+    assert.deepEqual(await client.getHomeys({ cache: false, usb: false }), []);
     assert.equal(request.mock.callCount(), 2);
   });
 
@@ -544,12 +544,12 @@ describe('AthomApi persistent profile cache', () => {
 
   it('clears persistent and in-memory profiles on logout', async () => {
     const { client } = createClient();
-    await client.getHomeys({ local: false });
+    await client.getHomeys({ usb: false });
     await client.logout();
 
     assert.deepEqual(await settings.get('homeyApi'), {});
     assert.equal(client._user, null);
-    assert.equal(client._homeys, null);
+    assert.equal(client._homeys.size, 0);
     assert.equal(await client._profileCache.get(), null);
     const error = new APIError('Too Many Requests', 429);
     await assert.rejects(createClient(error).client.getProfile(), error);

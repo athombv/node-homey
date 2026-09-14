@@ -81,6 +81,42 @@ Then restart your shell, or run:
 source ~/.zshrc
 ```
 
+## USB connections
+
+USB discovery is now opt-in. Existing USB workflows must add `--usb` or set `HOMEY_USB=1`.
+Normal commands use their network connection strategies and do not probe USB candidate addresses.
+
+```bash
+homey list --usb
+homey select --usb
+homey app run --usb
+homey app install --usb
+homey api system get-info --usb
+homey api raw --usb --path /api/manager/system/
+homey api diagnose --usb
+```
+
+`list --usb` and `select --usb` show only USB-connected Homeys, including devices whose cached
+Cloud status is offline. Selection saves the Homey, not USB mode. For subsequent commands,
+pass `--usb` again or enable it for your development shell:
+
+```bash
+export HOMEY_USB=1
+homey app run
+homey list --no-usb
+```
+
+Explicit `--no-usb` overrides the shell setting. USB mode requires a local Homey using API v3
+and fails if the selected or requested Homey is not found over USB; it does not fall back to LAN
+or Cloud transport. Account lookup and authentication or session renewal can still require
+Athom Cloud. USB discovery probes unique candidate addresses concurrently with a one-second
+timeout and does not persist discovery results in the account cache.
+
+`homey app run --remote --usb` runs the app on Homey over USB. API token mode supports
+`--token <TOKEN> --homey-id <HOMEY_ID> --usb`. An explicit `--address` cannot be combined with
+enabled USB mode; add `--no-usb` if your shell enables it. `api diagnose --usb` checks only USB
+connectivity. The `api raw` aliases `call` and `request` also accept `--usb`.
+
 ## Homey API CLI
 
 Use `homey api` for direct Homey API access.

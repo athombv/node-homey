@@ -1,10 +1,11 @@
 import Log from '../../../lib/Log.js';
 import AppFactory from '../../../lib/AppFactory.js';
 import AthomApi from '../../../services/AthomApi.js';
+import { applyUsbOption } from '../../../lib/UsbOption.mjs';
 
 export const desc = 'Install a Homey App';
 export const builder = (yargs) => {
-  return yargs
+  return applyUsbOption(yargs)
     .option('clean', {
       alias: 'c',
       type: 'boolean',
@@ -18,7 +19,7 @@ export const builder = (yargs) => {
 };
 export const handler = async (yargs) => {
   try {
-    const homey = await AthomApi.getActiveHomey();
+    const homey = await AthomApi.getActiveHomey({ usb: yargs.usb });
     const app = AppFactory.getAppInstance(yargs.path);
     await app.install({
       homey,

@@ -46,7 +46,7 @@ describe('ApiCommandRuntime createHomeyApiClient', () => {
         ],
       },
     ]);
-    assert.strictEqual(await result.__baseUrlPromise, 'http://10.0.0.1:80');
+    assert.strictEqual(result.__baseUrlPromise, undefined);
     assert.strictEqual(result.model, 'Homey Pro');
   });
 
@@ -65,7 +65,7 @@ describe('ApiCommandRuntime createHomeyApiClient', () => {
     );
   });
 
-  it('prefers the usb address for token mode when resolving by Homey id', async () => {
+  it('uses USB for token mode only when explicitly requested', async () => {
     mock.method(AthomApi, 'getHomey', async (homeyId) => {
       assert.strictEqual(homeyId, 'target-homey');
 
@@ -74,6 +74,8 @@ describe('ApiCommandRuntime createHomeyApiClient', () => {
         name: 'Office Homey',
         model: 'Homey Pro',
         usb: '10.0.0.1',
+        platform: 'local',
+        apiVersion: 3,
         localUrlSecure: 'https://192.168.1.20',
         localUrl: 'http://192.168.1.20',
       };
@@ -82,10 +84,12 @@ describe('ApiCommandRuntime createHomeyApiClient', () => {
     const result = await createHomeyApiClient({
       token: 'abc',
       homeyId: 'target-homey',
+      usb: true,
     });
 
     assert.ok(result instanceof HomeyAPIV3Local);
     assert.strictEqual(await result.baseUrl, 'http://10.0.0.1:80');
+    result.destroy();
     assert.strictEqual(result.model, 'Homey Pro');
   });
 
