@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { mkdir, mkdtemp, readFile, readdir, rm, utimes, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
+import { promisify } from 'node:util';
 
 import { APIError, AthomCloudAPI, HomeyAPIV3Local } from 'homey-api';
 
@@ -10,6 +12,9 @@ import AthomApi from '../../lib/AthomApi.js';
 import { AthomApiProfileCache } from '../../lib/AthomApiProfileCache.js';
 import SettingsStore from '../../lib/Settings.js';
 import Settings from '../../services/Settings.js';
+import Log from '../../lib/Log.js';
+
+const execFileAsync = promisify(execFile);
 
 let directory;
 let settings;
@@ -58,6 +63,7 @@ beforeEach(async () => {
   mock.method(os, 'networkInterfaces', () => {
     return {};
   });
+  await settings.set('homeyApi', { token: { access_token: 'oauth-token-one' } });
 });
 
 afterEach(async () => {
@@ -220,6 +226,9 @@ describe('AthomApi persistent profile cache', () => {
     await client.getProfile();
     mock.method(client._api, 'authenticateWithAuthorizationCode', async ({ code }) => {
       assert.equal(code, 'test-authorization-code');
+      const token = { access_token: 'oauth-token-two' };
+      await settings.set('homeyApi', { token });
+      return token;
     });
 
     await client._authenticateWithAuthorizationCode({ code: 'test-authorization-code' });
@@ -293,7 +302,7 @@ describe('AthomApi persistent profile cache', () => {
       return entry.authKey === persisted.authKey;
     });
     assert.deepEqual(persisted, expected);
-    assert.deepEqual(await readdir(directory), ['profile-cache.json']);
+    assert.deepEqual((await readdir(directory)).sort(), ['profile-cache.json', 'settings.json']);
   });
 
   it('refreshes a corrupt cache without touching account settings', async () => {
@@ -304,6 +313,233 @@ describe('AthomApi persistent profile cache', () => {
     assert.equal((await client.getProfile()).id, 'user-1');
     assert.equal(request.mock.callCount(), 1);
     assert.deepEqual(await settings.get('homeyApi'), { token: { access_token: 'stored-token' } });
+  });
+
+  for (const rateLimited of [false, true]) {
+    it(`isolates a new OAuth login from an old pending ${rateLimited ? '429' : 'success'}`, async () => {
+      const previous = createClient();
+      await previous.client.getProfile();
+      const started = Promise.withResolvers();
+      const response = Promise.withResolvers();
+      previous.request.mock.mockImplementation(async () => {
+        started.resolve();
+        return await response.promise;
+      });
+
+      const pending = previous.client.getProfile({ cache: false });
+      await started.promise;
+      const otherProfile = { ...structuredClone(profile), _id: 'other-account' };
+      const current = createClient(otherProfile);
+      mock.method(current.client._api, 'authenticateWithAuthorizationCode', async () => {
+        const token = { access_token: 'other-account-token' };
+        await settings.set('homeyApi', { token });
+        return token;
+      });
+      await current.client._authenticateWithAuthorizationCode({ code: 'other-account-code' });
+      await current.client.getProfile();
+
+      if (rateLimited) {
+        response.reject(new APIError('Too Many Requests', 429));
+      } else {
+        response.resolve(structuredClone(profile));
+      }
+
+      assert.equal((await pending).id, profile._id);
+      assert.equal((await createClient(otherProfile).client.getProfile()).id, 'other-account');
+      const persisted = await readFile(path.join(directory, 'profile-cache.json'), 'utf8');
+      assert.ok(!persisted.includes('other-account-token'));
+      assert.ok(!persisted.includes('oauth-token-one'));
+    });
+  }
+
+  it('keeps the request credential when login changes the same client', async () => {
+    const { client, request } = createClient();
+    await client.getProfile();
+    const previousKey = client._profileAuthKey;
+    const started = Promise.withResolvers();
+    const response = Promise.withResolvers();
+    request.mock.mockImplementation(async () => {
+      started.resolve();
+      return await response.promise;
+    });
+    const pending = client.getProfile({ cache: false });
+    await started.promise;
+    mock.method(client._api, 'authenticateWithAuthorizationCode', async () => {
+      return { access_token: 'new-account-token' };
+    });
+    await client._authenticateWithAuthorizationCode({ code: 'new-account-code' });
+    response.resolve(structuredClone(profile));
+    await pending;
+
+    assert.equal((await client._profileCache.get()).authKey, previousKey);
+    request.mock.mockImplementation(async () => {
+      return { ...structuredClone(profile), _id: 'new-account' };
+    });
+    assert.equal((await client.getProfile()).id, 'new-account');
+  });
+
+  for (const successFirst of [true, false]) {
+    it(`preserves the refreshed profile and cooldown when ${successFirst ? 'success' : '429'} finishes first`, async () => {
+      await createClient().client.getProfile();
+      now += 5 * 60 * 1000;
+      const fresh = createClient();
+      const limited = createClient();
+      const freshStarted = Promise.withResolvers();
+      const limitedStarted = Promise.withResolvers();
+      const freshResponse = Promise.withResolvers();
+      const limitedResponse = Promise.withResolvers();
+      fresh.request.mock.mockImplementation(async () => {
+        freshStarted.resolve();
+        return await freshResponse.promise;
+      });
+      limited.request.mock.mockImplementation(async () => {
+        limitedStarted.resolve();
+        return await limitedResponse.promise;
+      });
+      const freshPending = fresh.client.getProfile();
+      const limitedPending = limited.client.getProfile();
+      await Promise.all([freshStarted.promise, limitedStarted.promise]);
+      const updated = { ...structuredClone(profile), homeys: [] };
+      const rateLimitError = new APIError('Too Many Requests', 429);
+
+      if (successFirst) {
+        freshResponse.resolve(updated);
+        await freshPending;
+        limitedResponse.reject(rateLimitError);
+        const fallback = await limitedPending;
+
+        assert.deepEqual(await fallback.getHomeys(), []);
+      } else {
+        limitedResponse.reject(rateLimitError);
+        await limitedPending;
+        freshResponse.resolve(updated);
+        await freshPending;
+      }
+
+      const stored = await fresh.client._profileCache.get();
+      assert.deepEqual(stored.user, updated);
+      assert.equal(stored.updatedAt, now);
+      assert.equal(stored.retryAfter, now + 60 * 1000);
+      const next = createClient(new Error('Must respect the concurrent cooldown'));
+      const nextProfile = await next.client.getProfile({ cache: false });
+
+      assert.deepEqual(await nextProfile.getHomeys(), []);
+      assert.equal(next.request.mock.callCount(), 0);
+    });
+  }
+
+  it('merges updates from separate processes under the same cache lock', async () => {
+    const cache = new AthomApiProfileCache();
+    await cache.set({ user: profile, authKey: 'shared', updatedAt: 0 });
+    const retryAfter = Date.now() + 60 * 1000;
+    const worker = `
+      const { AthomApiProfileCache } = require('./lib/AthomApiProfileCache');
+      const cache = new AthomApiProfileCache();
+      async function update() {
+        for (let index = 1; index <= 20; index++) {
+          if (process.argv[1] === 'profile') {
+            await cache.set({ user: { _id: 'updated' }, authKey: 'shared', updatedAt: index });
+          } else {
+            await cache.setRetryAfter({ authKey: 'shared', retryAfter: Number(process.argv[2]) });
+          }
+        }
+      }
+      // Keep the parent test's clock so cooldown expiry is deterministic.
+      Date.now = () => { return Number(process.argv[3]); };
+      update().catch((err) => { console.error(err); process.exitCode = 1; });
+    `;
+    const workers = ['profile', 'cooldown'].map((operation) => {
+      return execFileAsync(
+        process.execPath,
+        ['-e', worker, operation, String(retryAfter), String(now)],
+        {
+          cwd: new URL('../../', import.meta.url),
+          env: { ...process.env, HOMEY_HOME: directory },
+        },
+      );
+    });
+    await Promise.all(workers);
+
+    assert.deepEqual(await cache.get(), {
+      user: { _id: 'updated' },
+      authKey: 'shared',
+      updatedAt: 20,
+      retryAfter,
+    });
+    assert.deepEqual((await readdir(directory)).sort(), ['profile-cache.json', 'settings.json']);
+  });
+
+  for (const rateLimited of [false, true]) {
+    for (const code of ['ENOSPC', 'EACCES']) {
+      it(`returns the ${rateLimited ? '429 fallback' : 'fetched profile'} when cache writes fail with ${code}`, async () => {
+        await createClient().client.getProfile();
+        const response = rateLimited ? new APIError('Too Many Requests', 429) : profile;
+        const { client } = createClient(response);
+        const error = Object.assign(new Error('Cache write failed'), { code });
+        mock.method(client._profileCache, '_write', async () => {
+          throw error;
+        });
+        const warning = mock.method(Log, 'warning', () => {});
+
+        assert.equal((await client.getProfile({ cache: false })).id, profile._id);
+        assert.equal(warning.mock.callCount(), 1);
+        assert.equal(warning.mock.calls[0].arguments[1], error);
+        assert.deepEqual((await readdir(directory)).sort(), [
+          'profile-cache.json',
+          'settings.json',
+        ]);
+      });
+    }
+  }
+
+  it('fetches a profile when the cache cannot be read', async () => {
+    const { client } = createClient();
+    mock.method(client._profileCache, 'get', async () => {
+      throw Object.assign(new Error('Cache read failed'), { code: 'EACCES' });
+    });
+    const warning = mock.method(Log, 'warning', () => {});
+
+    assert.equal((await client.getProfile()).id, profile._id);
+    assert.ok(warning.mock.callCount() > 0);
+  });
+
+  it('recovers a cache lock left by a terminated process', async () => {
+    const lockPath = path.join(directory, 'profile-cache.json.lock');
+    await mkdir(lockPath);
+    const staleTime = new Date(now - 20 * 1000);
+    await utimes(lockPath, staleTime, staleTime);
+    const { client } = createClient();
+
+    assert.equal((await client.getProfile()).id, profile._id);
+    assert.equal((await client._profileCache.get()).user._id, profile._id);
+    assert.deepEqual((await readdir(directory)).sort(), ['profile-cache.json', 'settings.json']);
+  });
+
+  it('keeps new OAuth credentials isolated even when clearing the old cache fails', async () => {
+    const { client, request } = createClient();
+    await client.getProfile();
+    mock.method(client._api, 'authenticateWithAuthorizationCode', async () => {
+      return { access_token: 'new-account-token' };
+    });
+    mock.method(client._profileCache, 'clear', async () => {
+      throw Object.assign(new Error('Cache clear failed'), { code: 'EACCES' });
+    });
+    const warning = mock.method(Log, 'warning', () => {});
+
+    await client._authenticateWithAuthorizationCode({ code: 'new-account-code' });
+    request.mock.mockImplementation(async () => {
+      return { ...structuredClone(profile), _id: 'new-account' };
+    });
+    assert.equal((await client.getProfile()).id, 'new-account');
+    assert.equal(warning.mock.callCount(), 1);
+  });
+
+  it('does not reuse the cache without an OAuth credential', async () => {
+    await createClient().client.getProfile();
+    await settings.set('homeyApi', {});
+    const error = new APIError('Too Many Requests', 429);
+
+    await assert.rejects(createClient(error).client.getProfile(), error);
   });
 
   it('clears persistent and in-memory profiles on logout', async () => {

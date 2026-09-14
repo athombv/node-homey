@@ -96,7 +96,10 @@ one minute before attempting another profile refresh. Live Homey API responses a
 
 Use `homey list --refresh` or `homey whoami --refresh` to refresh account data before the cache
 expires. These options still respect the rate-limit cooldown and fall back to cached data on 429.
-Logging in or out clears the profile cache; cached profiles are never reused with a different PAT.
+Logging in or out clears the profile cache. Cached profiles are bound to the OAuth access token
+or PAT that fetched them, so a different credential (including a rotated OAuth token) starts a new
+cache. Concurrent updates preserve newer profile data and active cooldowns. Cache I/O failures
+produce a warning without discarding a fetched profile or an available rate-limit fallback.
 
 A first login or an expired Homey session can still require Cloud API access. Without cached
 account data, a profile request that receives HTTP 429 still fails. For direct local API access,
