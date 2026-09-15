@@ -263,6 +263,7 @@ export const handler = async (argv) => {
     const headers = parseHeaders(argv.header, '--header');
     const body = parseRequestBody(argv, method);
     const api = await createHomeyApiClient({
+      usb: argv.usb,
       token: argv.token,
       address: argv.address,
       homeyId: argv.homeyId,

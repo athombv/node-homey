@@ -4,6 +4,7 @@ import { printStructuredOutput, logJsonError } from '../../lib/CliOutput.mjs';
 import { applyJqOutputOption, applyJsonOutputOption } from '../../lib/api/ApiCommandOptions.mjs';
 import Log from '../../lib/Log.js';
 import AthomApi from '../../services/AthomApi.js';
+import { applyUsbOption } from '../../lib/UsbOption.mjs';
 
 export const desc = 'List all Homeys';
 
@@ -69,20 +70,29 @@ function printHomeysTable(homeys) {
 }
 
 export const builder = (yargs) => {
-  return applyJqOutputOption(applyJsonOutputOption(yargs))
+  return applyUsbOption(applyJqOutputOption(applyJsonOutputOption(yargs)))
+    .option('refresh', {
+      type: 'boolean',
+      default: false,
+      desc: 'Refresh cached account data unless the Cloud API is rate limited',
+    })
     .example('$0 list --json', 'Output Homeys as JSON')
+    .example('$0 list --usb', 'List only USB-connected Homeys')
     .example("$0 list --jq '.[].name'", 'Print all Homey names using jq')
     .help();
 };
 
 export const handler = async (argv = {}) => {
   try {
-    const homeys = sortHomeys(await AthomApi.getHomeys()).map(toHomeyOutput);
+    const homeys = await AthomApi.getHomeys({ cache: !argv.refresh, usb: argv.usb });
+    const output = sortHomeys(homeys).map(toHomeyOutput);
 
     printStructuredOutput({
-      value: homeys,
+      value: output,
       argv,
-      printHuman: () => printHomeysTable(homeys),
+      printHuman: () => {
+        return printHomeysTable(output);
+      },
     });
 
     process.exit(0);
