@@ -58,6 +58,7 @@ function createUsbFixture(t) {
       const url = new URL(input);
       appendFileSync(process.env.USB_TEST_LOG, JSON.stringify(url.href) + '\\n');
       if (url.pathname === '/api/manager/webserver/ping') {
+        if (process.env.USB_TEST_DISCONNECTED === '1') throw new Error('USB disconnected');
         return new Response(null, { headers: { 'x-homey-id': url.hostname === '10.0.0.1' ? 'homey-1' : 'unknown' } });
       }
       if (url.hostname !== '10.0.0.1') throw new Error('Unexpected non-USB request: ' + url.hostname);
@@ -156,6 +157,29 @@ describe('CLI USB mode', () => {
       assert.equal(report.results[0].status, failed ? 'failed' : 'available');
     });
   }
+
+  it('reports a disconnected USB device as a failed diagnostic attempt', (t) => {
+    const fixture = createUsbFixture(t);
+    const result = runHomey(['api', 'diagnose', '--usb', '--json'], fixture.directory, {
+      env: { ...fixture.env, USB_TEST_DISCONNECTED: '1' },
+    });
+
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.deepEqual(report.preferredStrategyIds, ['usb']);
+    assert.deepEqual(report.attemptedStrategyIds, ['usb']);
+    assert.deepEqual(report.availableStrategyIds, []);
+    assert.equal(report.selectedStrategyId, null);
+    assert.equal(report.selectedBaseUrl, null);
+    assert.equal(report.target.id, 'homey-1');
+    assert.equal(report.target.usb, null);
+    assert.equal(report.results.length, 1);
+    assert.equal(report.results[0].strategyId, 'usb');
+    assert.equal(report.results[0].status, 'failed');
+    assert.equal(report.results[0].available, false);
+    assert.match(report.results[0].error, /not found over USB/);
+    assert.equal(fixture.requests().length, 2);
+  });
 
   it('rejects USB mode with an explicit address before any network call', (t) => {
     const fixture = createUsbFixture(t);

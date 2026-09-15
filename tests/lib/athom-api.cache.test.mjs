@@ -232,7 +232,7 @@ describe('AthomApi persistent profile cache', () => {
     });
 
     await client._authenticateWithAuthorizationCode({ code: 'test-authorization-code' });
-    assert.equal(await client._profileCache.get(), null);
+    assert.equal((await client._profileCache.get()).user, undefined);
     request.mock.mockImplementation(async () => {
       return { ...structuredClone(profile), _id: 'oauth-user' };
     });
@@ -345,17 +345,54 @@ describe('AthomApi persistent profile cache', () => {
       }
 
       assert.equal((await pending).id, profile._id);
-      assert.equal((await createClient(otherProfile).client.getProfile()).id, 'other-account');
+      const next = createClient(new Error('The new account profile should remain cached'));
+      assert.equal((await next.client.getProfile()).id, 'other-account');
+      assert.equal(next.request.mock.callCount(), 0);
       const persisted = await readFile(path.join(directory, 'profile-cache.json'), 'utf8');
       assert.ok(!persisted.includes('other-account-token'));
       assert.ok(!persisted.includes('oauth-token-one'));
     });
   }
 
-  it('keeps the request credential when login changes the same client', async () => {
+  for (const rateLimited of [false, true]) {
+    it(`rejects a pending ${rateLimited ? 'cooldown' : 'profile'} update after the same credential starts a new cache generation`, async () => {
+      const previous = createClient();
+      await previous.client.getProfile();
+      const started = Promise.withResolvers();
+      const response = Promise.withResolvers();
+      previous.request.mock.mockImplementation(async () => {
+        started.resolve();
+        return await response.promise;
+      });
+      const pending = previous.client.getProfile({ cache: false });
+      await started.promise;
+
+      const updated = structuredClone(profile);
+      updated.homeys[0].localUrl = 'http://192.168.1.101';
+      const current = createClient(updated);
+      await current.client._profileCache.clear();
+      const marker = await current.client._profileCache.get();
+      assert.deepEqual(Object.keys(marker), ['generation']);
+      assert.equal(typeof marker.generation, 'string');
+      await current.client.getProfile();
+
+      if (rateLimited) {
+        response.reject(new APIError('Too Many Requests', 429));
+      } else {
+        response.resolve(structuredClone(profile));
+      }
+      await pending;
+
+      const stored = await current.client._profileCache.get();
+      assert.deepEqual(stored.user, updated);
+      assert.equal(stored.generation, marker.generation);
+      assert.equal(stored.retryAfter, undefined);
+    });
+  }
+
+  it('discards a pending cache write when login changes the same client', async () => {
     const { client, request } = createClient();
     await client.getProfile();
-    const previousKey = client._profileAuthKey;
     const started = Promise.withResolvers();
     const response = Promise.withResolvers();
     request.mock.mockImplementation(async () => {
@@ -371,7 +408,8 @@ describe('AthomApi persistent profile cache', () => {
     response.resolve(structuredClone(profile));
     await pending;
 
-    assert.equal((await client._profileCache.get()).authKey, previousKey);
+    assert.equal((await client._profileCache.get()).user, undefined);
+    assert.equal((await client._profileCache.get()).authKey, undefined);
     request.mock.mockImplementation(async () => {
       return { ...structuredClone(profile), _id: 'new-account' };
     });
@@ -575,6 +613,53 @@ describe('AthomApi persistent profile cache', () => {
     await assert.rejects(createClient(error).client.getProfile(), error);
   });
 
+  for (const rateLimited of [false, true]) {
+    it(`keeps account data cleared after another process logs out during a pending ${rateLimited ? '429' : 'success'}`, async () => {
+      const { client, request } = createClient();
+      await client.getProfile();
+      const started = Promise.withResolvers();
+      const response = Promise.withResolvers();
+      request.mock.mockImplementation(async () => {
+        started.resolve();
+        return await response.promise;
+      });
+      const pending = client.getProfile({ cache: false });
+      await started.promise;
+
+      await execFileAsync(
+        process.execPath,
+        [
+          '-e',
+          `
+          const AthomApi = require('./lib/AthomApi');
+          new AthomApi().logout().catch((err) => {
+            console.error(err);
+            process.exitCode = 1;
+          });
+        `,
+        ],
+        {
+          cwd: new URL('../../', import.meta.url),
+          env: { ...process.env, HOMEY_HOME: directory, HOMEY_PAT: '' },
+        },
+      );
+
+      if (rateLimited) {
+        response.reject(new APIError('Too Many Requests', 429));
+      } else {
+        response.resolve(structuredClone(profile));
+      }
+      await pending;
+
+      const stored = await client._profileCache.get();
+      assert.equal(stored?.user, undefined);
+      assert.equal(stored?.authKey, undefined);
+      assert.equal(stored?.retryAfter, undefined);
+      const persisted = JSON.parse(await readFile(settings._settingsPath, 'utf8'));
+      assert.deepEqual(persisted.homeyApi, {});
+    });
+  }
+
   it('clears persistent and in-memory profiles on logout', async () => {
     const { client } = createClient();
     await client.getHomeys({ usb: false });
@@ -583,7 +668,7 @@ describe('AthomApi persistent profile cache', () => {
     assert.deepEqual(await settings.get('homeyApi'), {});
     assert.equal(client._user, null);
     assert.equal(client._homeys.size, 0);
-    assert.equal(await client._profileCache.get(), null);
+    assert.equal((await client._profileCache.get()).user, undefined);
     const error = new APIError('Too Many Requests', 429);
     await assert.rejects(createClient(error).client.getProfile(), error);
   });

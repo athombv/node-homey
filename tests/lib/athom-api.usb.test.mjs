@@ -204,8 +204,7 @@ describe('USB opt-in discovery and connections', () => {
     AthomApiService.discoveryStrategies = ['cloud'];
     mockProbe();
     mockUsbRequests(client._api);
-    mock.method(AthomApiService, 'getHomey', async (id, options) => {
-      assert.deepEqual(options, { usb: true });
+    const resolve = mock.method(AthomApiService, 'getHomey', async (id, options) => {
       return await client.getHomey(id, options);
     });
     mock.method(AthomApiService, '_initApi', async () => {
@@ -219,6 +218,13 @@ describe('USB opt-in discovery and connections', () => {
       api.destroy();
     }
     const report = await diagnoseHomeyStrategies({ homeyId: 'homey-1', usb: true });
+
+    assert.deepEqual(
+      resolve.mock.calls.map((call) => {
+        return call.arguments[1];
+      }),
+      [{ usb: true }, { usb: false }, { usb: true }],
+    );
 
     assert.deepEqual(report.attemptedStrategyIds, ['usb']);
     assert.deepEqual(report.availableStrategyIds, ['usb']);

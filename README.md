@@ -116,7 +116,8 @@ timeout and does not persist discovery results in the account cache.
 `homey app run --remote --usb` runs the app on Homey over USB. API token mode supports
 `--token <TOKEN> --homey-id <HOMEY_ID> --usb`. An explicit `--address` cannot be combined with
 enabled USB mode; add `--no-usb` if your shell enables it. `api diagnose --usb` checks only USB
-connectivity. The `api raw` aliases `call` and `request` also accept `--usb`.
+connectivity and reports a failed `usb` attempt when the device is disconnected.
+The `api raw` aliases `call` and `request` also accept `--usb`.
 
 ## Homey API CLI
 
@@ -133,7 +134,8 @@ one minute before attempting another profile refresh. Live Homey API responses a
 
 Use `homey list --refresh` or `homey whoami --refresh` to refresh account data before the cache
 expires. These options still respect the rate-limit cooldown and fall back to cached data on 429.
-Logging in or out clears the profile cache. Cached profiles are bound to the OAuth access token
+Logging in or out clears account data from the profile cache, retaining only a random generation
+marker so pending requests cannot restore it. Cached profiles are bound to the OAuth access token
 or PAT that fetched them, so a different credential (including a rotated OAuth token) starts a new
 cache. Concurrent updates preserve newer profile data and active cooldowns. Cache I/O failures
 produce a warning without discarding a fetched profile or an available rate-limit fallback.
