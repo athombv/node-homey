@@ -378,6 +378,39 @@ describe('AthomApi persistent profile cache', () => {
     assert.equal((await client.getProfile()).id, 'new-account');
   });
 
+  it('keeps newer Homey details when an older profile request finishes last', async () => {
+    const older = createClient();
+    const started = Promise.withResolvers();
+    const response = Promise.withResolvers();
+    older.request.mock.mockImplementation(async () => {
+      started.resolve();
+      return await response.promise;
+    });
+
+    const pending = older.client.getProfile({ cache: false });
+    await started.promise;
+
+    now += 1000;
+    const updated = structuredClone(profile);
+    updated.homeys[0].localUrl = 'http://192.168.1.101';
+    const newer = createClient(updated);
+    const newerRequestStartedAt = now;
+    await newer.client.getProfile({ cache: false });
+
+    now += 1000;
+    response.resolve(structuredClone(profile));
+    await pending;
+
+    const stored = await newer.client._profileCache.get();
+    assert.deepEqual(stored.user, updated);
+    assert.equal(stored.updatedAt, newerRequestStartedAt);
+
+    const next = createClient(new Error('The newer profile should remain cached'));
+    const homey = await next.client.getHomey('homey-1');
+    assert.equal(homey.localUrl, updated.homeys[0].localUrl);
+    assert.equal(next.request.mock.callCount(), 0);
+  });
+
   for (const successFirst of [true, false]) {
     it(`preserves the refreshed profile and cooldown when ${successFirst ? 'success' : '429'} finishes first`, async () => {
       await createClient().client.getProfile();
