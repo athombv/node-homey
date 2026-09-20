@@ -1,0 +1,19 @@
+{
+  "id": "com.test.node-compose-esm",
+  "name": {
+    "en": "Compose ESM"
+  },
+  "description": {
+    "en": "A Compose and ESM fixture app."
+  },
+  "version": "1.0.0",
+  "compatibility": ">=13.2.1",
+  "sdk": 3,
+  "platforms": ["local"],
+  "author": {
+    "name": "Homey CLI Tests",
+    "email": "cli-tests@example.com"
+  },
+  "category": ["tools"],
+  "permissions": []
+}

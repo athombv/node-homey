@@ -1,0 +1,10 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "Fixture Alarm"
+  },
+  "titleShort": {
+    "en": "Alarm"
+  },
+  "getable": true
+}

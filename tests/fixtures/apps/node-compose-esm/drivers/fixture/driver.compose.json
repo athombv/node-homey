@@ -1,0 +1,7 @@
+{
+  "name": {
+    "en": "Fixture Device"
+  },
+  "class": "other",
+  "capabilities": ["alarm_fixture"]
+}
