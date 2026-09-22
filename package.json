@@ -1,6 +1,6 @@
 {
   "name": "homey",
-  "version": "4.5.0",
+  "version": "4.5.1",
   "description": "Command-line interface and type declarations for Homey Apps",
   "main": "bin/homey.js",
   "files": [
@@ -73,7 +73,7 @@
   },
   "lint-staged": {
     "**/*.{js,mjs}": [
-      "eslint --max-warnings=0 --fix"
+      "eslint --max-warnings=0 --no-warn-ignored --fix"
     ],
     "**/*.{js,mjs,json,md,yml,yaml,html}": [
       "prettier --write"
