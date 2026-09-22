@@ -1,0 +1,20 @@
+{
+  "$capabilities": {
+    "alarm_fixture": {
+      "title": "Fixturealarm",
+      "titleShort": "Alarm"
+    }
+  },
+  "$flow": {
+    "actions": {
+      "set_fixture": {
+        "title": "Stel de fixture in"
+      }
+    }
+  },
+  "$drivers": {
+    "fixture": {
+      "name": "Fixture-apparaat"
+    }
+  }
+}

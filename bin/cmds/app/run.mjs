@@ -44,6 +44,12 @@ export const builder = (yargs) => {
       default: undefined,
       type: 'string',
       desc: 'Additional location to search for candidate Python package distributions',
+    })
+    .option('docker-exposed-ports', {
+      default: [],
+      type: 'array',
+      description:
+        'Publish container ports on the host, e.g. `--docker-exposed-ports 6113/tcp 5683/udp`. Ports bind to the same port on all host interfaces, so configure your firewall accordingly. Only works when running the app inside Docker.',
     });
 };
 export const handler = async (yargs) => {
@@ -57,6 +63,7 @@ export const handler = async (yargs) => {
       network: yargs.network,
       dockerSocketPath: yargs.dockerSocketPath,
       findLinks: yargs.findLinks,
+      dockerExposedPorts: yargs.dockerExposedPorts,
     });
   } catch (err) {
     if (err instanceof Error && err.stack) {

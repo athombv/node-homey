@@ -26,6 +26,33 @@ const DYNAMIC_MANAGER_SCENARIOS = [
 ];
 
 describe('CLI api', () => {
+  it('accepts comma-separated discovery strategies before and after the command', (t) => {
+    const homeyHome = createIsolatedHomeyHome();
+    t.after(() => removeHomeyHome(homeyHome));
+
+    for (const args of [
+      ['--discovery-strategies', 'cloud, local,mdns', 'api', 'schema', '--json'],
+      ['api', 'schema', '--json', '--discovery-strategies', 'localSecure,remoteForwarded'],
+    ]) {
+      assertSuccess(runHomey(args, homeyHome), args.join(' '));
+    }
+  });
+
+  it('rejects unknown, empty, and missing discovery strategies', (t) => {
+    const homeyHome = createIsolatedHomeyHome();
+    t.after(() => removeHomeyHome(homeyHome));
+
+    for (const value of ['cloud,invalid', '', 'local,']) {
+      const result = runHomey(['api', 'schema', '--discovery-strategies', value], homeyHome);
+      assert.strictEqual(result.status, 1);
+      assert.match(result.stderr, /Invalid --discovery-strategies/);
+    }
+
+    const result = runHomey(['api', 'schema', '--discovery-strategies'], homeyHome);
+    assert.strictEqual(result.status, 1);
+    assert.match(result.stderr, /Not enough arguments following: discovery-strategies/);
+  });
+
   it('lists all supported managers in completion', (t) => {
     const homeyHome = createIsolatedHomeyHome();
     t.after(() => removeHomeyHome(homeyHome));
