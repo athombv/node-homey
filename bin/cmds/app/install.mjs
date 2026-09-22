@@ -14,6 +14,11 @@ export const builder = (yargs) => {
       alias: 's',
       type: 'boolean',
       default: false,
+    })
+    .option('slim', {
+      type: 'boolean',
+      default: false,
+      desc: 'Remove .d.ts, .d.mts, .d.cts and .map files from node_modules to reduce app size',
     });
 };
 export const handler = async (yargs) => {
@@ -24,6 +29,7 @@ export const handler = async (yargs) => {
       homey,
       clean: yargs.clean,
       skipBuild: yargs.skipBuild,
+      slim: yargs.slim,
     });
     process.exit(0);
   } catch (err) {
