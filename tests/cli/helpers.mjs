@@ -15,7 +15,10 @@ export function createIsolatedHomeyHome(extraSettings = {}) {
     ...extraSettings,
   };
 
-  fs.writeFileSync(path.join(homeyHome, 'settings.json'), JSON.stringify(settings, null, 4));
+  const settingsPath = path.join(homeyHome, 'settings.json');
+  fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 4));
+  fs.chmodSync(settingsPath, 0o600);
+
   return homeyHome;
 }
 
