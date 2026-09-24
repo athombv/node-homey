@@ -87,7 +87,7 @@ export const handler = async (yargs) => {
         `Unsupported provider "${provider}". Supported: ${Object.keys(PROVIDER_ENV).join(', ')}.`,
       );
     }
-    if (!process.env[envVar]) {
+    if (!process.env[envVar] && !process.env.HOMEY_AI_REVIEW_DRY_RUN) {
       throw new Error(
         `${envVar} is not set. Create an API key and export it, e.g.:\n  export ${envVar}="sk-…"\n  homey app review`,
       );
