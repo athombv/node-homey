@@ -49,8 +49,21 @@ export const builder = (yargs) => {
       alias: 'v',
       type: 'boolean',
       default: false,
-      description: 'Print token counts, timings, and other diagnostics.',
-    });
+      description:
+        'Print token counts, timings, the full list of files sent, and other diagnostics.',
+    })
+    .epilogue(
+      [
+        'Data handling:',
+        "  The app's source files and images are sent to the model provider you select",
+        '  with --model (OpenAI or Anthropic), using your own API key. Files that may',
+        '  contain credentials (.env, env.json, .npmrc, private keys) are never sent,',
+        '  files ignored by .homeyignore/.gitignore are skipped, and secret-shaped',
+        '  values found in the remaining source are replaced with [REDACTED:…] markers.',
+        '  A summary of what will be sent is printed before the request; use --verbose',
+        '  for the full file list.',
+      ].join('\n'),
+    );
 };
 
 export const handler = async (yargs) => {
@@ -107,6 +120,8 @@ export const handler = async (yargs) => {
       submissionType: yargs.type,
       images,
       customInstructions,
+      onExtracted: (extraction) =>
+        reportExtraction(extraction, { provider, quiet: yargs.json, verbose: yargs.verbose }),
     });
     const duration = ((Date.now() - t0) / 1000).toFixed(1);
 
@@ -122,6 +137,43 @@ export const handler = async (yargs) => {
     process.exit(1);
   }
 };
+
+/**
+ * Printed before anything leaves the machine, so it is always visible what the
+ * provider is about to receive.
+ */
+function reportExtraction(
+  { files, excluded, redactions, totalSize },
+  { provider, quiet, verbose },
+) {
+  if (quiet) return;
+
+  Log.info(
+    `→ ${files.length} source files (${(totalSize / 1024).toFixed(1)}KB) will be sent to ${provider}`,
+  );
+  if (verbose) {
+    for (const file of files) Log(colors.grey(`    ${file}`));
+  }
+
+  const secrets = excluded.filter((e) => e.reason === 'secret');
+  if (secrets.length > 0) {
+    Log(
+      colors.yellow(
+        `⚠  ${secrets.length} file(s) may contain credentials and were NOT sent: ${secrets
+          .map((e) => e.path)
+          .join(', ')}`,
+      ),
+    );
+  }
+
+  if (redactions.length > 0) {
+    Log(
+      colors.yellow(
+        `⚠  Secret-shaped values were redacted in: ${redactions.map((r) => r.path).join(', ')}`,
+      ),
+    );
+  }
+}
 
 function readCustomInstructions(appPath) {
   const file = path.join(appPath, '.homeyreview.md');
