@@ -31,6 +31,7 @@ describe('CLI select', () => {
     assert.deepStrictEqual(selectionArgs, {
       id: 'homey-1',
       name: undefined,
+      usb: undefined,
     });
   });
 
@@ -51,6 +52,7 @@ describe('CLI select', () => {
     assert.deepStrictEqual(selectionArgs, {
       id: undefined,
       name: 'Living Room',
+      usb: undefined,
     });
   });
 
