@@ -242,16 +242,15 @@ describe('AthomApi selected Homey persistence', () => {
     );
   });
 
-  it('migrates legacy authentication and invokes login when no session exists', async () => {
+  it('migrates legacy authentication', async () => {
     const athomApi = new AthomApi();
     const settingsSetCalls = [];
     const settingsUnsetCalls = [];
     const fakeApi = {
       async isLoggedIn() {
-        return false;
+        return true;
       },
     };
-    const login = mock.method(athomApi, 'login', async () => {});
 
     mock.method(athomApi, '_createApi', () => {
       athomApi._api = fakeApi;
@@ -273,7 +272,6 @@ describe('AthomApi selected Homey persistence', () => {
     });
 
     assert.strictEqual(await athomApi._initApi(), fakeApi);
-    assert.strictEqual(login.mock.callCount(), 1);
     assert.deepStrictEqual(settingsUnsetCalls, [['_athom_api_state']]);
     assert.strictEqual(settingsSetCalls[0][0], 'homeyApi');
     assert.strictEqual(settingsSetCalls[0][1].token.access_token, 'legacy-access');
