@@ -242,6 +242,21 @@ describe('AthomApi selected Homey persistence', () => {
     );
   });
 
+  it('returns an error if logged out', async () => {
+    const athomApi = new AthomApi();
+    const fakeApi = {
+      async isLoggedIn() {
+        return false;
+      },
+    };
+
+    mock.method(athomApi, '_createApi', () => {
+      athomApi._api = fakeApi;
+    });
+
+    assert.rejects(async () => await athomApi._initApi());
+  });
+
   it('migrates legacy authentication', async () => {
     const athomApi = new AthomApi();
     const settingsSetCalls = [];
