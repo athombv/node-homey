@@ -4,6 +4,8 @@ import colors from 'colors';
 import { AIReviewer } from 'homey-lib';
 
 import Log from '../../../lib/Log.js';
+import AppFactory from '../../../lib/AppFactory.js';
+import AppPython from '../../../lib/AppPython.js';
 
 const DEFAULT_MODEL = 'openai/gpt-5.4';
 const SUBMISSION_TYPES = ['new', 'update'];
@@ -75,8 +77,6 @@ export const handler = async (yargs) => {
       );
     }
 
-    const manifest = JSON.parse(fs.readFileSync(path.join(appPath, 'app.json'), 'utf-8'));
-
     const { model } = yargs;
     const slash = model.indexOf('/');
     if (slash < 0) throw new Error(`--model must be "<provider>/<model>" (got "${model}")`);
@@ -92,6 +92,11 @@ export const handler = async (yargs) => {
         `${envVar} is not set. Create an API key and export it, e.g.:\n  export ${envVar}="sk-…"\n  homey app review`,
       );
     }
+
+    // Structural rules are the validator's job: an app that fails publish
+    // validation can never reach the store review, so don't spend tokens on it.
+    await validateForPublish(appPath, { quiet: yargs.json });
+    const manifest = JSON.parse(fs.readFileSync(path.join(appPath, 'app.json'), 'utf-8'));
 
     if (model !== DEFAULT_MODEL && !yargs.json) {
       Log(
@@ -137,6 +142,22 @@ export const handler = async (yargs) => {
     process.exit(1);
   }
 };
+
+/**
+ * Same check `homey app validate` does. With --json, its progress output goes
+ * to stderr so stdout stays parseable.
+ */
+async function validateForPublish(appPath, { quiet }) {
+  const consoleLog = console.log;
+  if (quiet) console.log = console.error;
+  try {
+    const app = AppFactory.getAppInstance(appPath);
+    await app.preprocess({ copyAppProductionDependencies: app instanceof AppPython });
+    await app.validate({ level: 'publish' });
+  } finally {
+    console.log = consoleLog;
+  }
+}
 
 /**
  * Printed before anything leaves the machine, so it is always visible what the
