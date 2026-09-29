@@ -4,6 +4,8 @@ import colors from 'colors';
 import { AIReviewer } from 'homey-lib';
 
 import Log from '../../../lib/Log.js';
+import AppFactory from '../../../lib/AppFactory.js';
+import AppPython from '../../../lib/AppPython.js';
 
 const DEFAULT_MODEL = 'openai/gpt-5.4';
 const SUBMISSION_TYPES = ['new', 'update'];
@@ -49,8 +51,25 @@ export const builder = (yargs) => {
       alias: 'v',
       type: 'boolean',
       default: false,
-      description: 'Print token counts, timings, and other diagnostics.',
-    });
+      description:
+        'Print token counts, timings, the full list of files sent, and other diagnostics.',
+    })
+    .epilogue(
+      [
+        'Data handling:',
+        "  The app's source files and images are sent to the model provider you select",
+        '  with --model (OpenAI or Anthropic), using your own API key. Files that may',
+        '  contain credentials (.env, env.json, .npmrc, private keys) are never sent,',
+        '  files ignored by .homeyignore/.gitignore are skipped, and secret-shaped',
+        '  values found in the remaining source are replaced with [REDACTED:…] markers.',
+        '  A summary of what will be sent is printed before the request; use --verbose',
+        '  for the full file list.',
+        '',
+        'Not covered locally:',
+        '  Overlap with apps already in the App Store is only checked in the official',
+        '  review after submission.',
+      ].join('\n'),
+    );
 };
 
 export const handler = async (yargs) => {
@@ -62,8 +81,6 @@ export const handler = async (yargs) => {
       );
     }
 
-    const manifest = JSON.parse(fs.readFileSync(path.join(appPath, 'app.json'), 'utf-8'));
-
     const { model } = yargs;
     const slash = model.indexOf('/');
     if (slash < 0) throw new Error(`--model must be "<provider>/<model>" (got "${model}")`);
@@ -74,11 +91,16 @@ export const handler = async (yargs) => {
         `Unsupported provider "${provider}". Supported: ${Object.keys(PROVIDER_ENV).join(', ')}.`,
       );
     }
-    if (!process.env[envVar]) {
+    if (!process.env[envVar] && !process.env.HOMEY_AI_REVIEW_DRY_RUN) {
       throw new Error(
         `${envVar} is not set. Create an API key and export it, e.g.:\n  export ${envVar}="sk-…"\n  homey app review`,
       );
     }
+
+    // Structural rules are the validator's job: an app that fails publish
+    // validation can never reach the store review, so don't spend tokens on it.
+    await validateForPublish(appPath, { quiet: yargs.json });
+    const manifest = JSON.parse(fs.readFileSync(path.join(appPath, 'app.json'), 'utf-8'));
 
     if (model !== DEFAULT_MODEL && !yargs.json) {
       Log(
@@ -96,6 +118,7 @@ export const handler = async (yargs) => {
       Log.info(
         `→ ${images.length} images will be reviewed${customInstructions ? ', app-specific instructions loaded' : ''}`,
       );
+      Log.info('→ Overlap with existing App Store apps is only checked in the official review');
     }
 
     const reviewer = new AIReviewer({ modelString: model });
@@ -107,6 +130,8 @@ export const handler = async (yargs) => {
       submissionType: yargs.type,
       images,
       customInstructions,
+      onExtracted: (extraction) =>
+        reportExtraction(extraction, { provider, quiet: yargs.json, verbose: yargs.verbose }),
     });
     const duration = ((Date.now() - t0) / 1000).toFixed(1);
 
@@ -122,6 +147,59 @@ export const handler = async (yargs) => {
     process.exit(1);
   }
 };
+
+/**
+ * Same check `homey app validate` does. With --json, its progress output goes
+ * to stderr so stdout stays parseable.
+ */
+async function validateForPublish(appPath, { quiet }) {
+  const consoleLog = console.log;
+  if (quiet) console.log = console.error;
+  try {
+    const app = AppFactory.getAppInstance(appPath);
+    await app.preprocess({ copyAppProductionDependencies: app instanceof AppPython });
+    await app.validate({ level: 'publish' });
+  } finally {
+    console.log = consoleLog;
+  }
+}
+
+/**
+ * Printed before anything leaves the machine, so it is always visible what the
+ * provider is about to receive.
+ */
+function reportExtraction(
+  { files, excluded, redactions, totalSize },
+  { provider, quiet, verbose },
+) {
+  if (quiet) return;
+
+  Log.info(
+    `→ ${files.length} source files (${(totalSize / 1024).toFixed(1)}KB) will be sent to ${provider}`,
+  );
+  if (verbose) {
+    for (const file of files) Log(colors.grey(`    ${file}`));
+  }
+
+  const secrets = excluded.filter((e) => e.reason === 'secret');
+  if (secrets.length > 0) {
+    Log(
+      colors.yellow(
+        `⚠  ${secrets.length} file(s) may contain credentials and were NOT sent: ${secrets
+          .map((e) => e.path)
+          .join(', ')}`,
+      ),
+    );
+  }
+
+  if (redactions.length > 0) {
+    Log(
+      colors.yellow(
+        `⚠  Secret-shaped values were redacted in: ${redactions.map((r) => r.path).join(', ')}`,
+      ),
+    );
+  }
+}
 
 function readCustomInstructions(appPath) {
   const file = path.join(appPath, '.homeyreview.md');
