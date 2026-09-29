@@ -64,6 +64,10 @@ export const builder = (yargs) => {
         '  values found in the remaining source are replaced with [REDACTED:…] markers.',
         '  A summary of what will be sent is printed before the request; use --verbose',
         '  for the full file list.',
+        '',
+        'Not covered locally:',
+        '  Overlap with apps already in the App Store is only checked in the official',
+        '  review after submission.',
       ].join('\n'),
     );
 };
@@ -114,6 +118,7 @@ export const handler = async (yargs) => {
       Log.info(
         `→ ${images.length} images will be reviewed${customInstructions ? ', app-specific instructions loaded' : ''}`,
       );
+      Log.info('→ Overlap with existing App Store apps is only checked in the official review');
     }
 
     const reviewer = new AIReviewer({ modelString: model });
