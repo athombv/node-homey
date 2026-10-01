@@ -124,7 +124,7 @@ describe('AthomApi selected Homey persistence', () => {
         ],
       },
     ]);
-    assert.strictEqual(await result.__baseUrlPromise, 'http://10.0.0.1:80');
+    assert.strictEqual(result.__baseUrlPromise, undefined);
     assert.strictEqual(result.model, 'Homey Pro');
   });
 

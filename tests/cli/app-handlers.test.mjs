@@ -93,6 +93,7 @@ describe('CLI app handler characterization', () => {
 
     await runHandler({
       path: '/fixture/app',
+      usb: true,
       clean: true,
       remote: true,
       skipBuild: true,
@@ -105,6 +106,7 @@ describe('CLI app handler characterization', () => {
 
     assert.deepStrictEqual(calls, [
       {
+        usb: true,
         clean: true,
         remote: true,
         skipBuild: true,
@@ -123,7 +125,8 @@ describe('CLI app handler characterization', () => {
     const calls = [];
     const exits = captureExit(t);
 
-    t.mock.method(AthomApi, 'getActiveHomey', async () => {
+    t.mock.method(AthomApi, 'getActiveHomey', async (options) => {
+      assert.deepStrictEqual(options, { usb: true });
       return homey;
     });
     t.mock.method(AppFactory, 'getAppInstance', () => {
@@ -134,7 +137,7 @@ describe('CLI app handler characterization', () => {
       };
     });
 
-    await installHandler({ path: '/fixture/app', clean: true, skipBuild: true });
+    await installHandler({ path: '/fixture/app', clean: true, skipBuild: true, usb: true });
 
     assert.deepStrictEqual(calls, [{ homey, clean: true, skipBuild: true }]);
     assert.deepStrictEqual(exits, [0]);

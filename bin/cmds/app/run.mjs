@@ -1,9 +1,10 @@
 import Log from '../../../lib/Log.js';
 import AppFactory from '../../../lib/AppFactory.js';
+import { applyUsbOption } from '../../../lib/UsbOption.mjs';
 
 export const desc = 'Run a Homey App in development mode';
 export const builder = (yargs) => {
-  return yargs
+  return applyUsbOption(yargs)
     .option('clean', {
       alias: 'c',
       type: 'boolean',
@@ -56,6 +57,7 @@ export const handler = async (yargs) => {
   try {
     const app = AppFactory.getAppInstance(yargs.path);
     await app.run({
+      usb: yargs.usb,
       clean: yargs.clean,
       remote: yargs.remote,
       skipBuild: yargs.skipBuild,

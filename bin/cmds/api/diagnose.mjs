@@ -1,5 +1,6 @@
 import { logJsonError, printStructuredOutput } from '../../../lib/CliOutput.mjs';
 import Log from '../../../lib/Log.js';
+import { applyUsbOption } from '../../../lib/UsbOption.mjs';
 import {
   applyHomeyIdOption,
   applyJqOutputOption,
@@ -56,8 +57,9 @@ function printHumanReport(report) {
 }
 
 export const builder = (yargs) => {
-  return applyHomeyIdOption(applyJqOutputOption(applyJsonOutputOption(yargs)))
+  return applyUsbOption(applyHomeyIdOption(applyJqOutputOption(applyJsonOutputOption(yargs))))
     .example('$0 api diagnose', 'Diagnose discovery strategies for the selected Homey')
+    .example('$0 api diagnose --usb', 'Diagnose only the USB connection')
     .example(
       '$0 api diagnose --homey-id <id> --json',
       'Diagnose discovery strategies for a cached Homey and print JSON output',
@@ -69,6 +71,7 @@ export const handler = async (argv = {}) => {
   try {
     const report = await diagnoseHomeyStrategies({
       homeyId: argv.homeyId,
+      usb: argv.usb,
     });
 
     printStructuredOutput({

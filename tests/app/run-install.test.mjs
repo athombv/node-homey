@@ -12,6 +12,32 @@ import { copyFixtureApp } from './helpers.mjs';
 import { createFakeHomey } from './fakes.mjs';
 
 describe('app run characterization', () => {
+  for (const AppClass of [App, AppPython]) {
+    for (const remote of [false, true]) {
+      it(`keeps USB mode through ${AppClass.name} ${remote ? 'remote' : 'Docker'} execution and cleanup`, async (t) => {
+        const fixture = AppClass === AppPython ? 'python-basic' : 'node-basic';
+        const appPath = await copyFixtureApp(t, fixture);
+        const app = new AppClass(appPath);
+        const { homey, calls } = createFakeHomey();
+        const resolve = t.mock.method(AthomApi, 'getActiveHomey', async (options) => {
+          assert.deepStrictEqual(options, { usb: true });
+          return homey;
+        });
+        t.mock.method(app, remote ? 'runRemote' : 'runDocker', async (options) => {
+          assert.strictEqual(options.homey, homey);
+          app._session = { appId: 'test-app', session: 'session-1' };
+        });
+        t.mock.method(process, 'exit', () => {});
+
+        await app.run({ usb: true, remote });
+        await app._onCtrlC();
+
+        assert.strictEqual(resolve.mock.callCount(), 2);
+        assert.deepStrictEqual(calls.stopApp, [{ session: 'session-1' }]);
+      });
+    }
+  }
+
   it('routes a local Homey to the Docker runner with all options', async (t) => {
     const appPath = await copyFixtureApp(t, 'node-basic');
     const app = new App(appPath);
