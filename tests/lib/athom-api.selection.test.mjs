@@ -19,6 +19,7 @@ describe('AthomApi selected Homey persistence', () => {
     mock.method(athomApi, 'getHomey', async () => ({
       id: 'homey-id',
       usb: '10.0.0.1',
+      softwareVersion: '1.0.0',
       authenticate,
     }));
 
@@ -105,6 +106,7 @@ describe('AthomApi selected Homey persistence', () => {
         name: 'Homey Name',
         model: 'Homey Pro',
         usb: '10.0.0.1',
+        softwareVersion: '1.0.0',
         authenticate: async (options) => {
           authenticateCalls.push(options);
           return authenticatedApi;
@@ -142,6 +144,7 @@ describe('AthomApi selected Homey persistence', () => {
       return {
         id: 'homey-id',
         name: 'Homey Name',
+        softwareVersion: '1.0.0',
         authenticate: async () => {
           throw new APIErrorHomeyOffline();
         },
@@ -167,6 +170,7 @@ describe('AthomApi selected Homey persistence', () => {
         name: 'Cloud Homey',
         platform: HomeyAPI.PLATFORMS.CLOUD,
         model: 'Homey Cloud',
+        softwareVersion: '1.0.0',
         authenticate: async (options) => {
           authenticateCalls.push(options);
           return authenticatedApi;
@@ -195,6 +199,7 @@ describe('AthomApi selected Homey persistence', () => {
     mock.method(athomApi, 'getHomey', async () => {
       return {
         ...selected,
+        softwareVersion: '1.0.0',
         authenticate: async () => {
           return {};
         },
@@ -219,6 +224,7 @@ describe('AthomApi selected Homey persistence', () => {
         id: 'homey-id',
         name: 'Homey Name',
         platform: 'local',
+        softwareVersion: '1.0.0',
         authenticate: async () => {
           authenticateCalls += 1;
           return authenticatedApi;
@@ -243,6 +249,7 @@ describe('AthomApi selected Homey persistence', () => {
         id: 'homey-id',
         name: 'Homey Name',
         platform: 'local',
+        softwareVersion: '1.0.0',
         authenticate: async () => {
           throw error;
         },
