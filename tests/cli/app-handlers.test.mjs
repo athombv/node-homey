@@ -35,12 +35,15 @@ describe('CLI app handler characterization', () => {
     });
 
     await buildHandler({
+      slim: true,
       path: '/fixture/app',
       dockerSocketPath: '/tmp/docker.sock',
       findLinks: '/wheels',
     });
 
-    assert.deepStrictEqual(calls, [{ dockerSocketPath: '/tmp/docker.sock', findLinks: '/wheels' }]);
+    assert.deepStrictEqual(calls, [
+      { dockerSocketPath: '/tmp/docker.sock', findLinks: '/wheels', slim: true },
+    ]);
     assert.deepStrictEqual(exits, [0]);
   });
 
@@ -134,9 +137,9 @@ describe('CLI app handler characterization', () => {
       };
     });
 
-    await installHandler({ path: '/fixture/app', clean: true, skipBuild: true });
+    await installHandler({ path: '/fixture/app', clean: true, skipBuild: true, slim: true });
 
-    assert.deepStrictEqual(calls, [{ homey, clean: true, skipBuild: true }]);
+    assert.deepStrictEqual(calls, [{ homey, clean: true, skipBuild: true, slim: true }]);
     assert.deepStrictEqual(exits, [0]);
   });
 
@@ -153,12 +156,15 @@ describe('CLI app handler characterization', () => {
     });
 
     await publishHandler({
+      slim: true,
       path: '/fixture/app',
       dockerSocketPath: '/tmp/docker.sock',
       findLinks: '/wheels',
     });
 
-    assert.deepStrictEqual(calls, [{ dockerSocketPath: '/tmp/docker.sock', findLinks: '/wheels' }]);
+    assert.deepStrictEqual(calls, [
+      { dockerSocketPath: '/tmp/docker.sock', findLinks: '/wheels', slim: true },
+    ]);
     assert.deepStrictEqual(exits, [0]);
   });
 
