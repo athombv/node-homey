@@ -13,15 +13,44 @@ async function createLanDriver(t, discoveryAnswers) {
   const app = new App(appPath);
   const answers = [
     { driverName: 'Test Lamp' },
-    { driverId: 'test-lamp', driverClass: 'light', driverCapabilities: ['onoff'] },
+    { driverClass: 'light', driverCapabilities: ['onoff'] },
     { wirelessType: 'lan' },
     ...discoveryAnswers,
     { confirm: true },
   ];
 
-  t.mock.method(inquirer, 'prompt', async () => {
+  t.mock.method(inquirer, 'prompt', async (questions) => {
     assert.ok(answers.length > 0, 'Unexpected prompt');
-    return answers.shift();
+    const response = answers.shift();
+
+    for (const question of questions) {
+      if (response[question.name] === undefined && typeof question.default === 'function') {
+        response[question.name] = await question.default(response);
+      }
+
+      const value = response[question.name];
+
+      if (question.choices) {
+        const choices =
+          typeof question.choices === 'function'
+            ? await question.choices(response)
+            : question.choices;
+        const choiceValues = choices.map((choice) => {
+          return typeof choice === 'string' ? choice : choice.value;
+        });
+        const selectedValues = Array.isArray(value) ? value : [value];
+
+        for (const selectedValue of selectedValues) {
+          assert.ok(choiceValues.includes(selectedValue), `${question.name}: invalid choice`);
+        }
+      }
+
+      if (question.validate) {
+        assert.equal(await question.validate(value, response), true, question.name);
+      }
+    }
+
+    return response;
   });
 
   await app.createDriver();
