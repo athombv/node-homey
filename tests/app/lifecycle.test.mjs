@@ -26,6 +26,8 @@ describe('app build and validation characterization', () => {
     assert.ok(!buildTree.includes('env.json'));
     assert.ok(!buildTree.includes('ignored.txt'));
     assert.ok(!buildTree.includes('.homeychangelog.json'));
+    assert.ok(!buildTree.includes('CLAUDE.md'));
+    assert.ok(!buildTree.includes('AGENTS.md'));
   });
 
   it('builds and validates a publish-ready Node.js fixture', async (t) => {
@@ -52,6 +54,8 @@ describe('app build and validation characterization', () => {
 
     const buildTree = await listTree(path.join(appPath, '.homeybuild'));
     assert.ok(buildTree.includes('app.py'));
+    assert.ok(!buildTree.includes('CLAUDE.md'));
+    assert.ok(!buildTree.includes('AGENTS.md'));
     assert.ok(
       !buildTree.some((entry) => {
         return entry.startsWith('python_packages/');
