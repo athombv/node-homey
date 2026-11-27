@@ -103,4 +103,65 @@ describe('HomeyCompose', () => {
       nl: 'Driver Alarm NL',
     });
   });
+
+  it('extends settings of Zigbee sub devices and Z-Wave multi channel nodes', async () => {
+    const appPath = await createComposeApp();
+
+    await writeJson(path.join(appPath, '.homeycompose', 'drivers', 'settings', 'invert.json'), {
+      type: 'checkbox',
+      label: { en: 'Invert {{driverId}}' },
+      value: false,
+    });
+    await writeJson(path.join(appPath, 'drivers', 'zigbee', 'driver.compose.json'), {
+      name: { en: 'Zigbee Driver' },
+      class: 'socket',
+      capabilities: ['onoff'],
+      zigbee: {
+        devices: {
+          second: {
+            settings: [
+              { $extends: 'invert', $id: 'invert_second', value: true },
+              { type: 'group', label: { en: 'Group' }, children: [{ $extends: 'invert' }] },
+            ],
+          },
+          third: {},
+        },
+      },
+    });
+    await writeJson(path.join(appPath, 'drivers', 'zwave', 'driver.compose.json'), {
+      name: { en: 'Z-Wave Driver' },
+      class: 'socket',
+      capabilities: ['onoff'],
+      zwave: {
+        multiChannelNodes: {
+          2: { settings: [{ $extends: 'invert' }] },
+        },
+      },
+    });
+
+    await HomeyCompose.buildIfUsed(
+      {
+        hasHomeyCompose: () => true,
+        usesModules: () => false,
+      },
+      appPath,
+    );
+
+    const appJson = JSON.parse(await fs.readFile(path.join(appPath, 'app.json'), 'utf8'));
+    const [zigbeeDriver, zwaveDriver] = appJson.drivers;
+
+    assert.deepStrictEqual(zigbeeDriver.zigbee.devices.second.settings, [
+      { id: 'invert_second', type: 'checkbox', label: { en: 'Invert zigbee' }, value: true },
+      {
+        type: 'group',
+        label: { en: 'Group' },
+        children: [
+          { id: 'invert', type: 'checkbox', label: { en: 'Invert zigbee' }, value: false },
+        ],
+      },
+    ]);
+    assert.deepStrictEqual(zwaveDriver.zwave.multiChannelNodes[2].settings, [
+      { id: 'invert', type: 'checkbox', label: { en: 'Invert zwave' }, value: false },
+    ]);
+  });
 });
